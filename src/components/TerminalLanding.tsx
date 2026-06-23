@@ -119,7 +119,7 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
         </div>
 
         {/* Cinematic Header with gradient and entry reveal animation */}
-        <h1 className="landing-title text-5xl md:text-8xl font-black tracking-tight text-[var(--text-primary)] mb-2 leading-none opacity-0 [filter:blur(12px)] [transform:scale(0.96)_translateY(5px)] animate-[cinemaReveal_1.6s_var(--ease-inertial)_0.6s_forwards]">
+        <h1 className="landing-title text-5xl md:text-8xl font-black font-display tracking-tight text-[var(--text-primary)] mb-2 leading-none opacity-0 [filter:blur(12px)] [transform:scale(0.96)_translateY(5px)] animate-[cinemaReveal_1.6s_var(--ease-inertial)_0.6s_forwards]">
           nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">reference</span>
         </h1>
 
