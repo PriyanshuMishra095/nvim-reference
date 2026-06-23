@@ -18,6 +18,7 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
+  const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
 
   // Sync onLanding class list with body element
@@ -386,6 +387,7 @@ export default function App() {
             const landingHeight = window.innerHeight;
             window.scrollTo({ top: landingHeight, behavior: 'smooth' });
           }} 
+          onContribute={() => setContributeOpen(true)}
           theme={theme} 
         />
 
@@ -514,7 +516,7 @@ export default function App() {
                 </div>
                 <div>Master the modal paradigm and command your terminal with pride.</div>
                 <div className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80 mt-1">
-                  Client Host: Windows 11 x64 &nbsp;•&nbsp; Layout: Modular Studio App
+                  Client Host: Windows 11 x64
                 </div>
               </footer>
 
@@ -625,6 +627,74 @@ export default function App() {
 
         </div>
       </div>
+    
+      {/* Contribute Page View */}
+      <AnimatePresence>
+        {contributeOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-50 overflow-y-auto bg-zinc-900/90 dark:bg-[#07080a]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 text-zinc-850 dark:text-zinc-200"
+          >
+            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-8 md:p-12 rounded-3xl relative shadow-2xl">
+              {/* Close Button */}
+              <button
+                onClick={() => setContributeOpen(false)}
+                className="absolute top-6 right-6 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:text-zinc-850 dark:hover:text-white cursor-pointer active:scale-95 transition-all"
+                title="Close Contribute Panel"
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+
+              <div className="flex flex-col gap-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-400 font-mono text-[10px] uppercase tracking-wider w-fit">
+                  <span>Open Source Initiative</span>
+                </div>
+
+                <h2 className="text-4xl md:text-5xl font-black font-display text-zinc-900 dark:text-zinc-50 leading-tight">
+                  nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-teal-455">contribute</span>
+                </h2>
+
+                <div className="space-y-4 text-sm md:text-base leading-relaxed text-zinc-650 dark:text-zinc-300">
+                  <p>
+                    <strong>Why this handbook was needed:</strong> Neovim has a steep learning curve. Newbies are often overwhelmed by obscure config files and modal keystroke layouts. This website was built to help beginners master Neovim's modal paradigm on a clean, beautiful, and interactive interface.
+                  </p>
+                  <p>
+                    This is a community-driven open-source project. We invite you to join us in building, translating, and styling this handbook!
+                  </p>
+                </div>
+
+                {/* Repo Card */}
+                <a
+                  href="https://github.com/PriyanshuMishra095/Neovim-Handbook-Studio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/70 bg-zinc-50/50 dark:bg-zinc-900/20 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 hover:border-indigo-500/40 transition duration-300 group flex flex-col gap-2 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-indigo-550 dark:text-indigo-400">GitHub Repository</span>
+                    <ArrowUpCircle className="w-5 h-5 text-indigo-550 dark:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-50 break-all text-sm md:text-base">
+                    PriyanshuMishra095/Neovim-Handbook-Studio
+                  </span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    Fork the repo, submit pull requests, or open issues to participate.
+                  </span>
+                </a>
+
+                {/* LLM Disclosure Statement */}
+                <div className="p-4 rounded-xl border border-zinc-200/40 dark:border-zinc-800/40 bg-zinc-100/40 dark:bg-zinc-900/10 text-xs text-zinc-500 dark:text-zinc-550 font-mono leading-relaxed mt-2">
+                  <span className="font-bold text-zinc-700 dark:text-zinc-450 block mb-1">Full AI Disclosure:</span>
+                  This handbook interface and its system components were designed and implemented with the assistance of agentic Large Language Models (LLMs) to ensure extreme modal fidelity, liquid physics, and premium APCA aesthetics.
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

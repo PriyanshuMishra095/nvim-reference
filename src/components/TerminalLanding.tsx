@@ -2,14 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 
 interface TerminalLandingProps {
   onExplore: () => void;
+  onContribute: () => void;
   theme: 'dark' | 'light';
 }
 
-export default function TerminalLanding({ onExplore, theme }: TerminalLandingProps) {
+export default function TerminalLanding({ onExplore, onContribute, theme }: TerminalLandingProps) {
   const [scrollHintVisible, setScrollHintVisible] = useState(false);
   const gridOverlayRef = useRef<HTMLDivElement>(null);
   const exploreBtnRef = useRef<HTMLButtonElement>(null);
-  const officialBtnRef = useRef<HTMLAnchorElement>(null);
+  const contributeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // 1. Inactivity Timer for scroll prompt trigger
@@ -70,7 +71,7 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
   // 3. Magnetic button hover handler with cached rect to avoid layout thrashing
   const rectRef = useRef<DOMRect | null>(null);
 
-  const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+  const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const elem = e.currentTarget;
     let rect = rectRef.current;
@@ -91,7 +92,7 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
     elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.05)`;
   };
 
-  const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+  const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     const elem = e.currentTarget;
     rectRef.current = null;
     elem.style.transition = 'transform 0.6s var(--ease-inertial)';
@@ -113,28 +114,23 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
       {/* Main content layer */}
       <div className="relative z-10 px-6 max-w-4xl text-center flex flex-col items-center gap-6">
         
-        {/* Subtle spec tag */}
-        <div className="landing-badge inline-block font-mono text-[10px] letter-spacing-[0.18em] text-[var(--neon-indigo)] bg-[var(--border-glow)] border border-[var(--border-active)] px-[1.2rem] py-[0.45rem] rounded-full uppercase transition-all duration-300">
-          <span>Vim Modality Specifier</span>
-        </div>
-
         {/* Cinematic Header with gradient and entry reveal animation */}
-        <h1 className="landing-title text-5xl md:text-8xl font-black font-display tracking-tight text-[var(--text-primary)] mb-2 leading-none opacity-0 [filter:blur(12px)] [transform:scale(0.96)_translateY(5px)] animate-[cinemaReveal_1.6s_var(--ease-inertial)_0.6s_forwards]">
+        <h1 className="landing-title text-5xl md:text-8xl font-black font-display tracking-tight text-[var(--text-primary)] mb-2 leading-none animate-cinema-reveal">
           nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">reference</span>
         </h1>
 
         {/* Monospaced Subtitle */}
-        <p className="landing-subtitle font-mono text-sm md:text-base text-[var(--text-secondary)] tracking-[0.2em] uppercase font-bold opacity-0 [filter:blur(8px)] [transform:translateY(10px)] animate-[fadeInUpBlur_1.2s_var(--ease-inertial)_0.8s_forwards]">
+        <p className="landing-subtitle font-mono text-sm md:text-base text-[var(--text-secondary)] tracking-[0.2em] uppercase font-bold animate-fade-in-up-blur">
           One reference to rule them all
         </p>
 
         {/* Clear Description Paragraph */}
-        <p className="landing-description text-xs md:text-sm leading-relaxed max-w-2xl text-[var(--text-secondary)] mt-2 mb-6 opacity-0 [transform:translateY(15px)] animate-[fadeInUpBlur_1.2s_var(--ease-inertial)_1s_forwards]">
+        <p className="landing-description text-xs md:text-sm leading-relaxed max-w-2xl text-[var(--text-secondary)] mt-2 mb-6 animate-fade-in-up">
           Master the modal editing paradigm. Construct high-contrast visual environments, design modular Lua configuration layers, compile Tree-sitter parsers, and synthesize native autocomplete engines under Windows Terminal.
         </p>
 
         {/* Landing actions */}
-        <div className="landing-actions flex flex-col sm:flex-row gap-4 justify-center items-center opacity-0 [transform:translateY(15px)_scale(0.97)] animate-[fadeInUpScale_1s_var(--ease-inertial)_1.2s_forwards]">
+        <div className="landing-actions flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up-scale">
           <button
             ref={exploreBtnRef}
             onClick={(e) => {
@@ -143,23 +139,24 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
             }}
             onMouseMove={handleMagneticMove}
             onMouseLeave={handleMagneticLeave}
-            className="landing-btn primary-btn cursor-pointer px-[2.2rem] py-[0.85rem] font-mono text-[0.85rem] font-semibold tracking-[0.05em] rounded-lg bg-[var(--neon-indigo)] text-[#f8fafc] hover:bg-transparent hover:text-[var(--neon-indigo)] shadow-[0_8px_30px_rgba(99,102,241,0.3)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.1)] transition-all duration-300 border border-[var(--neon-indigo)] active:scale-95 hover:scale-[1.03] hover:-translate-y-[1px] transform"
+            className="landing-btn primary-btn cursor-pointer px-[2.2rem] py-[0.85rem] font-mono text-[0.85rem] font-semibold tracking-[0.05em] rounded-lg bg-[var(--neon-indigo)] text-[#f8fafc] hover:bg-transparent hover:text-[var(--neon-indigo)] shadow-[0_8px_30px_rgba(99,102,241,0.3)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.1)] transition-colors duration-300 border border-[var(--neon-indigo)] active:scale-95"
             id="explore-trigger"
           >
             Explore Handbook
           </button>
           
-          <a
-            ref={officialBtnRef}
-            href="https://neovim.io"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            ref={contributeBtnRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              onContribute();
+            }}
             onMouseMove={handleMagneticMove}
             onMouseLeave={handleMagneticLeave}
-            className="landing-btn secondary-btn cursor-pointer px-[2.2rem] py-[0.85rem] font-mono text-[0.85rem] font-semibold tracking-[0.05em] rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--border-glow)] hover:border-[var(--border-active)] transition-all duration-300 active:scale-95 hover:scale-[1.03] hover:-translate-y-[1px] transform"
+            className="landing-btn secondary-btn cursor-pointer px-[2.2rem] py-[0.85rem] font-mono text-[0.85rem] font-semibold tracking-[0.05em] rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--border-glow)] hover:border-[var(--border-active)] transition-colors duration-300 active:scale-95"
           >
-            Official Website
-          </a>
+            Contribute
+          </button>
         </div>
       </div>
 
@@ -179,4 +176,3 @@ export default function TerminalLanding({ onExplore, theme }: TerminalLandingPro
     </div>
   );
 }
-
