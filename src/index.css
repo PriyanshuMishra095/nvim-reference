@@ -1,0 +1,454 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* --- THEME ROOT CONFIGURATION --- */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --sidebar-width: 320px;
+  --max-content-width: 920px;
+  
+  /* Creative Easing Curves (High Inertia) */
+  --ease-inertial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-mechanical: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  --transition-fluid: transform 0.6s var(--ease-inertial), opacity 0.6s var(--ease-inertial), background-color 0.6s var(--ease-inertial), color 0.6s var(--ease-inertial), border-color 0.6s var(--ease-inertial), box-shadow 0.6s var(--ease-inertial);
+  --transition-snap: transform 0.25s var(--ease-mechanical), opacity 0.25s var(--ease-mechanical), background-color 0.25s var(--ease-mechanical), color 0.25s var(--ease-mechanical), border-color 0.25s var(--ease-mechanical), box-shadow 0.25s var(--ease-mechanical), border-bottom-width 0.25s var(--ease-mechanical);
+  --transition-medium: transform 0.4s var(--ease-inertial), opacity 0.4s var(--ease-inertial), background-color 0.4s var(--ease-inertial), color 0.4s var(--ease-inertial), border-color 0.4s var(--ease-inertial), box-shadow 0.4s var(--ease-inertial);
+
+  /* Stacking Context Design Tokens */
+  --z-back: -1;
+  --z-base: 1;
+  --z-nav-scroll: 10;
+  --z-overlay: 1000;
+  --z-mobile-header: 1010;
+  --z-sidebar: 1020;
+  --z-sidebar-toggle: 1030;
+  --z-controls: 1040;
+  --z-cursor-follower: 99999999;
+  --z-cursor-dot: 100000000;
+}
+
+/* ── STARK CELESTIAL CEILING (DARK MODE) ── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-void: #121214;
+  --bg-panel: rgba(22, 22, 26, 0.98);
+  --bg-surface: rgba(38, 38, 44, 0.4);
+  --bg-code: rgba(18, 18, 22, 0.9);
+  
+  --border-glow: rgba(165, 180, 252, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-active: rgba(165, 180, 252, 0.3);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #a0abc0;
+  
+  --neon-indigo: #a5b4fc;
+  --neon-teal: #7dd3fc;
+  --neon-emerald: #a7f3d0;
+  --neon-amber: #fde047;
+  --neon-crimson: #fecdd3;
+
+  /* Mode accents alignment */
+  --color-mode-normal: var(--neon-indigo);
+  --color-mode-insert: var(--neon-amber);
+  --color-mode-visual: var(--neon-emerald);
+  --color-mode-command: var(--neon-crimson);
+
+  /* Glassmorphic Cursor Setup */
+  --cursor-bg: rgba(255, 255, 255, 0.04);
+  --cursor-border: rgba(129, 140, 248, 0.5);
+  --cursor-snap-bg: rgba(129, 140, 248, 0.06);
+  --cursor-snap-border: var(--neon-indigo);
+  --kbd-bg: linear-gradient(180deg, #1e293b, #0f172a);
+  --kbd-border: #334155;
+  --kbd-text: #f8fafc;
+  --code-header-bg: rgba(10, 11, 20, 0.8);
+  --search-bg: rgba(255, 255, 255, 0.02);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  /* Particle connection color */
+  --particle-connection: rgba(99, 102, 241, 0.12);
+  --card-glow: 0 0 40px rgba(99, 102, 241, 0.03);
+}
+
+/* ── WARM TACTILE PAPER (LIGHT MODE) ── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-void: #f9f8f4;
+  --bg-panel: rgba(244, 241, 232, 0.98);
+  --bg-surface: rgba(220, 224, 250, 0.5);
+  --bg-code: rgba(235, 231, 219, 0.8);
+  
+  --border-glow: rgba(79, 70, 229, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-active: rgba(79, 70, 229, 0.25);
+  
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --text-muted: #625d54;
+  
+  --neon-indigo: #4f46e5;
+  --neon-teal: #0284c7;
+  --neon-emerald: #059669;
+  --neon-amber: #d97706;
+  --neon-crimson: #be123c;
+
+  /* Mode accents alignment */
+  --color-mode-normal: var(--neon-indigo);
+  --color-mode-insert: var(--neon-amber);
+  --color-mode-visual: var(--neon-emerald);
+  --color-mode-command: var(--neon-crimson);
+
+  /* Glassmorphic Cursor Setup */
+  --cursor-bg: rgba(0, 0, 0, 0.03);
+  --cursor-border: rgba(79, 70, 229, 0.4);
+  --cursor-snap-bg: rgba(79, 70, 229, 0.06);
+  --cursor-snap-border: var(--neon-indigo);
+  --kbd-bg: linear-gradient(180deg, #fdfdfd, #e7e5e4);
+  --kbd-border: #cbd5e1;
+  --kbd-text: #1c1917;
+  --code-header-bg: rgba(230, 226, 214, 0.8);
+  --search-bg: rgba(0, 0, 0, 0.03);
+  --glass-shadow: 0 8px 32px 0 rgba(140, 130, 110, 0.15);
+  
+  /* Particle connection color */
+  --particle-connection: rgba(79, 70, 229, 0.08);
+  --card-glow: 0 0 40px rgba(79, 70, 229, 0.02);
+}
+
+/* Hide default cursor on desktop with mouse only, preserve standard caret for inputs */
+#custom-cursor-follower {
+  display: none;
+}
+#custom-cursor-dot {
+  display: none;
+}
+
+@keyframes aiCursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+.ai-cursor-blink {
+  animation: aiCursorBlink 0.8s step-end infinite;
+}
+
+@media (pointer: fine) {
+  *, *::before, *::after, html, body, input, textarea, select, button, a {
+    cursor: none !important;
+  }
+
+  #custom-cursor-follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background-color: var(--cursor-bg);
+    border: 1px solid var(--cursor-border);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--z-cursor-follower) !important;
+    display: block;
+    transform: translate3d(-50%, -50%, 0);
+    transform-origin: center;
+    will-change: transform, width, height, border-radius;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+
+  #custom-cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background-color: var(--neon-indigo);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--z-cursor-dot) !important;
+    display: block;
+    transform: translate3d(-50%, -50%, 0);
+    transform-origin: center;
+    will-change: transform;
+    transition: opacity 0.2s ease, background-color 0.3s ease, width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
+  }
+}
+
+/* --- BASE STYLES --- */
+html {
+  background-color: var(--bg-void);
+  transition: background-color 0.6s var(--ease-inertial);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Native Webkit Scrollbars (hidden globally per reference, but support custom scrollbar tracker) */
+::-webkit-scrollbar, html::-webkit-scrollbar {
+  display: none !important;
+}
+html {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* --- GLASSMORPHISM --- */
+.glass-panel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--glass-shadow);
+}
+
+/* --- CELESTIAL ORBIT THEME TOGGLE STYLE --- */
+.celestial-toggle {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.6s var(--ease-spring), border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+}
+
+:root[data-theme="dark"] .celestial-toggle {
+  background: rgba(25, 28, 50, 0.95);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.25);
+}
+
+:root[data-theme="light"] .celestial-toggle {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.celestial-toggle:hover {
+  border-color: var(--border-active);
+  transform: scale(1.12) rotate(4deg);
+  background-color: var(--bg-surface);
+}
+
+:root[data-theme="dark"] .celestial-toggle:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 255, 255, 0.45);
+  border-color: #ffffff;
+}
+
+.orbital-svg {
+  width: 80%;
+  height: 80%;
+  overflow: visible;
+}
+
+.orbit-ring {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 0.75px;
+  stroke-dasharray: 4 4;
+  transform-origin: center;
+  transition: stroke 0.3s ease;
+}
+
+.orbit-ring.outer {
+  animation: spinOuter 30s linear infinite;
+}
+
+.orbit-ring.inner {
+  stroke-width: 0.5px;
+  stroke-dasharray: none;
+}
+
+.axial-line {
+  stroke: var(--text-secondary);
+  stroke-width: 1.25px;
+  opacity: 0.6;
+  transform-origin: center;
+  transition: transform 0.8s var(--ease-inertial), stroke 0.3s ease, opacity 0.3s ease;
+}
+
+.celestial-body {
+  transform-origin: center;
+  transition: transform 0.8s var(--ease-inertial), fill 0.5s ease;
+}
+
+.celestial-body.sun {
+  fill: var(--neon-amber);
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+}
+
+.celestial-body.moon {
+  fill: var(--text-secondary);
+}
+
+/* Hover highlights for toggle interior elements */
+.celestial-toggle:hover .orbit-ring {
+  stroke: var(--text-primary);
+}
+.celestial-toggle:hover .axial-line {
+  stroke: var(--neon-indigo);
+  opacity: 0.9;
+}
+.celestial-toggle:hover .celestial-body.moon {
+  fill: var(--neon-teal);
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
+}
+
+:root[data-theme="light"] .axial-line { transform: rotate(180deg); }
+:root[data-theme="light"] .celestial-body { transform: rotate(180deg); }
+
+@keyframes spinOuter {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --- ANIMATIONS AND KEYFRAMES --- */
+.celestial-toggle:hover .orbital-svg {
+  animation: rotateMoon 1.5s var(--ease-inertial) infinite alternate;
+}
+
+.celestial-toggle:active {
+  transform: scale(0.92) rotate(360deg);
+}
+
+.copy-btn:hover {
+  animation: floatUp 0.3s var(--ease-spring) forwards;
+}
+
+@keyframes rotateMoon {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(35deg); }
+}
+
+@keyframes shakeIcon {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-6deg) scale(1.02); }
+  75% { transform: rotate(6deg) scale(1.02); }
+}
+
+@keyframes floatUp {
+  to { transform: translateY(-3px); }
+}
+
+/* Search results flash focus animation */
+.search-flash-highlight {
+  animation: flashFocus 2s var(--ease-inertial) forwards;
+}
+
+@keyframes flashFocus {
+  0% { background-color: rgba(99, 102, 241, 0.35); box-shadow: 0 0 30px rgba(99, 102, 241, 0.4); border-radius: 8px; }
+  100% { background-color: transparent; box-shadow: none; }
+}
+
+/* Entrance Keyframes */
+@keyframes expandLine {
+  0% { width: 0%; opacity: 0; }
+  50% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+@keyframes cinemaReveal {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) translateY(0);
+    letter-spacing: -0.04em;
+  }
+}
+
+@keyframes fadeInUpBlur {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUpScale {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── SCROLLBAR HIDING & CUSTOM SCROLLBAR TRACK ── */
+.custom-scroll-track {
+  position: fixed;
+  right: 2px;
+  top: 4px;
+  bottom: 4px;
+  width: 10px;
+  z-index: var(--z-controls);
+  border-radius: 6px;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.custom-scroll-thumb {
+  position: absolute;
+  left: 1px;
+  width: 8px;
+  border-radius: 4px;
+  background: var(--text-muted);
+  opacity: 0.25;
+  transition: opacity 0.3s, background-color 0.3s, width 0.3s, left 0.3s;
+  cursor: none !important;
+}
+
+.custom-scroll-track:hover .custom-scroll-thumb,
+.custom-scroll-thumb.dragging {
+  opacity: 0.5 !important;
+}
+
+.disable-select {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+
