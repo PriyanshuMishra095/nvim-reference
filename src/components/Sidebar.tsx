@@ -126,7 +126,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
           </div>
           <div>
             <span className="font-mono font-bold tracking-tighter text-zinc-900 dark:text-zinc-50">
-              nvim://<span className="transition-colors duration-300" style={{ color: modeColor }}>handbook</span>
+              nvim://<span className="transition-colors duration-300" style={{ color: modeColor }}>reference</span>
             </span>
             <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-widest uppercase font-bold mt-0.5">RELEASE 2026.1</div>
           </div>

@@ -298,62 +298,66 @@ export default function VimStatusLine({
         className="fixed bottom-0 left-0 w-full z-40 px-4 pb-4 pointer-events-none select-none"
         style={style}
       >
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono">
+        <div className="max-w-4xl mx-auto flex items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono h-11 md:h-12 w-[calc(100%-2rem)] md:w-full">
           
-          <div className="flex flex-wrap items-stretch">
+          <div className="flex items-center h-full">
             {/* Section A: Active Mode Badge */}
             <button
               onClick={() => {
                 const nextModeMap: Record<VimMode, VimMode> = { normal: 'insert', insert: 'visual', visual: 'command', command: 'normal' };
                 setVimMode(nextModeMap[vimMode]);
               }}
-              className={`px-5 py-3.5 uppercase font-black flex items-center gap-1.5 transition-all text-[11px] leading-tight cursor-pointer ${modeSpec.bg} ${modeSpec.text}`}
+              className={`px-4 md:px-5 h-full uppercase font-black flex items-center gap-1.5 transition-all text-[11px] leading-none cursor-pointer ${modeSpec.bg} ${modeSpec.text}`}
               title="Click to switch modes manually"
             >
               <Cpu className="w-3.5 h-3.5" />
-              <span>{modeSpec.label}</span>
+              <span className="hidden xs:inline">{modeSpec.label}</span>
+              <span className="xs:hidden">{modeSpec.label[0]}</span>
             </button>
 
             {/* Section B: File Status */}
-            <div className="px-4 py-3.5 border-r border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+            <div className="px-3 md:px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
               <Folder className="w-3.5 h-3.5 text-indigo-500/70" />
-              <span>AppData/Local/nvim/<span className="font-bold text-zinc-800 dark:text-zinc-100">init.lua</span>[+]</span>
+              <span className="truncate max-w-[120px] sm:max-w-none">
+                <span className="hidden sm:inline">AppData/Local/nvim/</span><span className="font-bold text-zinc-800 dark:text-zinc-100">init.lua</span>[+]
+              </span>
             </div>
 
             {/* Section C: Curated Chapter Info */}
             {activeChapter && (
-              <div className="px-4 py-3.5 border-r border-zinc-200/50 dark:border-zinc-800/50 hidden lg:flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+              <div className="px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 hidden lg:flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                 <BookOpen className="w-3.5 h-3.5 text-emerald-500/70" />
                 <span className="text-zinc-700 dark:text-zinc-300 font-bold">Ch.{activeChapter.num}</span>
-                <span className="truncate max-w-[200px]">{activeChapter.title.split(':')[0]}</span>
+                <span className="truncate max-w-[150px]">{activeChapter.title.split(':')[0]}</span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between md:justify-end flex-1 pl-4 md:pl-0">
+          <div className="flex items-center h-full">
             {/* Registers quick toggle */}
             <button
               onClick={() => setShowRegistersTray(!showRegistersTray)}
-              className="px-4 py-3.5 border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/30 transition cursor-pointer"
+              className="px-3 md:px-4 h-full border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/30 transition cursor-pointer"
               title="View in-memory registers stack"
             >
               <Copy className="w-3.5 h-3.5 text-amber-500/80" />
-              <span className="font-bold">Registers (")</span>
+              <span className="hidden sm:inline font-bold">Registers (")</span>
+              <span className="sm:hidden font-bold">Regs</span>
             </button>
 
             {/* Mode shortcut triggers */}
-            <div className="hidden sm:flex items-center gap-1 border-l border-zinc-200/50 dark:border-zinc-800/50 px-3 py-3.5">
+            <div className="hidden sm:flex items-center gap-1 border-l border-zinc-200/50 dark:border-zinc-800/50 px-3 h-full">
               <span className="text-[10px] text-zinc-400 uppercase mr-1 font-bold">Keys:</span>
-              <kbd onClick={() => setVimMode('normal')} className={`kbd-btn px-2 py-1 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'normal' ? 'bg-[#4f46e5]/10 dark:bg-[#818cf8]/10 border-indigo-500 text-indigo-600 dark:text-indigo-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>ESC</kbd>
-              <kbd onClick={() => setVimMode('insert')} className={`kbd-btn px-2 py-1 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'insert' ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>i</kbd>
-              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-1 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
-              <kbd onClick={() => setVimMode('command')} className={`kbd-btn px-2 py-1 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'command' ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>:</kbd>
+              <kbd onClick={() => setVimMode('normal')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'normal' ? 'bg-[#4f46e5]/10 dark:bg-[#818cf8]/10 border-indigo-500 text-indigo-600 dark:text-indigo-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>ESC</kbd>
+              <kbd onClick={() => setVimMode('insert')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'insert' ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>i</kbd>
+              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
+              <kbd onClick={() => setVimMode('command')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'command' ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>:</kbd>
             </div>
 
             {/* Section E: Keyboard Tutor info icon */}
             <button
               onClick={() => setActiveHelpTopic('general')}
-              className="px-4 py-3.5 border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/40 cursor-pointer transition h-full"
+              className="px-3 md:px-4 border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/40 cursor-pointer transition h-full"
               title="Vim Interactive Help Tutor"
             >
               <HelpCircle className="w-4 h-4 animate-pulse" />
