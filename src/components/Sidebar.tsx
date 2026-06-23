@@ -118,17 +118,11 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
       {/* Brand logo header with mobile top-padding buffer */}
       <div className="p-6 pt-12 xl:pt-6 border-b border-zinc-200/50 dark:border-zinc-800/50 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <div 
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-300"
-            style={{ backgroundColor: `${modeColor}15` }}
-          >
-            <span className="font-mono font-bold tracking-tight text-lg transition-colors duration-300" style={{ color: modeColor }}>N</span>
-          </div>
           <div>
             <span className="font-mono font-bold tracking-tighter text-zinc-900 dark:text-zinc-50">
               nvim://<span className="transition-colors duration-300" style={{ color: modeColor }}>reference</span>
             </span>
-            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-widest uppercase font-bold mt-0.5">RELEASE 2026.1</div>
+            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-wider font-semibold mt-0.5">One reference to rule them all</div>
           </div>
         </div>
 
@@ -140,7 +134,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
           <input
             id="search-input-box"
             type="text"
-            placeholder="Search handbook... (Press /)"
+            placeholder="/"
             value={searchQuery}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
@@ -243,10 +237,6 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
         ))}
       </nav>
 
-      {/* Desktop sidebar footer metadata specs */}
-      <div className="p-5 border-t border-zinc-200/50 dark:border-zinc-800/55 text-[10px] font-mono text-zinc-400 dark:text-zinc-500 space-y-1 bg-zinc-50/50 dark:bg-zinc-900/10 hidden xl:block">
-        <div>Layout: Modular Astro-Style App</div>
-      </div>
     </aside>
   );
 }

@@ -451,4 +451,31 @@ html {
   display: none !important;
 }
 
+/* --- ENTRANCE ANIMATIONS REVEAL UTILITIES --- */
+.animate-cinema-reveal {
+  opacity: 0;
+  filter: blur(12px);
+  transform: scale(0.96) translateY(5px);
+  animation: cinemaReveal 1.6s var(--ease-inertial) 0.6s forwards;
+}
+
+.animate-fade-in-up-blur {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(10px);
+  animation: fadeInUpBlur 1.2s var(--ease-inertial) 0.8s forwards;
+}
+
+.animate-fade-in-up {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeInUp 1.2s var(--ease-inertial) 1.0s forwards;
+}
+
+.animate-fade-in-up-scale {
+  opacity: 0;
+  transform: translateY(15px) scale(0.97);
+  animation: fadeInUpScale 1.0s var(--ease-inertial) 1.2s forwards;
+}
+
 
