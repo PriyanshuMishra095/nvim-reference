@@ -6,6 +6,4 @@ coverage/
 *.log
 .env*
 !.env.example
-.antigravity/
-.vscode/
-.agents/
+
