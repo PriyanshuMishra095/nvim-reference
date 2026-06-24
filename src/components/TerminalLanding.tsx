@@ -150,20 +150,20 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
                 onUpdateTitle(editValue);
                 setIsEditing(false);
               }}
-              className="landing-title-input text-center bg-transparent border-b border-[var(--neon-indigo)] outline-none text-6xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] font-black font-display tracking-tight text-[var(--text-primary)] leading-none max-w-full placeholder-zinc-500 py-1"
+              className="landing-title-input text-center bg-transparent border-b border-[var(--neon-indigo)] outline-none text-4xl sm:text-5xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] font-black font-display tracking-tight text-[var(--text-primary)] leading-none max-w-full placeholder-zinc-500 py-1"
               autoFocus
             />
           ) : (
             <h1 
               onClick={() => setIsEditing(true)}
-              className="landing-title text-6xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] font-black font-display tracking-tight text-[var(--text-primary)] leading-none cursor-text transition-all duration-300 hover:opacity-90 select-text"
+              className="landing-title text-4xl sm:text-5xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem] font-black font-display tracking-tight text-[var(--text-primary)] leading-none cursor-text transition-all duration-300 hover:opacity-90 select-text"
             >
               {prefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">{suffix}</span>
             </h1>
           )}
 
           {/* Monospaced Subtitle */}
-          <p className="landing-subtitle font-mono text-sm md:text-base text-[var(--text-secondary)] tracking-[0.25em] uppercase font-bold mt-12">
+          <p className="landing-subtitle font-mono text-xs sm:text-sm md:text-base text-[var(--text-secondary)] tracking-[0.25em] uppercase font-bold mt-12">
             One reference to rule them all
           </p>
         </div>

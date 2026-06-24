@@ -663,14 +663,14 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-center p-6 text-zinc-800 dark:text-zinc-200"
+            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200"
           >
             <BackgroundCanvas theme={theme} />
-            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-8 md:p-12 rounded-3xl relative shadow-2xl z-10">
+            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10">
               {/* Close Button */}
               <button
                 onClick={() => setContributeOpen(false)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:text-zinc-850 dark:hover:text-white cursor-pointer active:scale-95 transition-all"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:text-zinc-850 dark:hover:text-white cursor-pointer active:scale-95 transition-all"
                 title="Close Contribute Panel"
               >
                 <X className="w-4.5 h-4.5" />
@@ -681,7 +681,7 @@ export default function App() {
                   <span>Open Source Initiative</span>
                 </div>
 
-                <h2 className="text-4xl md:text-5xl font-black font-display text-zinc-900 dark:text-zinc-50 leading-tight">
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-display text-zinc-900 dark:text-zinc-50 leading-tight">
                   nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">contribute</span>
                 </h2>
 
