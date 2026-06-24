@@ -77,16 +77,10 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
   }, []);
 
   // 3. Magnetic button hover handler with cached rect to avoid layout thrashing
-  const rectRef = useRef<DOMRect | null>(null);
-
   const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const elem = e.currentTarget;
-    let rect = rectRef.current;
-    if (!rect) {
-      rect = elem.getBoundingClientRect();
-      rectRef.current = rect;
-    }
+    const rect = elem.getBoundingClientRect();
     const elemX = rect.left + rect.width / 2;
     const elemY = rect.top + rect.height / 2;
     const dx = e.clientX - elemX;
@@ -103,7 +97,6 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     const elem = e.currentTarget;
-    rectRef.current = null;
     elem.style.transition = 'transform 0.6s var(--ease-inertial)';
     elem.style.transform = '';
   };
@@ -134,8 +127,8 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
       {/* Expanding horizontal entrance line matching layout.css */}
       <div className="absolute top-1/2 left-1/2 h-[1px] bg-gradient-to-r from-transparent via-[var(--neon-indigo)] via-[var(--neon-teal)] to-transparent pointer-events-none [transform:translate(-50%,-50%)] animate-[expandLine_1.4s_var(--ease-inertial)_forwards]" />
 
-      {/* Main glassmorphic elevated panel framing the landing content */}
-      <div className="relative z-10 px-8 py-12 md:px-16 md:py-16 mx-4 max-w-3xl text-center flex flex-col items-center gap-8 rounded-3xl border border-zinc-200/10 dark:border-zinc-800/20 bg-white/5 dark:bg-zinc-950/10 backdrop-blur-lg shadow-[0_30px_100px_rgba(0,0,0,0.01)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.15)] animate-[fadeInUpBlur_0.8s_var(--ease-inertial)_forwards]">
+      {/* Main content layer without container blur background */}
+      <div className="relative z-10 px-6 max-w-4xl text-center flex flex-col items-center gap-8 animate-[fadeInUpBlur_0.8s_var(--ease-inertial)_forwards]">
         
         {/* Title Container Group */}
         <div className="flex flex-col items-center gap-2">
@@ -174,11 +167,6 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
             One reference to rule them all
           </p>
         </div>
-
-        {/* Clear Description Paragraph */}
-        <p className="landing-description text-xs md:text-sm leading-relaxed max-w-xl text-[var(--text-secondary)]">
-          Master the modal editing paradigm. Construct high-contrast visual environments, design modular Lua configuration layers, compile Tree-sitter parsers, and synthesize native autocomplete engines under Windows Terminal.
-        </p>
 
         {/* Landing actions */}
         <div className="landing-actions flex flex-col sm:flex-row gap-4 justify-center items-center">

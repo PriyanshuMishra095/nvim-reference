@@ -66,7 +66,12 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       const isTitle = target.closest(".landing-title, .landing-title-input") as HTMLElement | null;
       isOverTitleRef.current = !!isTitle;
       if (isTitle) {
-        titleHeightRef.current = isTitle.getBoundingClientRect().height;
+        let fs = 64;
+        try {
+          const style = window.getComputedStyle(isTitle);
+          fs = parseFloat(style.fontSize) || 64;
+        } catch (e) {}
+        titleHeightRef.current = fs;
       }
 
       const isInput = target.closest("input, textarea, [contenteditable]");
@@ -301,10 +306,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         if (isOverTitleRef.current) {
           // Title Caret: huge vertical text cursor matching title height
-          const caretHeight = titleHeightRef.current * 0.8;
-          dot.style.width = "4px";
+          const caretHeight = titleHeightRef.current;
+          dot.style.width = "1.5px";
           dot.style.height = `${caretHeight}px`;
-          dot.style.borderRadius = "2px";
+          dot.style.borderRadius = "0px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
           dot.className = "fixed top-0 left-0 pointer-events-none transition-all duration-150 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
