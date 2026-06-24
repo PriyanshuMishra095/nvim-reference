@@ -16,7 +16,8 @@ This file serves as the single source of truth for the project's development his
 ## 2. Git & Version Control Specifications
 - **Public Repository**: `https://github.com/PriyanshuMishra095/nvim-reference.git` (or remote `origin`).
 - **Private Backup Repository**: `https://github.com/PriyanshuMishra095/nvim-reference-backup.git` (remote `backup`).
-- **Ignore list (.gitignore)**: Standardized to ignore `node_modules/`, `dist/`, `.env*`, `.vscode/`, `.antigravity/` (both `.vscode` and `.antigravity` configs untracked and excluded from git remote).
+- **Active Workflow Branch**: We are now permanently operating on the `private-backup` branch. This branch actively tracks all private files (`.agents/`, `.vscode/`, `.antigravity/`) and all git operations default to the `backup` remote. 
+- **Ignore list (.gitignore)**: Standardized to ignore `node_modules/`, `dist/`, `.env*`.
 
 ---
 
