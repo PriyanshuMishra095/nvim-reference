@@ -23,7 +23,7 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 // API Endpoint for Concept or Code Explanations
 app.post('/api/explain', async (req, res) => {
-  const { prompt, context } = req.body;
+  const { prompt, context, messages } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required.' });
@@ -36,9 +36,21 @@ app.post('/api/explain', async (req, res) => {
       "Organize the explanation into structured monospaced handbook sections. " +
       "Keep the tone sharp and content-focused. Use markdown formats.";
 
-    const contents = context 
-      ? `Context (Chapter/Section): ${context}\n\nConcept/Code to explain:\n${prompt}`
-      : prompt;
+    let contents;
+    if (messages && Array.isArray(messages)) {
+      contents = messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }));
+      contents.push({
+        role: 'user',
+        parts: [{ text: prompt }]
+      });
+    } else {
+      contents = context 
+        ? `Context (Chapter/Section): ${context}\n\nConcept/Code to explain:\n${prompt}`
+        : prompt;
+    }
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
