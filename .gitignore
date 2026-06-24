@@ -8,4 +8,5 @@ coverage/
 !.env.example
 .antigravity/
 .vscode/
+.agents/
 
