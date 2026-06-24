@@ -132,6 +132,9 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
   const [copied, setCopied] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [activeLineExplain, setActiveLineExplain] = useState<Record<string, string>>({});
+  const [terminalActive, setTerminalActive] = useState<Record<string, boolean>>({});
+  const [terminalHistory, setTerminalHistory] = useState<Record<string, string[]>>({});
+  const [terminalInput, setTerminalInput] = useState<Record<string, string>>({});
 
   // States for Settings Interactive Playground (c17-s1)
   const [optNumber, setOptNumber] = useState(true);
@@ -470,6 +473,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       const codeLines = (sec.content || '').split('\n');
       const getLineExplanation = (lineText: string) => {
         const trimmed = lineText.trim();
+        if (trimmed.length === 0) return 'BLANK LINE: Spacer for visual clarity in configuration modules.';
         if (trimmed.startsWith('--')) return 'LUA COMMENT: Explains code pathways or flags modular configurations.';
         if (trimmed.includes('require(') || trimmed.includes('require ')) return 'LUA REQUIRE: Dynamically imports sibling plugins/configs relative to runtime folders.';
         if (trimmed.includes('vim.keymap.set') || trimmed.includes('map.set') || trimmed.includes('vim.api.nvim_set_keymap')) return 'VIM.KEYMAP.SET: Maps physical keys in selective modes (HJKL, <C-h>, Esc) to direct automations.';
@@ -478,10 +482,17 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
         if (trimmed.startsWith('return ')) return 'MODULE EXPORT: Packs local configs back so requiring structures can grab them.';
         if (trimmed.includes('setup({') || trimmed.includes('.setup')) return 'INITIALIZE PORT: Hooks override parameters directly to plugin engines.';
         if (trimmed.includes('use {') || trimmed.includes('use(')) return 'PACKER REGISTRY: Registers modular package names to be downloaded automatically.';
-        return null;
+        
+        // Generic fallback for lexical AST parsing hover
+        const firstWord = trimmed.split(/[^a-zA-Z0-9_]/)[0];
+        if (firstWord) {
+          return `EXPRESSION: Executes lexical token [${firstWord}] to configure Neovim state.`;
+        }
+        return 'STATEMENT: Evaluates Lua code statements in Neovim runtime.';
       };
 
       const activeExplanation = activeLineExplain[sec.id] || null;
+      const isTerminal = terminalActive[sec.id] || false;
 
       return (
         <div id={sec.id} className="my-6 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_25px_60px_rgba(0,0,0,0.2)] overflow-hidden font-mono group/code block select-text">
@@ -490,54 +501,157 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: modeColor }} />
               <span>{sec.extraData?.filename || 'init.lua'}</span>
             </span>
-            <button
-              onClick={() => handleCopy(sec.content || '')}
-              className="flex items-center gap-1 text-zinc-400 hover:text-white transition duration-150 active:scale-95 cursor-pointer font-bold text-[11px]"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
-                  <span className="text-emerald-400">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy config</span>
-                </>
+            <div className="flex items-center gap-4">
+              {!isTerminal && (
+                <button
+                  onClick={() => handleCopy(sec.content || '')}
+                  className="flex items-center gap-1 text-zinc-400 hover:text-white transition duration-150 active:scale-95 cursor-pointer font-bold text-[11px]"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                      <span className="text-emerald-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy config</span>
+                    </>
+                  )}
+                </button>
               )}
-            </button>
+              <button
+                onClick={() => {
+                  setTerminalActive(prev => {
+                    const active = !prev[sec.id];
+                    if (active && !terminalHistory[sec.id]) {
+                      setTerminalHistory(h => ({
+                        ...h,
+                        [sec.id]: [
+                          `nvim://reference terminal sandbox v0.8.2`,
+                          `Type 'help' to see list of mock commands.`,
+                          `Type 'run' or 'compile' to execute this lua configuration.`,
+                          `----------------------------------------------------`
+                        ]
+                      }));
+                    }
+                    return { ...prev, [sec.id]: active };
+                  });
+                }}
+                className="flex items-center gap-1 text-zinc-400 hover:text-white transition duration-150 active:scale-95 cursor-pointer font-bold text-[11px]"
+              >
+                <MonitorPlay className="w-3.5 h-3.5" />
+                <span>{isTerminal ? 'Exit Sandbox' : 'Terminal Sandbox'}</span>
+              </button>
+            </div>
           </div>
           
-          <div className="px-5 py-4 overflow-x-auto text-zinc-300 text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] border-b border-zinc-900/60 space-y-0.5">
-            {codeLines.map((line, idx) => {
-              const explanation = getLineExplanation(line);
-              return (
-                <div 
-                  key={idx}
-                  onMouseEnter={() => {
-                    if (explanation) {
-                      setActiveLineExplain(prev => ({ ...prev, [sec.id]: explanation }));
-                    }
+          {isTerminal ? (
+            <div className="px-5 py-4 h-64 bg-[#0b0c10] border-b border-zinc-900/60 flex flex-col font-mono text-zinc-300 text-xs leading-relaxed">
+              <div className="flex-1 overflow-y-auto space-y-1 mb-2 pr-1 custom-scrollbar scroll-smooth">
+                {(terminalHistory[sec.id] || []).map((line, idx) => (
+                  <div key={idx} className="whitespace-pre-wrap">{line}</div>
+                ))}
+                <div ref={el => el?.scrollIntoView({ behavior: 'smooth' })} />
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const cmdRaw = terminalInput[sec.id] || '';
+                  const cmd = cmdRaw.trim();
+                  if (!cmd) return;
+                  const newHistory = [...(terminalHistory[sec.id] || []), `$ ${cmdRaw}`];
+                  const cleanCmd = cmd.toLowerCase();
+                  if (cleanCmd === 'help') {
+                    newHistory.push(
+                      `Available commands:`,
+                      `  run / compile  - Simulates running the lua config in Neovim`,
+                      `  ls             - Lists local files in runtime directory`,
+                      `  cat init.lua   - Print the contents of init.lua`,
+                      `  clear          - Clear terminal history`,
+                      `  exit           - Exit terminal sandbox`
+                    );
+                  } else if (cleanCmd === 'run' || cleanCmd === 'compile') {
+                    newHistory.push(
+                      `[info] Parsing init.lua...`,
+                      `[success] Compiled successfully without syntax errors!`,
+                      `[success] Applied settings to Neovim buffer.`
+                    );
+                  } else if (cleanCmd === 'ls') {
+                    newHistory.push(
+                      `init.lua`,
+                      `lua/`,
+                      `  plugins.lua`,
+                      `  keymaps.lua`,
+                      `  options.lua`
+                    );
+                  } else if (cleanCmd === 'cat init.lua') {
+                    newHistory.push(...(sec.content || '').split('\n'));
+                  } else if (cleanCmd === 'clear') {
+                    setTerminalHistory(h => ({ ...h, [sec.id]: [] }));
+                    setTerminalInput(inp => ({ ...inp, [sec.id]: '' }));
+                    return;
+                  } else if (cleanCmd === 'exit') {
+                    setTerminalActive(prev => ({ ...prev, [sec.id]: false }));
+                    return;
+                  } else {
+                    newHistory.push(`sh: command not found: ${cmd}. Type 'help' to view suggestions.`);
+                  }
+                  setTerminalHistory(h => ({ ...h, [sec.id]: newHistory }));
+                  setTerminalInput(inp => ({ ...inp, [sec.id]: '' }));
+                }}
+                className="flex items-center gap-1.5 border-t border-zinc-800/80 pt-2 select-none"
+              >
+                <span className="text-emerald-500 font-bold select-none">$</span>
+                <input
+                  type="text"
+                  value={terminalInput[sec.id] || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTerminalInput(inp => ({ ...inp, [sec.id]: val }));
                   }}
-                  onMouseLeave={() => {
-                    setActiveLineExplain(prev => ({ ...prev, [sec.id]: '' }));
-                  }}
-                  className={`flex gap-3 px-2 py-0.5 rounded transition duration-155 border-l-[3px] ${
-                    explanation 
-                      ? 'hover:bg-indigo-950/20 hover:border-indigo-500 border-transparent hover:text-indigo-200 cursor-help' 
-                      : 'border-transparent'
-                  }`}
-                >
-                  <span className="text-zinc-500 text-right select-none w-5 pr-1 font-bold">{idx+1}</span>
-                  <span className="flex-1 whitespace-pre">{line || ' '}</span>
-                </div>
-              );
-            })}
-          </div>
+                  className="bg-transparent flex-1 text-white outline-none font-mono text-xs"
+                  placeholder="Type a command (e.g. run, help, ls, clear)..."
+                />
+              </form>
+            </div>
+          ) : (
+            <div className="px-5 py-4 overflow-x-auto text-zinc-300 text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] border-b border-zinc-900/60 space-y-0.5">
+              {codeLines.map((line, idx) => {
+                const explanation = getLineExplanation(line);
+                return (
+                  <div 
+                    key={idx}
+                    onMouseEnter={() => {
+                      if (explanation) {
+                        setActiveLineExplain(prev => ({ ...prev, [sec.id]: explanation }));
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setActiveLineExplain(prev => ({ ...prev, [sec.id]: '' }));
+                    }}
+                    className={`flex gap-3 px-2 py-0.5 rounded transition duration-155 border-l-[3px] ${
+                      explanation 
+                        ? 'hover:bg-indigo-950/20 hover:border-indigo-500 border-transparent hover:text-indigo-200 cursor-help' 
+                        : 'border-transparent'
+                    }`}
+                  >
+                    <span className="text-zinc-500 text-right select-none w-5 pr-1 font-bold">{idx+1}</span>
+                    <span className="flex-1 whitespace-pre">{line || ' '}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Context-aware interactive AST Explanation feedback footer */}
           <div className="px-5 py-2.5 bg-zinc-900/40 text-[11px] leading-normal flex items-center gap-2 select-none">
-            {activeExplanation ? (
+            {isTerminal ? (
+              <span className="text-zinc-500 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Sandbox Terminal Active. Type commands inside the shell.</span>
+              </span>
+            ) : activeExplanation ? (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -570,7 +684,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               <thead>
                 <tr className="bg-zinc-50/50 dark:bg-zinc-900/30 border-b border-zinc-200/50 dark:border-zinc-800/80">
                   {tableData?.headers?.map((head: string, idx: number) => (
-                    <th key={idx} className="px-4 py-3 font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider text-[10px]">
+                    <th key={idx} className="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-300 uppercase tracking-wider text-[10px]">
                       {head}
                     </th>
                   ))}
@@ -580,7 +694,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 {tableData?.rows?.map((row: string[], rowIdx: number) => (
                   <tr key={rowIdx} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
                     {row.map((cell: string, cellIdx: number) => (
-                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold' : 'text-zinc-600 dark:text-zinc-350'}`} style={{ color: (cellIdx === 0) ? modeColor : '' }}>
+                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold text-zinc-950 dark:text-zinc-50' : 'text-zinc-650 dark:text-zinc-200'}`} style={{ color: cellIdx === 0 ? (vimMode === 'normal' ? 'var(--neon-indigo)' : modeColor) : '' }}>
                         {cell}
                       </td>
                     ))}

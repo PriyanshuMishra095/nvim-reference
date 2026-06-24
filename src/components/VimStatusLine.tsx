@@ -21,6 +21,7 @@ interface VimStatusLineProps {
   style?: React.CSSProperties;
   sidebarVisible?: boolean;
   setSidebarVisible?: (visible: boolean) => void;
+  onYank?: (text: string) => void;
 }
 
 export default function VimStatusLine({
@@ -38,7 +39,8 @@ export default function VimStatusLine({
   setVimMode,
   style,
   sidebarVisible = true,
-  setSidebarVisible
+  setSidebarVisible,
+  onYank
 }: VimStatusLineProps) {
   const [commandInput, setCommandInput] = useState('');
   const [showAutoComplete, setShowAutoComplete] = useState(false);
@@ -100,6 +102,7 @@ export default function VimStatusLine({
         e.preventDefault();
         setVimMode('normal');
         setActiveHelpTopic(null);
+        setShowRegistersTray(false);
         setCommandError(null);
         setCommandInput('');
         if (document.activeElement instanceof HTMLElement) {
@@ -148,11 +151,26 @@ export default function VimStatusLine({
           window.scrollBy({ top: -window.innerHeight * 0.35, behavior: 'smooth' });
         }
       }
+
+      // 2. Visual mode shortcuts (e.g. press y or v to yank browser text selection)
+      if (vimMode === 'visual') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'v' || e.key === 'V') {
+          e.preventDefault();
+          const selection = window.getSelection();
+          const selectedText = selection ? selection.toString() : '';
+          if (selectedText && selectedText.trim().length > 0 && onYank) {
+            onYank(selectedText);
+            setCommandSuccess(`Yanked selection: "${selectedText.slice(0, 24)}..." to registers!`);
+            selection?.removeAllRanges();
+          }
+          setVimMode('normal');
+        }
+      }
     };
 
     window.addEventListener('keydown', handleGlobalKeys, true);
     return () => window.removeEventListener('keydown', handleGlobalKeys, true);
-  }, [vimMode, setVimMode, sidebarVisible, setSidebarVisible]);
+  }, [vimMode, setVimMode, sidebarVisible, setSidebarVisible, onYank]);
 
   // Command Autocomplete list parser
   const getAutocompleteSuggestions = () => {
@@ -501,15 +519,15 @@ export default function VimStatusLine({
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 15, opacity: 0, scale: 0.98 }}
               transition={{ type: 'spring', damping: 25, stiffness: 240 }}
-              className="relative w-full max-w-xl rounded-xl border bg-zinc-950 shadow-2xl text-zinc-200 overflow-hidden font-mono p-4 pointer-events-auto"
+              className="relative w-full max-w-3xl rounded-xl border bg-zinc-950 shadow-2xl text-zinc-200 overflow-hidden font-mono p-6 pointer-events-auto"
               style={{ borderColor: modeColor, boxShadow: `0 30px 70px ${modeColor}25` }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Autocomplete Hints panels */}
-              <div className="mb-3 space-y-1 max-h-[140px] overflow-y-auto divide-y divide-zinc-900 border-b border-zinc-900 pb-2">
-                <div className="text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5 pb-1" style={{ color: modeColor }}>
-                  <Terminal className="w-3 h-3 animate-pulse" />
-                  <span>Run Command</span>
+              <div className="mb-4 space-y-1.5 max-h-[160px] overflow-y-auto divide-y divide-zinc-900 border-b border-zinc-900 pb-3">
+                <div className="text-[11px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5 pb-1" style={{ color: modeColor }}>
+                  <Terminal className="w-3.5 h-3.5 animate-pulse" />
+                  <span>nvim://command</span>
                 </div>
                 {getAutocompleteSuggestions().map((s) => (
                   <button
@@ -518,16 +536,16 @@ export default function VimStatusLine({
                       setCommandInput(s.cmd);
                       commandInputRef.current?.focus();
                     }}
-                    className="w-full text-left py-1.5 px-1.5 text-xs flex items-center justify-between hover:bg-zinc-900/60 rounded transition group"
+                    className="w-full text-left py-2 px-2.5 text-base flex items-center justify-between hover:bg-zinc-900/60 rounded transition group"
                   >
                     <span className="font-bold transition-colors group-hover:text-white" style={{ color: modeColor }}>{s.cmd}</span>
-                    <span className="text-[10px] text-zinc-500 line-clamp-1 truncate ml-2">{s.desc}</span>
+                    <span className="text-sm text-zinc-500 line-clamp-1 truncate ml-2">{s.desc}</span>
                   </button>
                 ))}
               </div>
 
               {/* Command text input */}
-              <form onSubmit={handleCommandFieldSubmit} className="flex items-center gap-2 w-full">
+              <form onSubmit={handleCommandFieldSubmit} className="flex items-center gap-2.5 w-full">
                 <input
                   ref={commandInputRef}
                   type="text"
@@ -546,21 +564,25 @@ export default function VimStatusLine({
                     if (!val.startsWith(':')) {
                       setVimMode('normal');
                       setCommandInput('');
+                    } else if (val.endsWith('jk')) {
+                      // jk escape sequence!
+                      setVimMode('normal');
+                      setCommandInput('');
                     } else {
                       setCommandInput(val);
                       setShowAutoComplete(true);
                     }
                   }}
                   placeholder=":type command (e.g. :chapter 8, :theme light, :registers, :help keymaps, :wq)"
-                  className="bg-transparent flex-1 text-sm text-white outline-none placeholder-zinc-750"
+                  className="bg-transparent flex-1 text-lg text-white outline-none placeholder-zinc-700"
                   style={{ caretColor: '#22c55e' }}
                 />
                 <button
                   type="submit"
-                  className="px-3 py-1 rounded border text-[10px] font-bold tracking-wider uppercase transition cursor-pointer flex items-center gap-1"
+                  className="px-4 py-2 rounded border text-sm font-bold tracking-wider uppercase transition cursor-pointer flex items-center gap-2"
                   style={{ backgroundColor: `${modeColor}15`, borderColor: `${modeColor}35`, color: modeColor }}
                 >
-                  <CornerDownLeft className="w-3 h-3" />
+                  <CornerDownLeft className="w-3.5 h-3.5" />
                   Execute
                 </button>
               </form>
@@ -649,7 +671,16 @@ export default function VimStatusLine({
                   <Copy className="w-4 h-4 text-amber-500" />
                   <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">Vim Clipboard Registers Grid</span>
                 </div>
-                <button onClick={() => setShowRegistersTray(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white font-black text-sm">✕</button>
+                <div className="flex items-center gap-2 select-none">
+                  <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold">ESC</kbd>
+                  <button
+                    onClick={() => setShowRegistersTray(false)}
+                    data-close-btn="true"
+                    className="rounded-full w-7 h-7 flex items-center justify-center border border-zinc-200/50 dark:border-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all text-zinc-400 hover:text-rose-500 cursor-pointer text-sm font-black"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               <div className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed mb-4 space-y-2">
@@ -713,18 +744,24 @@ export default function VimStatusLine({
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="relative bg-white dark:bg-zinc-950 border rounded-2xl p-6 max-w-xl w-full max-h-[80vh] overflow-y-auto shadow-2xl font-mono text-xs text-zinc-700 dark:text-zinc-300 pointer-events-auto"
+              className="relative bg-white dark:bg-zinc-950 border rounded-2xl p-8 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl font-mono text-sm text-zinc-700 dark:text-zinc-300 pointer-events-auto"
               style={{ borderColor: modeColor }}
             >
-              <div className="absolute top-[5%] right-[5%] flex items-center gap-2 select-none">
+              <div className="absolute top-[4%] right-[4%] flex items-center gap-2 select-none">
                 <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold">ESC</kbd>
-                <button onClick={() => setActiveHelpTopic(null)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white font-black text-sm">✕</button>
+                <button
+                  onClick={() => setActiveHelpTopic(null)}
+                  data-close-btn="true"
+                  className="rounded-full w-7 h-7 flex items-center justify-center border border-zinc-200/50 dark:border-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all text-zinc-400 hover:text-rose-500 cursor-pointer text-sm font-black"
+                >
+                  ✕
+                </button>
               </div>
 
               <div className="flex items-center gap-2 border-b border-zinc-200/60 dark:border-zinc-800/60 pb-3 mb-4 select-none">
                 <Terminal className="w-4 h-4" style={{ color: modeColor }} />
-                <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
-                  {activeHelpTopic === 'ai-explain' ? 'Neovim LLM Help' : `Neovim Help Documentation: ':h ${activeHelpTopic}'`}
+                <span className="font-bold text-zinc-900 dark:text-zinc-100 text-base">
+                  nvim://help
                 </span>
               </div>
 
@@ -799,7 +836,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               )}
 
                {activeHelpTopic === 'ai-explain' && (
-                <div className="space-y-4 leading-relaxed font-mono text-xs max-h-[350px] overflow-y-auto">
+                <div className="space-y-4 leading-relaxed font-mono text-sm max-h-[480px] overflow-y-auto">
                   <p className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 select-none">
                     <Sparkles className="w-4 h-4 text-purple-500 animate-pulse" />
                     <span>Neovim LLM Help</span>
@@ -828,20 +865,29 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                     )}
                     
                     {showChatInput && (
-                      <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2 border-t border-zinc-200/60 dark:border-zinc-850/60 pt-3">
+                      <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2.5 border-t border-zinc-200/60 dark:border-zinc-850/60 pt-3">
                         <span className="text-purple-500 font-bold font-mono select-none">&gt;</span>
                         <input
                           ref={chatInputRef}
                           type="text"
                           value={chatInputValue}
-                          onChange={(e) => setChatInputValue(e.target.value)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val.endsWith('jk')) {
+                              setVimMode('normal');
+                              setChatInputValue('');
+                              chatInputRef.current?.blur();
+                            } else {
+                              setChatInputValue(val);
+                            }
+                          }}
                           placeholder="Ask a follow-up question..."
-                          className="bg-transparent flex-1 text-xs text-zinc-800 dark:text-zinc-250 outline-none font-mono placeholder-zinc-700"
+                          className="bg-transparent flex-1 text-sm text-zinc-800 dark:text-zinc-250 outline-none font-mono placeholder-zinc-700"
                           style={{ caretColor: '#22c55e' }}
                         />
                         <button
                           type="submit"
-                          className="px-3 py-1 rounded bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-[10px] cursor-pointer"
+                          className="px-3.5 py-1.5 rounded bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs cursor-pointer"
                         >
                           Send
                         </button>
@@ -865,9 +911,9 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                       <div>• <kbd className="text-rose-600 dark:text-rose-400">ESC</kbd> : Normal Mode</div>
                       <div>• <kbd className="text-amber-600 dark:text-amber-500">i</kbd> : Insert (Search)</div>
                       <div>• <kbd className="text-emerald-600 dark:text-emerald-500">v</kbd> : Visual (Yank-select)</div>
-                      <div>• <kbd className="text-rose-600 dark:text-rose-500">:</kbd> : Command mode</div>
+                      <div>• <kbd className="text-rose-600 dark:text-rose-550">:</kbd> : Command mode</div>
                     </div>
-
+ 
                     <div className="p-2.5 rounded bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/60 dark:border-zinc-800/80">
                       <span className="font-black text-indigo-600 dark:text-indigo-400 block mb-1">Normal Commands</span>
                       <div>• <kbd className="text-indigo-600 dark:text-indigo-400">j</kbd> / <kbd className="text-indigo-600 dark:text-indigo-400">k</kbd> : scroll down/up</div>
@@ -883,15 +929,12 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               )}
 
               <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex justify-between items-center text-[10px] text-zinc-500 dark:text-zinc-500 select-none">
-                {activeHelpTopic !== 'ai-explain' ? (
-                  <span>Click on blue text links to jump to their help documentation.</span>
-                ) : (
-                  <span />
-                )}
+                <span />
                 {activeHelpTopic === 'ai-explain' ? (
                   !showChatInput ? (
                     <button
                       onClick={handleAskAnother}
+                      data-sparkles-btn="true"
                       className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
                       style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
                     >

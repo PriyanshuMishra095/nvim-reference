@@ -40,4 +40,6 @@ This file serves as the single source of truth for the project's development his
 - **Git Security**: Pushes default to private `backup` branch (`private-dev`). Deleted `.agents/`, `.vscode/`, `.antigravity/` from `main` history; added to `.gitignore`. Public pushes require single confirmation.
 - **Workflow Restructuring**: Created write-only `ACTIVITY_LOG.md` for detailed action logs. Replaced detailed history in `MEMORY.md` with concise "Important Events".
 - **AI Chat & Command UX**: Modal chat interface for continuous LLM dialogue; custom follow-up input in "Neovim LLM Help" with error handling; Tab autocomplete for closest matching commands; backdrop click-to-dismiss overlay with blocked bg pointer events; renamed to 'Run Command'.
+- **UX & Interaction Polish**: Scaled help and command panels; renamed headers to nvim://help and nvim://command; polished close buttons with ESC badges; synchronized Normal badge reticle inversion; added sparkles ✨ morph; reticle borders blur after 3s idle; custom sandbox terminals in code blocks; jk home-row escapes in inputs; visual mode selection text yanking; contribute overlays pushstate popstate history closing.
+
 

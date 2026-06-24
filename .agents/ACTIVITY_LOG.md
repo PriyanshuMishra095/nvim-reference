@@ -135,3 +135,23 @@ This file is a write-only log of every detailed activity performed during develo
   - Renamed the autocomplete hint panel header to 'Run Command'.
   - Removed "Click on blue links..." footer description from the AI modal.
 
+### [2026-06-25T05:05:00+05:30] Configured AI Server Validations, Scaled modals, Cursor Morphs, Terminal Sandbox, Vim jk Exit Sequence, Visual Mode yanking, Contribute overlays & readability
+- **Files Modified**:
+  - `[MODIFY] server.js` (Added process.env.GEMINI_API_KEY check returning 500 error if missing).
+  - `[MODIFY] src/App.tsx` (Speed up HUD keystrokes to 1000ms, auto-clear yank notification in 3s, Contribute backdrop click close, Escape close, browser back popstate hash closing, remove Client Host from footer).
+  - `[MODIFY] src/components/ChapterSection.tsx` (Hover fallback line descriptions, mock interactive Terminal Sandbox with custom command parser, table readability text contrast styling in dark mode).
+  - `[MODIFY] src/components/CustomCursor.tsx` (Inverted normal mode reticle, red ✕ close morph, sparkles ✨ morph, border blur when stationary for 3s).
+  - `[MODIFY] src/components/Sidebar.tsx` (Search input jk exit integration, setVimMode prop).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Command & Help modal sizes and font scale upgrades, title renames to nvim://help and nvim://command, registers ESC badge, polished close and sparkles data triggers, chat input jk exit, visual mode selection text yanking).
+  - `[MODIFY] src/index.css` (Added filter to follower transition animation list).
+- **Details**:
+  - Built comprehensive validations for missing server-side AI keys.
+  - Scaled command and help overlay sizes (`max-w-3xl`) and scaled internal text fonts.
+  - Programmed custom cursor morphs (inverted Normal button reticle, red ✕ close, spinning sparkles ✨, and idle 3s border blur).
+  - Developed full mock Terminal Sandbox mode in raw code blocks simulating common shell operations (`run`, `compile`, `ls`, `cat`, `clear`, `exit`).
+  - Added home-row `jk` exit hooks to drop text inputs out of focus back to normal mode.
+  - Implemented visual mode key yanking to copy highlighted browser text ranges.
+  - Wired Contribute page overlay dismissals (Escape, backdrop click, and history state popstate routing).
+  - Cleaned footer metadata and boosted table readability in dark mode.
+
+

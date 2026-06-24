@@ -29,6 +29,10 @@ app.post('/api/explain', async (req, res) => {
     return res.status(400).json({ error: 'Prompt is required.' });
   }
 
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'AI key configuration missing on server. Please configure GEMINI_API_KEY.' });
+  }
+
   try {
     const systemInstruction = 
       "You are an elite Neovim config architect and modal editor wizard. " +

@@ -90,8 +90,8 @@ export default function App() {
   useEffect(() => {
     if (keystrokes.length === 0) return;
     const interval = setInterval(() => {
-      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1850));
-    }, 250);
+      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1000));
+    }, 200);
     return () => clearInterval(interval);
   }, [keystrokes]);
 
@@ -143,6 +143,9 @@ export default function App() {
       'b': prev.b || text
     }));
     setYankNotification(text);
+    setTimeout(() => {
+      setYankNotification((prev) => (prev === text ? null : prev));
+    }, 3000);
   };
 
   const handleClearYankNotification = () => {
@@ -179,6 +182,48 @@ export default function App() {
       setTheme(initialTheme);
       document.documentElement.setAttribute('data-theme', initialTheme);
     }
+  }, []);
+
+  // Synchronize contributeOpen with hash/history state
+  useEffect(() => {
+    if (contributeOpen) {
+      if (window.location.hash !== '#contribute') {
+        window.history.pushState({ contribute: true }, '', '#contribute');
+      }
+    } else {
+      if (window.location.hash === '#contribute') {
+        window.history.back();
+      }
+    }
+  }, [contributeOpen]);
+
+  // Listen to popstate to close contribute when backing out, and Escape key
+  useEffect(() => {
+    const handlePopState = () => {
+      if (window.location.hash !== '#contribute') {
+        setContributeOpen(false);
+      } else {
+        setContributeOpen(true);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setContributeOpen(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+
+    if (window.location.hash === '#contribute') {
+      setContributeOpen(true);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -443,6 +488,7 @@ export default function App() {
               activeChapterId={activeChapterId} 
               onNavigateChapter={handleNavigateChapter} 
               vimMode={vimMode}
+              setVimMode={setVimMode}
               siteTitle={siteTitle}
             />
           </div>
@@ -473,6 +519,7 @@ export default function App() {
                     activeChapterId={activeChapterId} 
                     onNavigateChapter={handleNavigateChapter} 
                     vimMode={vimMode}
+                    setVimMode={setVimMode}
                     siteTitle={siteTitle}
                   />
                 </motion.div>
@@ -536,9 +583,6 @@ export default function App() {
                   <span>{siteTitle} — Release 2026</span>
                 </div>
                 <div>Master the modal paradigm and command your terminal with pride.</div>
-                <div className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80 mt-1">
-                  Client Host: Windows 11 x64
-                </div>
               </footer>
 
             </main>
@@ -663,10 +707,14 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200"
+            onClick={() => setContributeOpen(false)}
+            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-pointer"
           >
             <BackgroundCanvas theme={theme} />
-            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10">
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
+            >
               {/* Close Button */}
               <button
                 onClick={() => setContributeOpen(false)}
