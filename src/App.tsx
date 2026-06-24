@@ -18,10 +18,17 @@ export default function App() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
+  const [isSidebarPopping, setIsSidebarPopping] = useState<boolean>(false);
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
+
+  useEffect(() => {
+    setIsSidebarPopping(true);
+    const timer = setTimeout(() => setIsSidebarPopping(false), 600);
+    return () => clearTimeout(timer);
+  }, [sidebarVisible]);
 
   const handleUpdateTitle = (newTitle: string) => {
     setSiteTitle(newTitle);
@@ -553,6 +560,8 @@ export default function App() {
             onClearYankNotification={handleClearYankNotification}
             vimMode={vimMode}
             setVimMode={setVimMode}
+            sidebarVisible={sidebarVisible}
+            setSidebarVisible={setSidebarVisible}
             style={{
               transform: onLanding ? 'translate3d(0, 100%, 0)' : (modeBarVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, calc(100% + 20px), 0)'),
               transition: 'transform 0.6s var(--ease-inertial)'
@@ -565,8 +574,10 @@ export default function App() {
               onClick={() => setSidebarVisible(!sidebarVisible)}
               onMouseMove={handleMagneticMove}
               onMouseLeave={handleMagneticLeave}
-              className="hidden xl:flex fixed top-6 z-40 w-12 h-12 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all duration-500"
-              style={{ left: sidebarVisible ? '296px' : '24px' }}
+              className={`hidden xl:flex fixed top-6 z-40 w-12 h-12 items-center justify-center cursor-pointer active:scale-95 transition-all ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-[800ms] rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 shadow-md backdrop-blur-md ${
+                isSidebarPopping ? 'animate-droplet-pop' : ''
+              }`}
+              style={{ left: sidebarVisible ? '256px' : '24px' }}
               title={sidebarVisible ? "Collapse Sidebar" : "Expand Sidebar"}
             >
               <ChevronRight 
@@ -652,9 +663,10 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-zinc-900/90 dark:bg-[#07080a]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 text-zinc-850 dark:text-zinc-200"
+            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-center p-6 text-zinc-800 dark:text-zinc-200"
           >
-            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-8 md:p-12 rounded-3xl relative shadow-2xl">
+            <BackgroundCanvas theme={theme} />
+            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-8 md:p-12 rounded-3xl relative shadow-2xl z-10">
               {/* Close Button */}
               <button
                 onClick={() => setContributeOpen(false)}
@@ -670,7 +682,7 @@ export default function App() {
                 </div>
 
                 <h2 className="text-4xl md:text-5xl font-black font-display text-zinc-900 dark:text-zinc-50 leading-tight">
-                  nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-teal-455">contribute</span>
+                  nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">contribute</span>
                 </h2>
 
                 <div className="space-y-4 text-sm md:text-base leading-relaxed text-zinc-650 dark:text-zinc-300">
