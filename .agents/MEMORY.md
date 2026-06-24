@@ -76,8 +76,8 @@ This file serves as the single source of truth for the project's development his
   - Set scroll-to-top and bottom statusline hide buttons to be vertically static (`bottom-6`), and added a smooth rotation to the hide statusline chevron.
 - **UI Scaling, Vim Keybinds, & Fluid Droplet Animation (Latest)**:
   - Scaled the custom cursor text caret (width `3px` and height multiplier `1.15`) and input caret (width `2.5px` and height `22px`) on the landing page for enhanced visibility.
-  - Adjusted the landing page main title font size to a balanced `text-6xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem]`.
-  - Added vertical separation to landing content (container `gap-16`, title group `gap-4`, and subtitle `mt-12`) and scaled the subtitle text size up to `text-sm md:text-base`.
+  - Adjusted the landing page main title font size to a balanced responsive size (`text-4xl sm:text-5xl md:text-[5rem] lg:text-[6rem] xl:text-[7rem]`) to ensure it scales cleanly on small screens.
+  - Added vertical separation to landing content (container `gap-16`, title group `gap-4`, and subtitle `mt-12`) and scaled the subtitle text size up to `text-xs sm:text-sm md:text-base` for responsive readability.
   - Set the sidebar brand title text to `font-black` to make it bolder.
   - Widened the landing content container to `max-w-[95vw] xl:max-w-[85vw]` to prevent the scaled title from wrapping to two lines.
   - Polished the custom cursor morphing physics by using a faster spring constant (`rSpring = 0.32`) and higher damping (`rFriction = 0.85` friction) combined with a physical border-radius boundary clamp (`maxPhysicalR = Math.min(width/2, height/2)`) specifically for the border-radius property, preventing visual capsule/oval shape lag or overshoot when hovering over rectangle buttons.
@@ -85,3 +85,23 @@ This file serves as the single source of truth for the project's development his
   - Added global Vim key binds in `VimStatusLine.tsx`: pressing `i`/`I` in Normal mode (if selection is empty) opens the sidebar, turns on insert mode, and focuses the search input. Exiting insert mode via `Escape` automatically restores the sidebar back to hidden if it was previously hidden, and blurs active focus.
   - Redesigned the desktop collapse sidebar button: it is now always `rounded-full` (circle only) and floats at `left: 256px` (well within the borders of the sidebar) when open, and pops out to `left: 24px` with a snappy, low-viscosity fluid animation (`0.6s` runtime, `@keyframes droplet-pop` horizontal stretch and translation offset) when collapsed.
   - Fixed the contribute overlay layout to use a fully opaque solid background (rendering a secondary `<BackgroundCanvas theme={theme} />` internally with `relative z-10` overlay elements) so it displays as its own page with animating cosmic star field particles rather than showing transparently on top of existing layouts, and fixed the title gradient color (`teal-455` typo to theme's custom `var(--neon-teal)`) to prevent title text fading.
+  - Optimized the Contribute page modal for phone screens: reduced container padding to `p-5 sm:p-8`, adjusted close button alignment, scaled title text to `text-2xl sm:text-4xl`, and added vertical scrolling focus support for tiny mobile viewports.
+- **Status Bar Layout, Snapping Cursor, Registers Explanation & AI Server**:
+  - Corrected a React tag syntax mismatch in `VimStatusLine.tsx` around the status bar closing divs to restore build compilation.
+  - Eliminated `flex-shrink-0` layout constraints from Section B (File Status) and Section C (Chapter Info) in the statusline, enabling clean CSS text truncation.
+  - Configured `flex-shrink-0` on the right-hand statusline columns to ensure that the Vim Interactive Help Tutor button is never clipped or pushed out of view.
+  - Added a `.vim-statusline` selector target to the status bar container and updated `CustomCursor.tsx` to snap with a snug `-2` padding, correcting morphing mouse distortions.
+  - Expanded the in-memory registers tray explanation modal to clearly explain registers (`"`, `+`) and detail selection-yank triggers.
+  - Fully removed the `[concept]` placeholder string from command suggestion autocompletes.
+  - Verified backend server (`server.js`) connectivity running as a background task on port 3001, proxying API calls cleanly.
+- **Detailed Morphing Cursor Corners, Clickable Chapter Name, Hidden Sidebar & Autocomplete Typing Polish**:
+  - Upgraded `CustomCursor.tsx` to support 4-corner border-radius animation physics (`rTL`, `rTR`, `rBL`, `rBR`), allowing the reticle to morph perfectly around non-uniform buttons like the leftmost and rightmost status bar items (which have only left or right rounded corners).
+  - Explicitly added `rounded-l-xl` to the status bar's leftmost Mode badge button and `rounded-r-xl` to the rightmost Interactive Help button in `VimStatusLine.tsx`.
+  - Configured the registers grid modal to make the entire card container scrollable (`max-h-[85vh] overflow-y-auto`) and removed the nested scroll container to support smooth unified scrolling on all screen sizes.
+  - Defaulted the sidebar state `sidebarVisible` to `false` in `App.tsx` so it stays hidden by default when a user starts scrolling from the landing page.
+  - Transformed the Chapter Info section on the status bar into a clickable button that toggles/opens the sidebar.
+  - Improved the Vim `:` console overlay behavior: it now initializes the input box with a `:` value pre-typed, places the text cursor immediately after it, and cleanly exits console mode back to normal mode if the user backspaces or deletes the leading `:`. Removed the redundant outside colon prefix element.
+- **Blinking Green Text Input Cursors & Status Badge Cursor Contrast (Latest)**:
+  - Reprogrammed text box inputs (`isOverInputRef.current` triggers) in `CustomCursor.tsx` to display a retro blinking green block caret (just like in Vim code blocks), affecting the command-line overlay box and the sidebar search inputs.
+  - Added a `data-mode-badge` attribute to the Active Mode Badge button in `VimStatusLine.tsx` and modified the default dot background calculation in `CustomCursor.tsx` to invert to high-contrast white (light mode) or black (dark mode) when hovering over the indigo Normal mode button.
+  - Confirmed the architecture runs both the React frontend build and the backend Gemini API service unified under the Express web server (`server.js`) in production.

@@ -19,11 +19,14 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
     y: window.innerHeight / 2,
     w: 32,
     h: 32,
-    r: 16
+    rTL: 16,
+    rTR: 16,
+    rBL: 16,
+    rBR: 16
   });
 
   // Physics velocities
-  const velRef = useRef({ x: 0, y: 0, w: 0, h: 0, r: 0 });
+  const velRef = useRef({ x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 });
 
   // Interactive targets and input tracking refs
   // Interactive targets and input tracking refs
@@ -134,11 +137,16 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       const friction = 0.55;
 
       // Target dimensions and position
+
+      // Target dimensions and position
       let targetX = mouseRef.current.x;
       let targetY = mouseRef.current.y;
       let targetW = 32;
       let targetH = 32;
-      let targetR = 16;
+      let targetRTL = 16;
+      let targetRTR = 16;
+      let targetRBL = 16;
+      let targetRBR = 16;
       let targetBg = "var(--cursor-bg)";
       let targetBorder = "var(--cursor-border)";
 
@@ -206,7 +214,12 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         targetY = (1 - snapInfluence) * mouseRef.current.y + snapInfluence * thumbCenterY;
         targetW = (1 - snapInfluence) * 32 + snapInfluence * thumbW;
         targetH = (1 - snapInfluence) * 32 + snapInfluence * thumbH;
-        targetR = (1 - snapInfluence) * 16 + snapInfluence * thumbR;
+        
+        const currentR = (1 - snapInfluence) * 16 + snapInfluence * thumbR;
+        targetRTL = currentR;
+        targetRTR = currentR;
+        targetRBL = currentR;
+        targetRBR = currentR;
 
         // Visual transition: Background color fades into purple/neon-indigo
         targetBg = `rgba(99, 102, 241, ${snapInfluence})`;
@@ -224,6 +237,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         if ((activeLockElement.tagName === "A" || activeLockElement.tagName === "BUTTON") && activeLockElement.closest("aside")) {
           padding = -2; // snug fit inside sidebar rounded links and buttons
+        } else if (activeLockElement.closest(".vim-statusline")) {
+          padding = -2; // snug fit to the status bar button/item height/width
         } else if (activeLockElement.id === "search-input" || activeLockElement.id === "search-input-box") {
           padding = 4; // snug fit around search bar border
         } else if (activeLockElement.classList.contains("landing-btn")) {
@@ -235,13 +250,20 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         targetW = rect.width + padding;
         targetH = rect.height + padding;
 
-        // Get snapped target border radius
-        let br = 0;
+        // Get snapped target border radius per corner
+        let brTL = 0, brTR = 0, brBL = 0, brBR = 0;
         try {
           const style = window.getComputedStyle(activeLockElement);
-          br = parseFloat(style.borderRadius) || 0;
+          brTL = parseFloat(style.borderTopLeftRadius) || 0;
+          brTR = parseFloat(style.borderTopRightRadius) || 0;
+          brBL = parseFloat(style.borderBottomLeftRadius) || 0;
+          brBR = parseFloat(style.borderBottomRightRadius) || 0;
         } catch (e) {}
-        targetR = br + (padding / 2);
+        
+        targetRTL = brTL > 0 ? Math.max(0, brTL + padding / 2) : 0;
+        targetRTR = brTR > 0 ? Math.max(0, brTR + padding / 2) : 0;
+        targetRBL = brBL > 0 ? Math.max(0, brBL + padding / 2) : 0;
+        targetRBR = brBR > 0 ? Math.max(0, brBR + padding / 2) : 0;
       }
 
       // Update position and dimensions via spring physics
@@ -250,8 +272,11 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         cursorRef.current.y = targetY;
         cursorRef.current.w = targetW;
         cursorRef.current.h = targetH;
-        cursorRef.current.r = targetR;
-        velRef.current = { x: 0, y: 0, w: 0, h: 0, r: 0 };
+        cursorRef.current.rTL = targetRTL;
+        cursorRef.current.rTR = targetRTR;
+        cursorRef.current.rBL = targetRBL;
+        cursorRef.current.rBR = targetRBR;
+        velRef.current = { x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 };
       } else {
         velRef.current.x += (targetX - cursorRef.current.x) * spring;
         velRef.current.y += (targetY - cursorRef.current.y) * spring;
@@ -266,9 +291,22 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
         const rSpring = 0.32;
         const rFriction = 0.85; // highly damped to prevent overshoot
-        velRef.current.r += (targetR - cursorRef.current.r) * rSpring;
-        velRef.current.r *= rFriction;
-        cursorRef.current.r += velRef.current.r;
+        
+        velRef.current.rTL += (targetRTL - cursorRef.current.rTL) * rSpring;
+        velRef.current.rTL *= rFriction;
+        cursorRef.current.rTL += velRef.current.rTL;
+
+        velRef.current.rTR += (targetRTR - cursorRef.current.rTR) * rSpring;
+        velRef.current.rTR *= rFriction;
+        cursorRef.current.rTR += velRef.current.rTR;
+
+        velRef.current.rBL += (targetRBL - cursorRef.current.rBL) * rSpring;
+        velRef.current.rBL *= rFriction;
+        cursorRef.current.rBL += velRef.current.rBL;
+
+        velRef.current.rBR += (targetRBR - cursorRef.current.rBR) * rSpring;
+        velRef.current.rBR *= rFriction;
+        cursorRef.current.rBR += velRef.current.rBR;
 
         velRef.current.w *= friction;
         velRef.current.h *= friction;
@@ -277,16 +315,16 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         // Physical clamp: border radius should never exceed half of the current width or height
         const maxPhysicalR = Math.min(cursorRef.current.w / 2, cursorRef.current.h / 2);
-        if (cursorRef.current.r > maxPhysicalR) {
-          cursorRef.current.r = maxPhysicalR;
-          velRef.current.r = 0;
-        }
+        if (cursorRef.current.rTL > maxPhysicalR) { cursorRef.current.rTL = maxPhysicalR; velRef.current.rTL = 0; }
+        if (cursorRef.current.rTR > maxPhysicalR) { cursorRef.current.rTR = maxPhysicalR; velRef.current.rTR = 0; }
+        if (cursorRef.current.rBL > maxPhysicalR) { cursorRef.current.rBL = maxPhysicalR; velRef.current.rBL = 0; }
+        if (cursorRef.current.rBR > maxPhysicalR) { cursorRef.current.rBR = maxPhysicalR; velRef.current.rBR = 0; }
       }
 
       // Render follower reticle DOM styles
       reticle.style.width = `${cursorRef.current.w}px`;
       reticle.style.height = `${cursorRef.current.h}px`;
-      reticle.style.borderRadius = `${cursorRef.current.r}px`;
+      reticle.style.borderRadius = `${cursorRef.current.rTL}px ${cursorRef.current.rTR}px ${cursorRef.current.rBR}px ${cursorRef.current.rBL}px`;
       reticle.style.backgroundColor = targetBg;
       reticle.style.borderColor = targetBorder;
       reticle.style.transform = `translate3d(${cursorRef.current.x}px, ${cursorRef.current.y}px, 0) translate(-50%, -50%)`;
@@ -327,12 +365,12 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
         } else if (isOverInputRef.current) {
-          // Input Caret: thin vertical I-beam line
-          dot.style.width = "2.5px";
-          dot.style.height = "22px";
-          dot.style.borderRadius = "1.5px";
-          dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          // Input Caret: blinking green text block caret
+          dot.style.width = "8px";
+          dot.style.height = "16px";
+          dot.style.borderRadius = "0px";
+          dot.style.backgroundColor = "#22c55e";
+          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center ai-cursor-blink";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
         } else if (isOverCodeRef.current) {
@@ -368,7 +406,16 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.width = "6px";
           dot.style.height = "6px";
           dot.style.borderRadius = "50%";
-          dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
+          
+          const modeBadge = activeLockElement ? activeLockElement.closest("[data-mode-badge]") : null;
+          const hoverMode = modeBadge ? modeBadge.getAttribute("data-mode-badge") : null;
+          
+          if (hoverMode === 'normal') {
+            dot.style.backgroundColor = isDark ? "#09090b" : "#ffffff";
+          } else {
+            dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
+          }
+          
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
