@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import ChapterSection from './components/ChapterSection';
 import FloatingControls from './components/FloatingControls';
 import VimStatusLine, { VimMode } from './components/VimStatusLine';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   const [onLanding, setOnLanding] = useState<boolean>(true);
@@ -695,6 +696,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      <Analytics />
     </div>
   );
 }
