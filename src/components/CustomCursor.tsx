@@ -365,12 +365,12 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
         } else if (isOverInputRef.current) {
-          // Input Caret: blinking green text block caret
-          dot.style.width = "8px";
-          dot.style.height = "16px";
-          dot.style.borderRadius = "0px";
-          dot.style.backgroundColor = "#22c55e";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center ai-cursor-blink";
+          // Input Caret: thin vertical I-beam line
+          dot.style.width = "2.5px";
+          dot.style.height = "22px";
+          dot.style.borderRadius = "1.5px";
+          dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
+          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
         } else if (isOverCodeRef.current) {
