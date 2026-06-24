@@ -67,3 +67,9 @@ This file serves as the single source of truth for the project's development his
 - **Assets & Documentation**:
   - Set custom Neovim SVG icon as the favicon inside `index.html`.
   - Created a simple layman-friendly `README.md` containing simple clone/setup instructions and AI contribution disclosures.
+- **Interactive Cursor, Buttons & Editable Title**:
+  - Modified CustomCursor to morph into a huge text cursor matching the title height when hovering over the main title, and hid the reticle to prevent rectangular snapping.
+  - Implemented click-to-edit site title with session storage persistence synced globally to the sidebar, hero, and footer layouts.
+  - Styled both the "Explore Handbook" and "Contribute" buttons with cohesive glassmorphic secondary button styles.
+  - Wrapped the landing page in a subtle, balanced glassmorphic elevated panel to keep the layout cohesive and center the visual weight.
+  - Resolved magnetic movement jankiness by replacing instant coordinate snapping with a smooth bezier transition ease-out interpolation.

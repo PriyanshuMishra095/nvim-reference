@@ -26,12 +26,15 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
   const velRef = useRef({ x: 0, y: 0, w: 0, h: 0, r: 0 });
 
   // Interactive targets and input tracking refs
+  // Interactive targets and input tracking refs
   const lockedElementRef = useRef<HTMLElement | null>(null);
   const isOverInputRef = useRef(false);
   const isOverCodeRef = useRef(false);
   const isOverClickableRef = useRef(false);
   const isOverChecklistRef = useRef(false);
   const isChecklistCheckedRef = useRef(false);
+  const isOverTitleRef = useRef(false);
+  const titleHeightRef = useRef(80);
 
   useEffect(() => {
     // 1. Skip on touch screen / coarse pointers
@@ -44,7 +47,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
     cursorRef.current.x = window.innerWidth / 2;
     cursorRef.current.y = window.innerHeight / 2;
 
-    const hoverQuery = "aside a, kbd, button, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, #search-input, #search-input-box, .custom-scroll-thumb, .landing-btn, .landing-title, .cursor-pointer";
+    const hoverQuery = "aside a, kbd, button, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, #search-input, #search-input-box, .custom-scroll-thumb, .landing-btn, .cursor-pointer";
 
     // Unified function to query elements under the cursor coordinates
     const updateHoverState = (x: number, y: number) => {
@@ -55,19 +58,26 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         isOverClickableRef.current = false;
         isOverChecklistRef.current = false;
         isChecklistCheckedRef.current = false;
+        isOverTitleRef.current = false;
         lockedElementRef.current = null;
         return;
       }
 
+      const isTitle = target.closest(".landing-title, .landing-title-input") as HTMLElement | null;
+      isOverTitleRef.current = !!isTitle;
+      if (isTitle) {
+        titleHeightRef.current = isTitle.getBoundingClientRect().height;
+      }
+
       const isInput = target.closest("input, textarea, [contenteditable]");
-      isOverInputRef.current = !!isInput;
+      isOverInputRef.current = !!isInput && !isOverTitleRef.current;
       
-      const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .landing-title, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
-      isOverClickableRef.current = !!isClickable;
+      const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
+      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current;
 
       // Clickable items inside code block should show hand icon, not green block caret
       const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']");
-      isOverCodeRef.current = !!isCode && !isOverClickableRef.current;
+      isOverCodeRef.current = !!isCode && !isOverClickableRef.current && !isOverTitleRef.current;
 
       const checklistCard = target.closest("[data-checklist-card]") as HTMLElement | null;
       isOverChecklistRef.current = !!checklistCard;
@@ -79,7 +89,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       }
 
       const match = target.closest(hoverQuery) as HTMLElement | null;
-      lockedElementRef.current = match;
+      lockedElementRef.current = isOverTitleRef.current ? null : match;
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -264,8 +274,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       reticle.style.borderColor = targetBorder;
       reticle.style.transform = `translate3d(${cursorRef.current.x}px, ${cursorRef.current.y}px, 0) translate(-50%, -50%)`;
 
-      // Hiding circle follower only when active text input is focused OR when hovering code blocks
-      if ((isOverInputRef.current && document.activeElement === activeLockElement) || isOverCodeRef.current) {
+      // Hiding circle follower only when active text input is focused OR when hovering code blocks OR hovering the title
+      if ((isOverInputRef.current && document.activeElement === activeLockElement) || isOverCodeRef.current || isOverTitleRef.current) {
         reticle.style.opacity = "0";
       } else {
         reticle.style.opacity = "";
@@ -284,12 +294,22 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         }
 
         dot.style.transform = `translate3d(${mouseRef.current.x}px, ${mouseRef.current.y}px, 0) translate(-50%, -50%)`;
-        dot.style.opacity = (isOverInputRef.current || isOverCodeRef.current || isOverChecklistRef.current) ? "1" : dotOpacityRef.current.toString();
+        dot.style.opacity = (isOverInputRef.current || isOverCodeRef.current || isOverChecklistRef.current || isOverTitleRef.current) ? "1" : dotOpacityRef.current.toString();
 
         const tickSvg = document.getElementById("custom-cursor-tick-svg") as HTMLElement | null;
         const xSvg = document.getElementById("custom-cursor-x-svg") as HTMLElement | null;
 
-        if (isOverInputRef.current) {
+        if (isOverTitleRef.current) {
+          // Title Caret: huge vertical text cursor matching title height
+          const caretHeight = titleHeightRef.current * 0.8;
+          dot.style.width = "4px";
+          dot.style.height = `${caretHeight}px`;
+          dot.style.borderRadius = "2px";
+          dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
+          dot.className = "fixed top-0 left-0 pointer-events-none transition-all duration-150 will-change-transform z-[100000000] flex items-center justify-center";
+          if (tickSvg) tickSvg.style.opacity = "0";
+          if (xSvg) xSvg.style.opacity = "0";
+        } else if (isOverInputRef.current) {
           // Input Caret: thin vertical I-beam line
           dot.style.width = "2px";
           dot.style.height = "16px";

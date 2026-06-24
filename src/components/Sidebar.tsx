@@ -8,9 +8,10 @@ interface SidebarProps {
   activeChapterId: string;
   onNavigateChapter: (chapterId: string) => void;
   vimMode?: VimMode;
+  siteTitle?: string;
 }
 
-export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal' }: SidebarProps) {
+export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', siteTitle = 'nvim://reference' }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -120,7 +121,20 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
         <div className="flex items-center gap-2">
           <div>
             <span className="font-mono font-bold tracking-tighter text-zinc-900 dark:text-zinc-50">
-              nvim://<span className="transition-colors duration-300" style={{ color: modeColor }}>reference</span>
+              {(() => {
+                const idx = siteTitle.indexOf('://');
+                if (idx !== -1) {
+                  return (
+                    <>
+                      {siteTitle.slice(0, idx + 3)}
+                      <span className="transition-colors duration-300" style={{ color: modeColor }}>
+                        {siteTitle.slice(idx + 3)}
+                      </span>
+                    </>
+                  );
+                }
+                return <span className="transition-colors duration-300" style={{ color: modeColor }}>{siteTitle}</span>;
+              })()}
             </span>
             <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-wider font-semibold mt-0.5">One reference to rule them all</div>
           </div>

@@ -21,6 +21,24 @@ export default function App() {
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
+  const [siteTitle, setSiteTitle] = useState<string>(() => sessionStorage.getItem('site-title') || 'nvim://reference');
+
+  const handleUpdateTitle = (newTitle: string) => {
+    setSiteTitle(newTitle);
+    sessionStorage.setItem('site-title', newTitle);
+  };
+
+  const splitTitle = (title: string) => {
+    const idx = title.indexOf('://');
+    if (idx !== -1) {
+      return {
+        prefix: title.slice(0, idx + 3),
+        suffix: title.slice(idx + 3)
+      };
+    }
+    return { prefix: '', suffix: title };
+  };
+  const { prefix, suffix } = splitTitle(siteTitle);
 
   // Sync onLanding class list with body element
   useEffect(() => {
@@ -390,6 +408,8 @@ export default function App() {
           }} 
           onContribute={() => setContributeOpen(true)}
           theme={theme} 
+          siteTitle={siteTitle}
+          onUpdateTitle={handleUpdateTitle}
         />
 
         {/* Core Handbook Reader layout */}
@@ -425,6 +445,7 @@ export default function App() {
               activeChapterId={activeChapterId} 
               onNavigateChapter={handleNavigateChapter} 
               vimMode={vimMode}
+              siteTitle={siteTitle}
             />
           </div>
 
@@ -454,6 +475,7 @@ export default function App() {
                     activeChapterId={activeChapterId} 
                     onNavigateChapter={handleNavigateChapter} 
                     vimMode={vimMode}
+                    siteTitle={siteTitle}
                   />
                 </motion.div>
               </>
@@ -483,7 +505,7 @@ export default function App() {
 
                 {/* CONFIDENT Typography with adjusted line-height to prevent font clipping */}
                 <h1 className="text-4xl md:text-7xl font-black font-display text-zinc-900 dark:text-zinc-50 tracking-tight leading-[1.18] py-1 mb-6">
-                  nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400">reference</span>
+                  {prefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400">{suffix}</span>
                 </h1>
 
                 <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed max-w-2xl mb-8">
@@ -513,7 +535,7 @@ export default function App() {
               <footer className="pt-12 pb-16 border-t border-zinc-200/50 dark:border-zinc-800/70 text-center font-mono text-xs text-zinc-400 dark:text-zinc-500 space-y-3">
                 <div className="flex justify-center items-center gap-2">
                   <Terminal className="w-4 h-4 text-indigo-500" />
-                  <span>nvim://reference — Release 2026</span>
+                  <span>{siteTitle} — Release 2026</span>
                 </div>
                 <div>Master the modal paradigm and command your terminal with pride.</div>
                 <div className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80 mt-1">
