@@ -68,8 +68,9 @@ This file serves as the single source of truth for the project's development his
   - Set custom Neovim SVG icon as the favicon inside `index.html`.
   - Created a simple layman-friendly `README.md` containing simple clone/setup instructions and AI contribution disclosures.
 - **Interactive Cursor, Buttons & Editable Title**:
-  - Modified CustomCursor to morph into a huge text cursor matching the title height when hovering over the main title, and hid the reticle to prevent rectangular snapping.
-  - Implemented click-to-edit site title with session storage persistence synced globally to the sidebar, hero, and footer layouts.
-  - Styled both the "Explore Handbook" and "Contribute" buttons with cohesive glassmorphic secondary button styles.
-  - Wrapped the landing page in a subtle, balanced glassmorphic elevated panel to keep the layout cohesive and center the visual weight.
-  - Resolved magnetic movement jankiness by replacing instant coordinate snapping with a smooth bezier transition ease-out interpolation.
+  - Modified CustomCursor to morph into a thin text caret matching the title's computed font-size on hover, and hid the reticle.
+  - Implemented inline click-to-edit site title on landing with session state (resets back to default 'nvim://reference' on page refresh) synced globally.
+  - Removed description paragraph and rectangular blur wrapper from landing content to maintain a clean layout.
+  - Resolved magnetic button movement jankiness and repulsion glitches by removing shared rect state and calculating coordinates dynamically per hover event with smooth bezier transitions.
+  - Aligned expand sidebar button size (`w-12 h-12`) with the celestial theme toggle, merged it into the sidebar edge, and added a 180-degree rotation transition.
+  - Set scroll-to-top and bottom statusline hide buttons to be vertically static (`bottom-6`), and added a smooth rotation to the hide statusline chevron.
