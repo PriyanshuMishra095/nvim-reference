@@ -25,6 +25,7 @@ This file serves as the single source of truth for the project's development his
 - **Rule 1 (Double-Confirmation for Public Pushes)**: Must explicitly ask and confirm with the user TWICE before executing any `git push` command targeting the public GitHub repository (`origin`).
 - **Rule 2 (Private Backup Target)**: Default all version control operations and push commands to the private `backup` repository unless explicitly instructed otherwise.
 - **Rule 3 (Memory Maintenance)**: Always revisit this memory file (`.agents/MEMORY.md`) before working on any prompt, and update it after completing a task to ensure no historical details are lost. Always let the user know what was updated or removed.
+- **Rule 4 (Context/Memory Clearance Exception)**: When explicitly asked to 'Clear your contexts' or 'Clear your memory', do not update the memory file or modify any files for that command.
 
 ---
 
