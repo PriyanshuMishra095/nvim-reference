@@ -465,6 +465,7 @@ export default function VimStatusLine({
                   }}
                   placeholder=":type command (e.g. :chapter 8, :theme light, :registers, :help keymaps, :wq)"
                   className="bg-transparent flex-1 text-sm text-white outline-none placeholder-zinc-700"
+                  style={{ caretColor: '#22c55e' }}
                 />
                 <button
                   type="submit"
@@ -634,7 +635,9 @@ export default function VimStatusLine({
 
               <div className="flex items-center gap-2 border-b border-zinc-200/60 dark:border-zinc-800/60 pb-3 mb-4 select-none">
                 <Terminal className="w-4 h-4" style={{ color: modeColor }} />
-                <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">Neovim Help Documentation: ':h {activeHelpTopic}'</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                  {activeHelpTopic === 'ai-explain' ? 'Neovim LLM Help' : `Neovim Help Documentation: ':h ${activeHelpTopic}'`}
+                </span>
               </div>
 
               {/* Dynamic explanations */}
@@ -711,7 +714,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                 <div className="space-y-4 leading-relaxed font-mono text-xs max-h-[350px] overflow-y-auto">
                   <p className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-purple-500 animate-pulse" />
-                    <span>Gemini AI Explains...</span>
+                    <span>Neovim LLM Help</span>
                   </p>
                   {aiLoading ? (
                     <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-500 py-6 justify-center">
@@ -758,14 +761,28 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               )}
 
               <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex justify-between items-center text-[10px] text-zinc-500 dark:text-zinc-500 select-none">
-                <span>Navigate blue links: Press Ctrl+]</span>
-                <button
-                  onClick={() => setActiveHelpTopic(null)}
-                  className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
-                  style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
-                >
-                  Discard help
-                </button>
+                <span>Click on blue text links to jump to their help documentation.</span>
+                {activeHelpTopic === 'ai-explain' ? (
+                  <button
+                    onClick={() => {
+                      setActiveHelpTopic(null);
+                      setVimMode('command');
+                      setCommandInput(':explain ');
+                    }}
+                    className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
+                    style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
+                  >
+                    Ask another question
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setActiveHelpTopic(null)}
+                    className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
+                    style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
+                  >
+                    Discard help
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

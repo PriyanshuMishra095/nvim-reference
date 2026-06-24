@@ -167,7 +167,8 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
             className="w-full pl-9 pr-8 py-2 font-mono text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200/30 dark:border-zinc-800 rounded-lg outline-none transition-all duration-300"
             style={{
               borderColor: isFocused ? modeColor : '',
-              boxShadow: isFocused ? `${modeColor}20 0 0 0 3px` : ''
+              boxShadow: isFocused ? `${modeColor}20 0 0 0 3px` : '',
+              caretColor: '#22c55e'
             }}
           />
           {searchQuery && (
