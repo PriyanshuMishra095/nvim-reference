@@ -101,7 +101,11 @@ This file serves as the single source of truth for the project's development his
   - Defaulted the sidebar state `sidebarVisible` to `false` in `App.tsx` so it stays hidden by default when a user starts scrolling from the landing page.
   - Transformed the Chapter Info section on the status bar into a clickable button that toggles/opens the sidebar.
   - Improved the Vim `:` console overlay behavior: it now initializes the input box with a `:` value pre-typed, places the text cursor immediately after it, and cleanly exits console mode back to normal mode if the user backspaces or deletes the leading `:`. Removed the redundant outside colon prefix element.
-- **Blinking Green Text Input Cursors & Status Badge Cursor Contrast (Latest)**:
+- **Blinking Green Text Input Cursors & Status Badge Cursor Contrast**:
   - Reprogrammed text box inputs (`isOverInputRef.current` triggers) in `CustomCursor.tsx` to display a retro blinking green block caret (just like in Vim code blocks), affecting the command-line overlay box and the sidebar search inputs.
   - Added a `data-mode-badge` attribute to the Active Mode Badge button in `VimStatusLine.tsx` and modified the default dot background calculation in `CustomCursor.tsx` to invert to high-contrast white (light mode) or black (dark mode) when hovering over the indigo Normal mode button.
   - Confirmed the architecture runs both the React frontend build and the backend Gemini API service unified under the Express web server (`server.js`) in production.
+- **Vercel API Configuration, LLM Help Redesign & Public History Purge (Latest)**:
+  - Created a Vercel Serverless Function under `api/explain.js` to route and execute Gemini API requests on Vercel deployments.
+  - Redesigned the AI Explanation modal layout: renamed to "Neovim LLM Help", simplified the footer text, and changed the primary button to "Ask another question" which triggers auto-opening of the console prefilled with `:explain `.
+  - Completely purged `.antigravity/`, `.vscode/`, and `.agents/` directories and their history from the public `main` branch. Added `.agents/` to `.gitignore` on `main`, keeping the public branch clean while keeping `.agents/` tracked on `private-dev` for private backup repository sync.
