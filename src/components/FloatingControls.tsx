@@ -10,16 +10,10 @@ interface FloatingControlsProps {
 
 export default function FloatingControls({ theme, vimMode = 'normal', onToggleTheme, onOpenPlayground }: FloatingControlsProps) {
   
-  const rectRef = useRef<DOMRect | null>(null);
-
   const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const elem = e.currentTarget;
-    let rect = rectRef.current;
-    if (!rect) {
-      rect = elem.getBoundingClientRect();
-      rectRef.current = rect;
-    }
+    const rect = elem.getBoundingClientRect();
     const elemX = rect.left + rect.width / 2;
     const elemY = rect.top + rect.height / 2;
     const dx = e.clientX - elemX;
@@ -29,13 +23,12 @@ export default function FloatingControls({ theme, vimMode = 'normal', onToggleTh
     const pullX = (dx / (rect.width / 2)) * maxPull;
     const pullY = (dy / (rect.height / 2)) * maxPull;
 
-    elem.style.transition = 'none';
-    elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.05)`;
+    elem.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1)';
+    elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.04)`;
   };
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     const elem = e.currentTarget;
-    rectRef.current = null;
     elem.style.transition = 'transform 0.6s var(--ease-spring), border-color 0.3s, background-color 0.3s, box-shadow 0.3s';
     elem.style.transform = '';
   };

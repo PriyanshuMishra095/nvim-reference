@@ -21,11 +21,10 @@ export default function App() {
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
-  const [siteTitle, setSiteTitle] = useState<string>(() => sessionStorage.getItem('site-title') || 'nvim://reference');
+  const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
 
   const handleUpdateTitle = (newTitle: string) => {
     setSiteTitle(newTitle);
-    sessionStorage.setItem('site-title', newTitle);
   };
 
   const splitTitle = (title: string) => {
@@ -45,31 +44,23 @@ export default function App() {
     document.body.classList.toggle('on-landing', onLanding);
   }, [onLanding]);
 
-  // Magnetic attraction handler for buttons with bounding rect caching to avoid layout thrashing
-  const rectRef = useRef<DOMRect | null>(null);
-
   const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const elem = e.currentTarget;
-    let rect = rectRef.current;
-    if (!rect) {
-      rect = elem.getBoundingClientRect();
-      rectRef.current = rect;
-    }
+    const rect = elem.getBoundingClientRect();
     const elemX = rect.left + rect.width / 2;
     const elemY = rect.top + rect.height / 2;
     const dx = e.clientX - elemX;
     const dy = e.clientY - elemY;
-    const maxPull = 10;
+    const maxPull = 12;
     const pullX = (dx / (rect.width / 2)) * maxPull;
     const pullY = (dy / (rect.height / 2)) * maxPull;
-    elem.style.transition = 'none';
-    elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.05)`;
+    elem.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1)';
+    elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.04)`;
   };
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     const elem = e.currentTarget;
-    rectRef.current = null;
     elem.style.transition = 'transform 0.6s var(--ease-inertial)';
     elem.style.transform = '';
   };
@@ -574,11 +565,14 @@ export default function App() {
               onClick={() => setSidebarVisible(!sidebarVisible)}
               onMouseMove={handleMagneticMove}
               onMouseLeave={handleMagneticLeave}
-              className="hidden xl:flex fixed top-6 z-40 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md items-center justify-center text-zinc-500 hover:text-indigo-500 shadow-sm cursor-pointer active:scale-95 transition-all duration-500"
-              style={{ left: sidebarVisible ? '336px' : '24px' }}
+              className="hidden xl:flex fixed top-6 z-40 w-12 h-12 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all duration-500"
+              style={{ left: sidebarVisible ? '296px' : '24px' }}
               title={sidebarVisible ? "Collapse Sidebar" : "Expand Sidebar"}
             >
-              {sidebarVisible ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              <ChevronRight 
+                className="w-5 h-5 text-zinc-500 hover:text-indigo-500 transition-transform duration-500" 
+                style={{ transform: sidebarVisible ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+              />
             </button>
           )}
 
@@ -588,12 +582,13 @@ export default function App() {
               onClick={() => setModeBarVisible(!modeBarVisible)}
               onMouseMove={handleMagneticMove}
               onMouseLeave={handleMagneticLeave}
-              className={`fixed right-6 z-40 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center text-zinc-500 hover:text-indigo-500 shadow-sm cursor-pointer active:scale-95 transition-all duration-500 ${
-                modeBarVisible ? 'bottom-[64px]' : 'bottom-6'
-              }`}
+              className="fixed right-6 bottom-6 z-40 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all duration-500"
               title={modeBarVisible ? "Hide Statusline" : "Show Statusline"}
             >
-              {modeBarVisible ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              <ChevronDown 
+                className="w-4 h-4 text-zinc-500 hover:text-indigo-500 transition-transform duration-500" 
+                style={{ transform: modeBarVisible ? 'rotate(0deg)' : 'rotate(180deg)' }} 
+              />
             </button>
           )}
 
@@ -608,10 +603,8 @@ export default function App() {
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 onMouseMove={handleMagneticMove}
                 onMouseLeave={handleMagneticLeave}
-                className={`fixed z-30 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center text-indigo-500 hover:text-indigo-600 shadow-lg shadow-indigo-500/10 cursor-pointer transition-all duration-500 ${
+                 className={`fixed z-30 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center text-indigo-500 hover:text-indigo-600 shadow-lg shadow-indigo-500/10 cursor-pointer transition-all duration-500 bottom-6 ${
                   sidebarVisible && !onLanding ? 'xl:left-[340px] left-6' : 'left-6'
-                } ${
-                  modeBarVisible ? 'bottom-[64px]' : 'bottom-6'
                 }`}
                 title="Scroll back to structural top"
               >
