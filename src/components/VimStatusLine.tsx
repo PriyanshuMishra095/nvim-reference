@@ -54,8 +54,13 @@ export default function VimStatusLine({
   // Focus command prompt when mode sets to command
   useEffect(() => {
     if (vimMode === 'command') {
+      setCommandInput(':');
       setTimeout(() => {
-        commandInputRef.current?.focus();
+        if (commandInputRef.current) {
+          commandInputRef.current.focus();
+          commandInputRef.current.selectionStart = 1;
+          commandInputRef.current.selectionEnd = 1;
+        }
       }, 50);
     } else {
       setCommandInput('');
@@ -186,7 +191,7 @@ export default function VimStatusLine({
       run: () => setShowRegistersTray(true)
     });
     suggestions.push({
-      cmd: ':explain [concept]',
+      cmd: ':explain',
       desc: 'Ask Gemini AI to explain any Neovim concept, config, or Lua syntax.',
       run: () => {
         setCommandInput(':explain ');
@@ -330,72 +335,74 @@ export default function VimStatusLine({
         className="fixed bottom-0 left-0 w-full z-40 px-4 pb-4 pointer-events-none select-none"
         style={style}
       >
-        <div className="max-w-4xl mx-auto flex items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono h-11 md:h-12 w-[calc(100%-2rem)] md:w-full">
-          
-          <div className="flex items-center h-full">
+        <div className="vim-statusline max-w-4xl mx-auto flex items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono h-11 md:h-12 w-[calc(100%-2rem)] md:w-full">
+          <div className="flex items-center h-full min-w-0">
             {/* Section A: Active Mode Badge */}
             <button
               onClick={() => {
                 const nextModeMap: Record<VimMode, VimMode> = { normal: 'insert', insert: 'visual', visual: 'command', command: 'normal' };
                 setVimMode(nextModeMap[vimMode]);
               }}
-              className={`px-4 md:px-5 h-full uppercase font-black flex items-center gap-1.5 transition-all text-[11px] leading-none cursor-pointer ${modeSpec.bg} ${modeSpec.text}`}
+              data-mode-badge={vimMode}
+              className={`px-4 md:px-5 h-full uppercase font-black flex items-center gap-1.5 transition-all text-[11px] leading-none cursor-pointer flex-shrink-0 rounded-l-xl ${modeSpec.bg} ${modeSpec.text}`}
               title="Click to switch modes manually"
             >
-              <Cpu className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">{modeSpec.label}</span>
-              <span className="xs:hidden">{modeSpec.label[0]}</span>
+              <Cpu className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{modeSpec.label}</span>
             </button>
 
             {/* Section B: File Status */}
-            <div className="px-3 md:px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-              <Folder className="w-3.5 h-3.5 text-indigo-500/70" />
-              <span className="truncate max-w-[120px] sm:max-w-none">
+            <div className="px-3 md:px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 min-w-0">
+              <Folder className="w-3.5 h-3.5 text-indigo-500/70 flex-shrink-0" />
+              <span className="truncate max-w-[90px] sm:max-w-none">
                 <span className="hidden sm:inline">AppData/Local/nvim/</span><span className="font-bold text-zinc-800 dark:text-zinc-100">init.lua</span>[+]
               </span>
             </div>
 
             {/* Section C: Curated Chapter Info */}
             {activeChapter && (
-              <div className="px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 hidden lg:flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                <BookOpen className="w-3.5 h-3.5 text-emerald-500/70" />
-                <span className="text-zinc-700 dark:text-zinc-300 font-bold">Ch.{activeChapter.num}</span>
+              <button
+                onClick={() => setSidebarVisible && setSidebarVisible(!sidebarVisible)}
+                className="px-4 h-full border-r border-zinc-200/50 dark:border-zinc-800/50 hidden lg:flex items-center gap-2 text-zinc-500 dark:text-zinc-400 min-w-0 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/30 transition cursor-pointer text-left"
+                title="Click to toggle sidebar navigation"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-emerald-500/70 flex-shrink-0" />
+                <span className="text-zinc-700 dark:text-zinc-300 font-bold flex-shrink-0">Ch.{activeChapter.num}</span>
                 <span className="truncate max-w-[150px]">{activeChapter.title.split(':')[0]}</span>
-              </div>
+              </button>
             )}
           </div>
 
-          <div className="flex items-center h-full">
+          <div className="flex items-center h-full flex-shrink-0">
             {/* Registers quick toggle */}
             <button
               onClick={() => setShowRegistersTray(!showRegistersTray)}
-              className="px-3 md:px-4 h-full border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/30 transition cursor-pointer"
+              className="px-3 md:px-4 h-full border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/30 transition cursor-pointer flex-shrink-0"
               title="View in-memory registers stack"
             >
-              <Copy className="w-3.5 h-3.5 text-amber-500/80" />
+              <Copy className="w-3.5 h-3.5 text-amber-500/80 flex-shrink-0" />
               <span className="hidden sm:inline font-bold">Registers (")</span>
               <span className="sm:hidden font-bold">Regs</span>
             </button>
 
             {/* Mode shortcut triggers */}
-            <div className="hidden sm:flex items-center gap-1 border-l border-zinc-200/50 dark:border-zinc-800/50 px-3 h-full">
+            <div className="hidden sm:flex items-center gap-1 border-l border-zinc-200/50 dark:border-zinc-800/50 px-3 h-full flex-shrink-0">
               <span className="text-[10px] text-zinc-400 uppercase mr-1 font-bold">Keys:</span>
               <kbd onClick={() => setVimMode('normal')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'normal' ? 'bg-[#4f46e5]/10 dark:bg-[#818cf8]/10 border-indigo-500 text-indigo-600 dark:text-indigo-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>ESC</kbd>
               <kbd onClick={() => setVimMode('insert')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'insert' ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>i</kbd>
-              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
+              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] text-emerald-600 rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-650 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
               <kbd onClick={() => setVimMode('command')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'command' ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>:</kbd>
             </div>
 
             {/* Section E: Keyboard Tutor info icon */}
             <button
               onClick={() => setActiveHelpTopic('general')}
-              className="px-3 md:px-4 border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/40 cursor-pointer transition h-full"
+              className="px-3 md:px-4 border-l border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/55 dark:hover:bg-zinc-900/40 cursor-pointer transition h-full flex-shrink-0 rounded-r-xl"
               title="Vim Interactive Help Tutor"
             >
-              <HelpCircle className="w-4 h-4 animate-pulse" />
+              <HelpCircle className="w-4 h-4 animate-pulse flex-shrink-0" />
             </button>
           </div>
-
         </div>
       </div>
 
@@ -441,17 +448,22 @@ export default function VimStatusLine({
               </div>
 
               {/* Command text input */}
-              <form onSubmit={handleCommandFieldSubmit} className="flex items-center gap-2">
-                <span className="font-black text-sm animate-pulse" style={{ color: modeColor }}>:</span>
+              <form onSubmit={handleCommandFieldSubmit} className="flex items-center gap-2 w-full">
                 <input
                   ref={commandInputRef}
                   type="text"
                   value={commandInput}
                   onChange={(e) => {
-                    setCommandInput(e.target.value);
-                    setShowAutoComplete(true);
+                    const val = e.target.value;
+                    if (!val.startsWith(':')) {
+                      setVimMode('normal');
+                      setCommandInput('');
+                    } else {
+                      setCommandInput(val);
+                      setShowAutoComplete(true);
+                    }
                   }}
-                  placeholder="type command (e.g. chapter 8, theme light, registers, help keymaps, wq)"
+                  placeholder=":type command (e.g. :chapter 8, :theme light, :registers, :help keymaps, :wq)"
                   className="bg-transparent flex-1 text-sm text-white outline-none placeholder-zinc-700"
                 />
                 <button
@@ -541,7 +553,7 @@ export default function VimStatusLine({
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="relative bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl font-mono text-xs text-zinc-700 dark:text-zinc-300"
+              className="relative bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl font-mono text-xs text-zinc-700 dark:text-zinc-300"
             >
               <div className="flex items-center justify-between border-b border-zinc-200/60 dark:border-zinc-800/60 pb-4 mb-4">
                 <div className="flex items-center gap-2">
@@ -551,11 +563,16 @@ export default function VimStatusLine({
                 <button onClick={() => setShowRegistersTray(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white font-black text-sm">✕</button>
               </div>
 
-              <p className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-normal mb-4">
-                In Neovim, deletions and yanks fly into separate isolated cells. Prepend your actions with <code className="text-indigo-500 font-bold dark:text-indigo-400">"&#123;reg&#125;</code> to use custom slots. Let's see your live clipboard stacks:
-              </p>
+              <div className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed mb-4 space-y-2">
+                <p>
+                  <strong>What are Registers?</strong> In Vim/Neovim, registers are separate clipboard memory cells used to store text. Instead of having just one clipboard, Vim offers named registers like <code className="text-indigo-500 font-bold dark:text-indigo-400">"a</code>, <code className="text-indigo-500 font-bold dark:text-indigo-400">"b</code>, and special clipboards like <code className="text-indigo-500 font-bold dark:text-indigo-400">""</code> (unnamed default register) or <code className="text-indigo-500 font-bold dark:text-indigo-400">"+</code> (system clipboard).
+                </p>
+                <p>
+                  <strong>How to use them here:</strong> Drag-highlight text inside any page section or code block. Highlighting automatically yanks the selection into register <code className="text-amber-500 font-bold">"</code> and the system clipboard <code className="text-amber-500 font-bold">+</code>. Use this grid to inspect your live clipboard stack!
+                </p>
+              </div>
 
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-3 pr-1">
                 {Object.entries(registers).map(([key, value]) => (
                   <div key={key} className="p-3 bg-zinc-50 dark:bg-zinc-900/65 rounded-lg border border-zinc-200/50 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 group transition duration-150">
                     <div className="flex items-center justify-between mb-1.5">
@@ -735,7 +752,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                   </div>
 
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal select-none">
-                    Enter <span className="font-bold underline text-rose-600 dark:text-rose-400">:chapter [num]</span> to speed jump, <span className="font-bold underline text-rose-600 dark:text-rose-400">:theme light</span> to change theme, or ask Gemini with <span className="font-bold underline text-purple-600 dark:text-purple-400">:explain [concept]</span>!
+                    Enter <span className="font-bold underline text-rose-600 dark:text-rose-400">:chapter [num]</span> to speed jump, <span className="font-bold underline text-rose-600 dark:text-rose-400">:theme light</span> to change theme, or ask Gemini with <span className="font-bold underline text-purple-600 dark:text-purple-400">:explain</span>!
                   </p>
                 </div>
               )}

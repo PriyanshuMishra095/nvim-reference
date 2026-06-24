@@ -17,7 +17,7 @@ export default function App() {
   const [activeChapterId, setActiveChapterId] = useState<string>('chapter-1');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
-  const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
+  const [sidebarVisible, setSidebarVisible] = useState<boolean>(false);
   const [isSidebarPopping, setIsSidebarPopping] = useState<boolean>(false);
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
