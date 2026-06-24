@@ -262,13 +262,25 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         velRef.current.w += (targetW - cursorRef.current.w) * spring;
         velRef.current.h += (targetH - cursorRef.current.h) * spring;
-        velRef.current.r += (targetR - cursorRef.current.r) * spring;
+        
+        // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
+        const rSpring = 0.32;
+        const rFriction = 0.85; // highly damped to prevent overshoot
+        velRef.current.r += (targetR - cursorRef.current.r) * rSpring;
+        velRef.current.r *= rFriction;
+        cursorRef.current.r += velRef.current.r;
+
         velRef.current.w *= friction;
         velRef.current.h *= friction;
-        velRef.current.r *= friction;
         cursorRef.current.w += velRef.current.w;
         cursorRef.current.h += velRef.current.h;
-        cursorRef.current.r += velRef.current.r;
+
+        // Physical clamp: border radius should never exceed half of the current width or height
+        const maxPhysicalR = Math.min(cursorRef.current.w / 2, cursorRef.current.h / 2);
+        if (cursorRef.current.r > maxPhysicalR) {
+          cursorRef.current.r = maxPhysicalR;
+          velRef.current.r = 0;
+        }
       }
 
       // Render follower reticle DOM styles
@@ -306,8 +318,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         if (isOverTitleRef.current) {
           // Title Caret: huge vertical text cursor matching title height
-          const caretHeight = titleHeightRef.current;
-          dot.style.width = "1.5px";
+          const caretHeight = titleHeightRef.current * 1.15;
+          dot.style.width = "3px";
           dot.style.height = `${caretHeight}px`;
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
@@ -316,9 +328,9 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           if (xSvg) xSvg.style.opacity = "0";
         } else if (isOverInputRef.current) {
           // Input Caret: thin vertical I-beam line
-          dot.style.width = "2px";
-          dot.style.height = "16px";
-          dot.style.borderRadius = "1px";
+          dot.style.width = "2.5px";
+          dot.style.height = "22px";
+          dot.style.borderRadius = "1.5px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";

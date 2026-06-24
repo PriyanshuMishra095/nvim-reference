@@ -19,6 +19,8 @@ interface VimStatusLineProps {
   vimMode: VimMode;
   setVimMode: (mode: VimMode) => void;
   style?: React.CSSProperties;
+  sidebarVisible?: boolean;
+  setSidebarVisible?: (visible: boolean) => void;
 }
 
 export default function VimStatusLine({
@@ -34,7 +36,9 @@ export default function VimStatusLine({
   onClearYankNotification,
   vimMode,
   setVimMode,
-  style
+  style,
+  sidebarVisible = true,
+  setSidebarVisible
 }: VimStatusLineProps) {
   const [commandInput, setCommandInput] = useState('');
   const [showAutoComplete, setShowAutoComplete] = useState(false);
@@ -59,6 +63,20 @@ export default function VimStatusLine({
     }
   }, [vimMode]);
 
+  const sidebarWasHiddenRef = useRef(false);
+  const prevModeRef = useRef(vimMode);
+
+  // Monitor Vim Mode transitions to restore sidebar states reactively
+  useEffect(() => {
+    if (prevModeRef.current === 'insert' && vimMode !== 'insert') {
+      if (sidebarWasHiddenRef.current && setSidebarVisible) {
+        setSidebarVisible(false);
+      }
+      sidebarWasHiddenRef.current = false;
+    }
+    prevModeRef.current = vimMode;
+  }, [vimMode, setSidebarVisible]);
+
   // Hook global keys to swap Vim Modes cleanly across screens
   useEffect(() => {
     const handleGlobalKeys = (e: KeyboardEvent) => {
@@ -72,6 +90,9 @@ export default function VimStatusLine({
         setActiveHelpTopic(null);
         setCommandError(null);
         setCommandInput('');
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
         return;
       }
 
@@ -83,11 +104,22 @@ export default function VimStatusLine({
       if (vimMode === 'normal') {
         if (e.key === 'i' || e.key === 'I') {
           e.preventDefault();
-          setVimMode('insert');
-          // Focus search box automatically
-          setTimeout(() => {
-            document.getElementById('search-input-box')?.focus();
-          }, 50);
+          
+          // Check if text is currently highlighted / selected
+          const selection = window.getSelection();
+          const hasSelection = selection && selection.toString().trim().length > 0;
+          
+          if (!hasSelection) {
+            sidebarWasHiddenRef.current = !sidebarVisible;
+            if (!sidebarVisible && setSidebarVisible) {
+              setSidebarVisible(true);
+            }
+            setVimMode('insert');
+            // Focus search box automatically
+            setTimeout(() => {
+              document.getElementById('search-input-box')?.focus();
+            }, 50);
+          }
         } else if (e.key === 'v' || e.key === 'V') {
           e.preventDefault();
           setVimMode('visual');
@@ -108,7 +140,7 @@ export default function VimStatusLine({
 
     window.addEventListener('keydown', handleGlobalKeys, true);
     return () => window.removeEventListener('keydown', handleGlobalKeys, true);
-  }, [vimMode, setVimMode]);
+  }, [vimMode, setVimMode, sidebarVisible, setSidebarVisible]);
 
   // Command Autocomplete list parser
   const getAutocompleteSuggestions = () => {

@@ -86,6 +86,14 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
     }, 100);
   };
 
+  // Auto scroll active chapter button into view inside sidebar
+  useEffect(() => {
+    const activeButton = document.getElementById(`sidebar-ch-${activeChapterId}`);
+    if (activeButton) {
+      activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [activeChapterId]);
+
   // Keyboard binding inside searching
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -120,7 +128,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
       <div className="p-6 pt-12 xl:pt-6 border-b border-zinc-200/50 dark:border-zinc-800/50 flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <div>
-            <span className="font-mono font-bold tracking-tighter text-zinc-900 dark:text-zinc-50">
+            <span className="font-mono font-black tracking-tighter text-zinc-900 dark:text-zinc-50 text-lg md:text-[1.25rem]">
               {(() => {
                 const idx = siteTitle.indexOf('://');
                 if (idx !== -1) {
@@ -229,6 +237,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                   return (
                     <li key={ch.id}>
                       <button
+                        id={`sidebar-ch-${ch.id}`}
                         onClick={() => {
                           onNavigateChapter(ch.id);
                           const el = document.getElementById(ch.id);
