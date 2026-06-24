@@ -111,7 +111,7 @@ This file is a write-only log of every detailed activity performed during develo
 
 ## Log Entries
 
-### [2026-06-25T03:36:56+05:30] Created Activity Log & Restructured Memory File
+### [2026-06-25T04:01:27+05:30] Created Activity Log & Restructured Memory File
 - **Files Modified**: 
   - `[NEW] .agents/ACTIVITY_LOG.md` (Created write-only log, migrated all detailed history).
   - `[MODIFY] .agents/MEMORY.md` (Removed detailed history, replaced with a concise "Important Events" section, added instructions for the new workflow).
@@ -120,3 +120,18 @@ This file is a write-only log of every detailed activity performed during develo
   - Moved the detailed implementation history from `.agents/MEMORY.md` to `.agents/ACTIVITY_LOG.md`.
   - Configured `MEMORY.md` to only store high-level "Important Events" in a very compact, information-rich format.
   - Formulated strict workspace instructions for future agents to log detailed work to `ACTIVITY_LOG.md` and keep `MEMORY.md` concise.
+
+### [2026-06-25T04:10:00+05:30] Implemented In-Modal AI Chat, Command Autocomplete, Overlay improvements, and named label change
+- **Files Modified**:
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Added chat history rendering, follow-up query submission box, Tab key autocompletion, backdrop pointer-events-auto click dismiss, stopPropagation on container, updated modal footer buttons/descriptions, renamed label to 'Run Command').
+  - `[MODIFY] api/explain.js` (Destructured messages history array and compiled contents array matching SDK specifications).
+  - `[MODIFY] server.js` (Implemented identical messages history compiling logic on development backend server).
+- **Details**:
+  - Upgraded `/api/explain` API endpoints on both Vercel and Express to support parsing message history for continuous AI chat threads.
+  - Integrated a fully interactive conversation chat UI within the "Neovim LLM Help" modal, rendering user prompts and markdown responses in a scrollable view with auto-scroll.
+  - Placed a blinking caret text input at the bottom of the modal that activates upon clicking "Ask another question".
+  - Configured Tab key down autocompletion inside the console input to instantly select the closest matching command.
+  - Restricted mouse clicks to the backdrop overlay to dismiss/minimize the console while keeping particle canvas mouse repulsion fully operational globally.
+  - Renamed the autocomplete hint panel header to 'Run Command'.
+  - Removed "Click on blue links..." footer description from the AI modal.
+

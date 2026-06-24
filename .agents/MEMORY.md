@@ -39,4 +39,5 @@ This file serves as the single source of truth for the project's development his
 - **Backend & Deploy**: Unified Express.js server (port 3001) for build + Gemini API; Vercel Serverless Function `api/explain.js` for Gemini API calls; redesigned help box ("Neovim LLM Help" with "Ask another question" prefilling `:explain `).
 - **Git Security**: Pushes default to private `backup` branch (`private-dev`). Deleted `.agents/`, `.vscode/`, `.antigravity/` from `main` history; added to `.gitignore`. Public pushes require single confirmation.
 - **Workflow Restructuring**: Created write-only `ACTIVITY_LOG.md` for detailed action logs. Replaced detailed history in `MEMORY.md` with concise "Important Events".
+- **AI Chat & Command UX**: Modal chat interface for continuous LLM dialogue; custom follow-up input in "Neovim LLM Help" with error handling; Tab autocomplete for closest matching commands; backdrop click-to-dismiss overlay with blocked bg pointer events; renamed to 'Run Command'.
 

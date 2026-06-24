@@ -49,7 +49,14 @@ export default function VimStatusLine({
   const [aiExplanationText, setAiExplanationText] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
+  // Chat conversation states for Neovim LLM Help
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'model'; content: string }[]>([]);
+  const [chatInputValue, setChatInputValue] = useState('');
+  const [showChatInput, setShowChatInput] = useState(false);
+
   const commandInputRef = useRef<HTMLInputElement | null>(null);
+  const chatInputRef = useRef<HTMLInputElement | null>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Focus command prompt when mode sets to command
   useEffect(() => {
@@ -233,6 +240,59 @@ export default function VimStatusLine({
     return suggestions.filter(s => s.cmd.toLowerCase().includes(query) || s.desc.toLowerCase().includes(query));
   };
 
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatMessagesEndRef.current) {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, showChatInput]);
+
+  const handleAskAnother = () => {
+    setShowChatInput(true);
+    setTimeout(() => {
+      if (chatInputRef.current) {
+        chatInputRef.current.focus();
+      }
+    }, 50);
+  };
+
+  const handleChatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = chatInputValue.trim();
+    if (!query) return;
+
+    const newMessages = [...chatMessages, { role: 'user' as const, content: query }];
+    setChatMessages(newMessages);
+    setChatInputValue('');
+    setAiLoading(true);
+
+    fetch('/api/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: query,
+        context: activeChapter?.title,
+        messages: newMessages.slice(0, -1)
+      })
+    })
+    .then(async res => {
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      setChatMessages([...newMessages, { role: 'model', content: data.text }]);
+      setAiLoading(false);
+    })
+    .catch(err => {
+      console.error(err);
+      setChatMessages([...newMessages, { role: 'model', content: `Error: ${err.message || 'Failed to retrieve response.'}` }]);
+      setAiLoading(false);
+    });
+  };
+
   const executeCommand = (cmdText: string) => {
     const clean = cmdText.trim().toLowerCase();
     
@@ -253,24 +313,38 @@ export default function VimStatusLine({
       setActiveHelpTopic('ai-explain');
       setAiLoading(true);
       setAiExplanationText(null);
+      setChatMessages([{ role: 'user', content: topic }]);
+      setShowChatInput(false);
       
       fetch('/api/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: topic, context: activeChapter?.title })
       })
-      .then(res => {
-        if (!res.ok) throw new Error('API failed');
+      .then(async res => {
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+        }
         return res.json();
       })
       .then(data => {
         setAiExplanationText(data.text);
+        setChatMessages([
+          { role: 'user', content: topic },
+          { role: 'model', content: data.text }
+        ]);
         setAiLoading(false);
         setCommandSuccess(null);
       })
       .catch(err => {
         console.error(err);
-        setAiExplanationText(`Error: Could not retrieve Gemini explanation. Make sure the backend server is running.`);
+        const errMsg = `Error: ${err.message || 'Could not retrieve Gemini explanation.'}`;
+        setAiExplanationText(errMsg);
+        setChatMessages([
+          { role: 'user', content: topic },
+          { role: 'model', content: errMsg }
+        ]);
         setAiLoading(false);
         setCommandSuccess(null);
       });
@@ -410,12 +484,16 @@ export default function VimStatusLine({
       <AnimatePresence>
         {vimMode === 'command' && (
           <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-20 pointer-events-none select-none">
-            {/* Visual focus blocker overlay (non-blocking pointer, just visual darken) */}
+            {/* Visual focus blocker overlay (allows click to dismiss) */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-950/20 dark:bg-black/40 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-zinc-950/20 dark:bg-black/40 backdrop-blur-[2px] pointer-events-auto"
+              onClick={() => {
+                setVimMode('normal');
+                setCommandInput('');
+              }}
             />
 
             <motion.div
@@ -425,12 +503,13 @@ export default function VimStatusLine({
               transition={{ type: 'spring', damping: 25, stiffness: 240 }}
               className="relative w-full max-w-xl rounded-xl border bg-zinc-950 shadow-2xl text-zinc-200 overflow-hidden font-mono p-4 pointer-events-auto"
               style={{ borderColor: modeColor, boxShadow: `0 30px 70px ${modeColor}25` }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Autocomplete Hints panels */}
               <div className="mb-3 space-y-1 max-h-[140px] overflow-y-auto divide-y divide-zinc-900 border-b border-zinc-900 pb-2">
                 <div className="text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5 pb-1" style={{ color: modeColor }}>
                   <Terminal className="w-3 h-3 animate-pulse" />
-                  <span>Interactive Command dispatcher Autocompleting:</span>
+                  <span>Run Command</span>
                 </div>
                 {getAutocompleteSuggestions().map((s) => (
                   <button
@@ -453,6 +532,15 @@ export default function VimStatusLine({
                   ref={commandInputRef}
                   type="text"
                   value={commandInput}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const suggestions = getAutocompleteSuggestions();
+                      if (suggestions.length > 0) {
+                        setCommandInput(suggestions[0].cmd);
+                      }
+                    }
+                  }}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (!val.startsWith(':')) {
@@ -464,7 +552,7 @@ export default function VimStatusLine({
                     }
                   }}
                   placeholder=":type command (e.g. :chapter 8, :theme light, :registers, :help keymaps, :wq)"
-                  className="bg-transparent flex-1 text-sm text-white outline-none placeholder-zinc-700"
+                  className="bg-transparent flex-1 text-sm text-white outline-none placeholder-zinc-750"
                   style={{ caretColor: '#22c55e' }}
                 />
                 <button
@@ -710,24 +798,58 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                 </div>
               )}
 
-              {activeHelpTopic === 'ai-explain' && (
+               {activeHelpTopic === 'ai-explain' && (
                 <div className="space-y-4 leading-relaxed font-mono text-xs max-h-[350px] overflow-y-auto">
-                  <p className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                  <p className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5 select-none">
                     <Sparkles className="w-4 h-4 text-purple-500 animate-pulse" />
                     <span>Neovim LLM Help</span>
                   </p>
-                  {aiLoading ? (
-                    <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-500 py-6 justify-center">
-                      <RefreshCw className="w-4 h-4 animate-spin text-purple-500" />
-                      <span>Consulting Gemini models...</span>
-                    </div>
-                  ) : aiExplanationText ? (
-                    <div className="whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-300 pr-1">
-                      {aiExplanationText}
-                    </div>
-                  ) : (
-                    <div className="text-rose-500 font-bold text-center py-4">Failed to load Gemini explanation. Make sure the API key is valid.</div>
-                  )}
+                  <div className="space-y-4">
+                    {chatMessages.map((msg, idx) => (
+                      <div key={idx} className="space-y-1">
+                        {msg.role === 'user' ? (
+                          <div className="border-l-2 border-purple-500 pl-2 py-1 my-2 bg-purple-500/5 dark:bg-purple-500/10 rounded-r">
+                            <span className="font-bold text-purple-600 dark:text-purple-400 select-none">Question: </span>
+                            <span className="text-zinc-800 dark:text-zinc-200">{msg.content}</span>
+                          </div>
+                        ) : (
+                          <div className="whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-300 pr-1">
+                            {msg.content}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {aiLoading && (
+                      <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-500 py-4 justify-center">
+                        <RefreshCw className="w-4 h-4 animate-spin text-purple-500" />
+                        <span>Consulting Gemini models...</span>
+                      </div>
+                    )}
+                    
+                    {showChatInput && (
+                      <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2 border-t border-zinc-200/60 dark:border-zinc-850/60 pt-3">
+                        <span className="text-purple-500 font-bold font-mono select-none">&gt;</span>
+                        <input
+                          ref={chatInputRef}
+                          type="text"
+                          value={chatInputValue}
+                          onChange={(e) => setChatInputValue(e.target.value)}
+                          placeholder="Ask a follow-up question..."
+                          className="bg-transparent flex-1 text-xs text-zinc-800 dark:text-zinc-250 outline-none font-mono placeholder-zinc-700"
+                          style={{ caretColor: '#22c55e' }}
+                        />
+                        <button
+                          type="submit"
+                          className="px-3 py-1 rounded bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-[10px] cursor-pointer"
+                        >
+                          Send
+                        </button>
+                      </form>
+                    )}
+                    
+                    <div ref={chatMessagesEndRef} />
+                  </div>
                 </div>
               )}
 
@@ -761,19 +883,28 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               )}
 
               <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex justify-between items-center text-[10px] text-zinc-500 dark:text-zinc-500 select-none">
-                <span>Click on blue text links to jump to their help documentation.</span>
+                {activeHelpTopic !== 'ai-explain' ? (
+                  <span>Click on blue text links to jump to their help documentation.</span>
+                ) : (
+                  <span />
+                )}
                 {activeHelpTopic === 'ai-explain' ? (
-                  <button
-                    onClick={() => {
-                      setActiveHelpTopic(null);
-                      setVimMode('command');
-                      setCommandInput(':explain ');
-                    }}
-                    className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
-                    style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
-                  >
-                    Ask another question
-                  </button>
+                  !showChatInput ? (
+                    <button
+                      onClick={handleAskAnother}
+                      className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300"
+                      style={{ backgroundColor: modeColor, boxShadow: `0 4px 15px ${modeColor}20` }}
+                    >
+                      Ask another question
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setActiveHelpTopic(null)}
+                      className="px-4 py-2 rounded text-white font-bold transition text-xs shadow-lg cursor-pointer duration-300 bg-zinc-800 hover:bg-zinc-700"
+                    >
+                      Close chat
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={() => setActiveHelpTopic(null)}

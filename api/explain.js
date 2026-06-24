@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, context } = req.body;
+  const { prompt, context, messages } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required.' });
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
   if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'AI key configuration missing on server.' });
+    return res.status(500).json({ error: 'AI key configuration missing on server. Please configure GEMINI_API_KEY.' });
   }
 
   try {
@@ -25,9 +25,21 @@ export default async function handler(req, res) {
       "Organize the explanation into structured handbook sections. " +
       "Keep the tone sharp and content-focused. Use markdown formats.";
 
-    const contents = context 
-      ? `Context (Chapter/Section): ${context}\n\nConcept/Code to explain:\n${prompt}`
-      : prompt;
+    let contents;
+    if (messages && Array.isArray(messages)) {
+      contents = messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }));
+      contents.push({
+        role: 'user',
+        parts: [{ text: prompt }]
+      });
+    } else {
+      contents = context 
+        ? `Context (Chapter/Section): ${context}\n\nConcept/Code to explain:\n${prompt}`
+        : prompt;
+    }
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
