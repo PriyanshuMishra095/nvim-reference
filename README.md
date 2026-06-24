@@ -1,6 +1,6 @@
 # nvim://reference
 
-An interactive, hyper-polished Neovim reference manual designed to onboard newcomers to the modal keyboard paradigm in a clean, astigmatism-friendly, and modern web interface.
+A friendly, easy-to-use guide for learning Neovim. It helps beginners understand how to navigate using only their keyboard, built with a clean layout and easy-to-read colors that prevent eye strain.
 
 > **Full Disclosure**: This website and its interactive interface were developed with the assistance of Large Language Models (LLMs) to ensure a state-of-the-art layout, unified styling, and custom mouse physics.
 
@@ -33,8 +33,8 @@ Follow these steps to run the application locally:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/PriyanshuMishra095/Neovim-Handbook-Studio.git
-cd Neovim-Handbook-Studio
+git clone https://github.com/PriyanshuMishra095/nvim-reference.git
+cd nvim-reference
 ```
 
 ### 2. Install Dependencies
@@ -55,7 +55,7 @@ The application will run by default at `http://localhost:3000`.
 
 We welcome contributions to make Neovim more accessible to the community! 
 
-1. Fork the repository on [GitHub](https://github.com/PriyanshuMishra095/Neovim-Handbook-Studio).
+1. Fork the repository on [GitHub](https://github.com/PriyanshuMishra095/nvim-reference).
 2. Create your feature branch (`git checkout -b feature/amazing-feature`).
 3. Commit your changes (`git commit -m 'Add some amazing feature'`).
 4. Push to the branch (`git push origin feature/amazing-feature`).
