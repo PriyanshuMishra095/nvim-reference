@@ -77,7 +77,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         try {
           const style = window.getComputedStyle(isTitle);
           fs = parseFloat(style.fontSize) || 64;
-        } catch (e) {}
+        } catch (e) { }
         titleHeightRef.current = fs;
       }
 
@@ -89,9 +89,19 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
       const isInput = target.closest("input, textarea, [contenteditable]");
       isOverInputRef.current = !!isInput && !isOverTitleRef.current;
-      
+
       const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
       isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn;
+
+
+      //added by me
+      // Prevent full screen overlay triggers by validating targets
+      const isOverlayBackdrop = target.classList.contains("fixed") && target.classList.contains("inset-0") && !target.classList.contains("custom-scroll-track");
+
+      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn && !isOverlayBackdrop;
+      //added by me
+
+
 
       // Clickable items inside code block should show hand icon, not green block caret
       const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']");
@@ -108,6 +118,14 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
       const match = target.closest(hoverQuery) as HTMLElement | null;
       lockedElementRef.current = isOverTitleRef.current ? null : match;
+
+      //added by me
+      // Filter out dialog container panels and backdrops
+      const isMatchValid = match && (!match.classList.contains("fixed") || match.id === "theme-toggle" || match.tagName === "BUTTON");
+      lockedElementRef.current = isOverTitleRef.current ? null : (isMatchValid ? match : null);
+      //added by me
+
+
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -133,7 +151,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
     const lensAnimationLoop = () => {
       const reticle = reticleRef.current;
       const dot = dotRef.current;
-      
+
       if (!reticle) {
         frameId = requestAnimationFrame(lensAnimationLoop);
         return;
@@ -178,22 +196,22 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         const dx = mouseRef.current.x - thumbCenterX;
         const dy = mouseRef.current.y - thumbCenterY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        
+
         const maxDist = 80;  // Starts detecting morphing from 80px away (tighter and less grabby)
         const snapDist = 24;  // Lock snap from 24px
-        
+
         if (dist < maxDist) {
           const k = Math.max(0, Math.min(1, (maxDist - dist) / (maxDist - snapDist)));
           snapInfluence = k * k * (3 - 2 * k); // Smoothstep curve
-          
+
           thumbW = thumbRect.width;
           thumbH = thumbRect.height;
-          
+
           let br = 0;
           try {
             const style = window.getComputedStyle(thumbEl);
             br = parseFloat(style.borderRadius) || 0;
-          } catch (e) {}
+          } catch (e) { }
           thumbR = br;
         }
       }
@@ -212,7 +230,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           try {
             const style = window.getComputedStyle(scrollThumb);
             br = parseFloat(style.borderRadius) || 0;
-          } catch (e) {}
+          } catch (e) { }
           thumbR = br;
         }
       }
@@ -224,7 +242,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         targetY = (1 - snapInfluence) * mouseRef.current.y + snapInfluence * thumbCenterY;
         targetW = (1 - snapInfluence) * 32 + snapInfluence * thumbW;
         targetH = (1 - snapInfluence) * 32 + snapInfluence * thumbH;
-        
+
         const currentR = (1 - snapInfluence) * 16 + snapInfluence * thumbR;
         targetRTL = currentR;
         targetRTR = currentR;
@@ -233,7 +251,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         // Visual transition: Background color fades into purple/neon-indigo
         targetBg = `rgba(99, 102, 241, ${snapInfluence})`;
-        
+
         // Border: fades away as snap completes
         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
         const borderOpacity = 0.35 * (1 - snapInfluence);
@@ -277,8 +295,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           brTR = parseFloat(style.borderTopRightRadius) || 0;
           brBL = parseFloat(style.borderBottomLeftRadius) || 0;
           brBR = parseFloat(style.borderBottomRightRadius) || 0;
-        } catch (e) {}
-        
+        } catch (e) { }
+
         targetRTL = brTL > 0 ? Math.max(0, brTL + padding / 2) : 0;
         targetRTR = brTR > 0 ? Math.max(0, brTR + padding / 2) : 0;
         targetRBL = brBL > 0 ? Math.max(0, brBL + padding / 2) : 0;
@@ -306,11 +324,11 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
         velRef.current.w += (targetW - cursorRef.current.w) * spring;
         velRef.current.h += (targetH - cursorRef.current.h) * spring;
-        
+
         // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
         const rSpring = 0.32;
         const rFriction = 0.85; // highly damped to prevent overshoot
-        
+
         velRef.current.rTL += (targetRTL - cursorRef.current.rTL) * rSpring;
         velRef.current.rTL *= rFriction;
         cursorRef.current.rTL += velRef.current.rTL;
@@ -406,15 +424,19 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           if (tickSvg) tickSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
         } else if (isOverSparklesBtnRef.current) {
-          // Sparkles button: emoji spin ✨
+          // Sparkles button now handles the Gemini static preview
           dot.style.width = "24px";
           dot.style.height = "24px";
           dot.style.borderRadius = "50%";
           dot.style.backgroundColor = "transparent";
+          // Force clean theme-aware opacity colors that feed into the SVG's 'currentColor'
+          dot.style.color = isDark ? "#ffffff" : "var(--neon-indigo)";
+
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+
           if (sparklesEl) {
             sparklesEl.style.opacity = "1";
-            sparklesEl.style.transform = "scale(1.15) translate(-50%, -50%)";
+            sparklesEl.style.transform = "scale(1.1)"; // Scaled perfectly without the old spin-translations
           }
           if (xSvg) xSvg.style.opacity = "0";
           if (tickSvg) tickSvg.style.opacity = "0";
@@ -446,7 +468,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.backgroundColor = "transparent";
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (sparklesEl) sparklesEl.style.opacity = "0";
-          
+
           if (isChecklistCheckedRef.current) {
             // Already checked -> Show red X
             dot.style.color = "#ef4444"; // Red color
@@ -464,16 +486,16 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "6px";
           dot.style.borderRadius = "50%";
           if (sparklesEl) sparklesEl.style.opacity = "0";
-          
+
           const modeBadge = activeLockElement ? activeLockElement.closest("[data-mode-badge]") : null;
           const hoverMode = modeBadge ? modeBadge.getAttribute("data-mode-badge") : null;
-          
+
           if (hoverMode === 'normal') {
             dot.style.backgroundColor = isDark ? "#09090b" : "#ffffff";
           } else {
             dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
           }
-          
+
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
@@ -500,20 +522,26 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         id="custom-cursor-dot"
         className="fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center"
       >
-        {/* Sparkles emoji */}
-        <span
+        {/* Replace the old Sparkles span with this Gemini SVG */}
+        <svg
           id="custom-cursor-sparkles"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
           style={{
             position: 'absolute',
             opacity: 0,
             pointerEvents: 'none',
             transition: 'opacity 0.15s ease, transform 0.15s ease',
-            fontSize: '15px',
+            width: '20px',
+            height: '20px',
+            // Adds a clean, hardware-accelerated glow effect using the theme's color
+            filter: 'drop-shadow(0 0 5px currentColor)',
           }}
-          className="animate-spin duration-1000"
+          className="" // Removed the animate-spin classes completely
         >
-          ✨
-        </span>
+          <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10 0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z" />
+        </svg>
         {/* Green Tick SVG */}
         <svg
           id="custom-cursor-tick-svg"
