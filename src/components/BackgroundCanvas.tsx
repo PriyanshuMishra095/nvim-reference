@@ -207,16 +207,6 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         // Breathing phase
         this.breathePhase += this.breatheSpeed;
 
-        // Subtle mouse-based parallax nudge for depth
-        if (mouse.active) {
-          const parallaxStrength = 0.0003 * (this.index + 1);
-          this.vx += (mouse.x - width / 2) * parallaxStrength * 0.01;
-          this.vy += (mouse.y - height / 2) * parallaxStrength * 0.01;
-          // Dampen velocity to prevent runaway
-          this.vx *= 0.999;
-          this.vy *= 0.999;
-        }
-
         if (this.x < -this.radius) this.x = width + this.radius;
         if (this.x > width + this.radius) this.x = -this.radius;
         if (this.y < -this.radius) this.y = height + this.radius;
@@ -224,9 +214,16 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       }
 
       draw() {
+        // Apply smooth static parallax offset to rendering coords to prevent velocity integration runaway
+        const parallaxX = mouse.active ? (mouse.x - width / 2) * 0.03 * (this.index + 1) : 0;
+        const parallaxY = mouse.active ? (mouse.y - height / 2) * 0.03 * (this.index + 1) : 0;
+        
+        const drawX = this.x + parallaxX;
+        const drawY = this.y + parallaxY;
+
         const gradient = ctx.createRadialGradient(
-          this.x, this.y, 0,
-          this.x, this.y, this.radius
+          drawX, drawY, 0,
+          drawX, drawY, this.radius
         );
         
         const r = Math.round(this.currentRgb.r);
@@ -252,7 +249,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }

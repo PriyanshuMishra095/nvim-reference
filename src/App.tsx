@@ -744,12 +744,11 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => setContributeOpen(false)}
-            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-pointer"
+            className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/40 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-default"
           >
-            <BackgroundCanvas theme={theme} />
             <div 
               onClick={(e) => e.stopPropagation()}
-              className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
+              className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
             >
               {/* Close Button */}
               <button

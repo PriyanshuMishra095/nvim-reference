@@ -12,14 +12,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
 if (!GEMINI_API_KEY) {
   console.warn('WARNING: GEMINI_API_KEY is not defined in the environment. AI explanations will fail.');
 }
 
 // Initialize the Google Gen AI client
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY || 'dummy_key' });
 
 // API Endpoint for Concept or Code Explanations
 app.post('/api/explain', async (req, res) => {
@@ -29,7 +29,7 @@ app.post('/api/explain', async (req, res) => {
     return res.status(400).json({ error: 'Prompt is required.' });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!GEMINI_API_KEY) {
     return res.status(500).json({ error: 'AI key configuration missing on server. Please configure GEMINI_API_KEY.' });
   }
 

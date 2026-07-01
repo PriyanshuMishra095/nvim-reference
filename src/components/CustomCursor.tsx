@@ -145,8 +145,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         return;
       }
 
-      // Always update hover state on every frame to ensure perfect sync during scroll/animations
-      updateHoverState(mouseRef.current.x, mouseRef.current.y);
+      // We removed updateHoverState call here because document.elementFromPoint forces reflows on every frame, causing massive lag when modals/backdrops are active.
+      // Hover states are now updated efficiently only on 'mousemove' and 'scroll' events.
 
       // Spring physics constants matching reference
       const spring = 0.12;

@@ -782,6 +782,16 @@ export default function VimStatusLine({
                 </div>
               </div>
 
+              {/* Restore the original information and guide about registers */}
+              <div className="mb-6 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl leading-relaxed text-xs sm:text-sm text-zinc-650 dark:text-zinc-400">
+                <p className="mb-2">
+                  <strong>What are Registers?</strong> In Vim/Neovim, registers are separate clipboard memory cells used to store text. Instead of having just one clipboard, Vim offers named registers like <code className="text-indigo-500 font-bold dark:text-indigo-400">"a</code>, <code className="text-indigo-500 font-bold dark:text-indigo-400">"b</code>, and special clipboards like <code className="text-indigo-550 font-bold dark:text-indigo-400">""</code> (unnamed default register) or <code className="text-indigo-550 font-bold dark:text-indigo-400">"+</code> (system clipboard).
+                </p>
+                <p>
+                  <strong>How to use them here:</strong> Drag-highlight text inside any page section or code block. Highlighting automatically yanks the selection into register <code className="text-amber-500 font-bold">"</code> and the system clipboard <code className="text-amber-500 font-bold">+</code>. Use this grid to inspect your live clipboard stack!
+                </p>
+              </div>
+
               {Object.keys(registers).length === 0 ? (
                 <div className="py-12 text-center text-zinc-500 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
                   <p>Your registers are currently empty.</p>

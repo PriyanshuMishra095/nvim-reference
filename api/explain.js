@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt is required.' });
   }
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
   if (!GEMINI_API_KEY) {
     return res.status(500).json({ error: 'AI key configuration missing on server. Please configure GEMINI_API_KEY in Vercel Environment Variables.' });

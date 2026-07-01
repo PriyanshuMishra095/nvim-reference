@@ -524,9 +524,7 @@ html {
 }
 
 /* ── SMOOTH THEME TRANSITIONS ON COMMON ELEMENTS ── */
-*,
-*::before,
-*::after {
+*:not(.celestial-toggle):not(.celestial-toggle *):not(.custom-scroll-thumb):not(#custom-cursor-follower):not(#custom-cursor-dot):not(canvas) {
   transition-property: background-color, color, border-color, box-shadow, fill, stroke;
   transition-duration: 0.45s;
   transition-timing-function: var(--ease-inertial);
@@ -535,13 +533,21 @@ html {
 /* Override: Don't let the global transition above break explicit animation classes */
 [class*="animate-"],
 [class*="transition-"],
-.celestial-toggle,
-.celestial-toggle *,
 .custom-scroll-thumb,
 #custom-cursor-follower,
 #custom-cursor-dot,
 canvas {
   transition-property: none;
+}
+
+/* Enable view-transition name on the theme toggle button so it remains static during view transitions */
+.celestial-toggle {
+  view-transition-name: theme-toggle;
+}
+::view-transition-old(theme-toggle),
+::view-transition-new(theme-toggle) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 /* ── PROGRESS BAR GLOW PULSE ── */
