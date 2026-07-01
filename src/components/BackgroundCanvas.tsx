@@ -43,7 +43,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
     let mouse = { x: width / 2, y: height / 2, active: false };
     let particles: CosmicDust[] = [];
     let orbs: AuroraOrb[] = [];
-
+    
     const RIPPLE_POOL_SIZE = 15;
     const ripplesPool: Ripple[] = [];
     let scrollY = window.pageYOffset || document.documentElement.scrollTop;
@@ -90,7 +90,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
     // Color Helpers
     function getThemeColors() {
       const isDark = themeRef.current === 'dark';
-
+      
       // Celestial default accents from variables.css
       return {
         primary: isDark ? { r: 99, g: 102, b: 241 } : { r: 79, g: 70, b: 229 },    // Neon Indigo
@@ -123,10 +123,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
 
       update() {
         if (!this.active) return false;
-
+        
         // Increased speed for dynamic and responsive click response
         this.progress += 0.024;
-
+        
         if (this.progress >= 1) {
           this.active = false;
           this.progress = 1;
@@ -135,10 +135,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         // Cubic ease-in: starts slow, accelerates rapidly as it goes further
         const ease = this.progress * this.progress * this.progress;
         this.radius = this.maxRadius * ease;
-
+        
         // Higher starting alpha for increased visibility
         this.alpha = 0.85 * (1 - this.progress);
-
+        
         return this.active;
       }
 
@@ -228,7 +228,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
           this.x, this.y, 0,
           this.x, this.y, this.radius
         );
-
+        
         const r = Math.round(this.currentRgb.r);
         const g = Math.round(this.currentRgb.g);
         const b = Math.round(this.currentRgb.b);
@@ -240,19 +240,15 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         const isDark = themeRef.current === 'dark';
         const landing = onLandingRef.current;
         ctx.globalCompositeOperation = isDark ? "screen" : "multiply";
-
+        
         const baseAlpha = isDark ? 0.08 : 0.04;
         const landingHeight = height * 0.85;
         const scrollFactor = Math.min(1, scrollY / landingHeight);
         // Dim down smoothly from 2.5x to 1.0x of baseAlpha
         const multiplier = 2.5 - scrollFactor * 1.5;
-<<<<<<< HEAD
         // Breathing pulse: gentle ±20% alpha oscillation
         const breathe = 1 + Math.sin(this.breathePhase) * 0.2;
         ctx.globalAlpha = baseAlpha * multiplier * breathe;
-=======
-        ctx.globalAlpha = baseAlpha * multiplier;
->>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -279,10 +275,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-
+        
         this.twinklePhase = Math.random() * Math.PI * 2;
         this.twinkleSpeed = Math.random() * 0.01 + 0.005; // Slower organic twinkling
-
+        
         const rand = Math.random();
         // Star Size Distribution: 10% Large, 25% Medium, 65% Small
         if (rand > 0.90) {
@@ -292,10 +288,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         } else {
           this.radius = Math.random() * 1.0 + 1.0; // 1px to 2px
         }
-
+        
         this.depth = this.radius * 0.07;
         this.alpha = Math.random() * 0.45 + 0.3;
-
+        
         this.vx = Math.random() * 0.12 - 0.06;
         this.vy = Math.random() * 0.12 - 0.06;
       }
@@ -303,7 +299,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       update() {
         this.x += this.vx + this.extraVx;
         this.y += this.vy + this.extraVy;
-
+        
         this.twinklePhase += this.twinkleSpeed;
 
         if (this.x < 0) this.x = width;
@@ -323,7 +319,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
           const dx = mouse.x - this.x;
           const dy = mouse.y - this.renderY; // Corrected: Compare against scroll-aware renderY position
           const dist = Math.sqrt(dx * dx + dy * dy);
-
+          
           if (dist < 150) {
             const force = Math.pow(1 - dist / 150, 3) * 1.5;
             this.extraVx -= (dx / dist) * force;
@@ -339,7 +335,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
           const dx = this.x - ripple.x;
           const dy = this.renderY - ripple.y; // Corrected: Compare against scroll-aware renderY position
           const dist = Math.sqrt(dx * dx + dy * dy);
-
+          
           if (Math.abs(dist - ripple.radius) < 20) {
             const force = (1 - dist / ripple.maxRadius) * 3;
             this.extraVx += (dx / dist) * force;
@@ -361,10 +357,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         const finalAlpha = Math.max(0.08, isDark ? currentAlpha : currentAlpha * 1.85);
 
         ctx.save();
-        ctx.fillStyle = isDark
-          ? `rgba(255, 255, 255, ${finalAlpha})`
+        ctx.fillStyle = isDark 
+          ? `rgba(255, 255, 255, ${finalAlpha})` 
           : `rgba(79, 70, 229, ${finalAlpha})`;
-
+        
         if (this.radius >= 2.0) {
           ctx.shadowBlur = (isDark ? 8 : 4) * scale;
           ctx.shadowColor = isDark ? "#ffffff" : "rgba(79, 70, 229, 0.4)";
@@ -401,7 +397,7 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
 
     function drawConnections(landing: boolean) {
       if (!mouse.active) return;
-
+      
       const isDark = themeRef.current === 'dark';
       const baseColor = isDark ? "129, 140, 248" : "79, 70, 229";
 
@@ -423,14 +419,14 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
 
         if (distMouseSq < maxMouseDistSq) {
           const distMouse = Math.sqrt(distMouseSq);
-
+          
           for (let j = i + 1; j < particles.length; j++) {
             const p2 = particles[j];
             const p2Y = p2.renderY;
 
             const dxP = p2.x - p1.x;
             if (Math.abs(dxP) >= maxStarDist) continue;
-
+            
             const dyP = p2Y - p1Y;
             if (Math.abs(dyP) >= maxStarDist) continue;
 
@@ -465,26 +461,26 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       const maxLineOpacity = landing ? 0.08 : 0.025;
       const maxDist = landing ? 320 : 150;
       const maxDistSq = maxDist * maxDist;
-
+   
       ctx.save();
       ctx.lineWidth = 0.45;
-
+   
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         const p1Y = p1.renderY;
-
+   
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const p2Y = p2.renderY;
-
+   
           const dx = p2.x - p1.x;
           if (Math.abs(dx) >= maxDist) continue;
-
+          
           const dy = p2Y - p1Y;
           if (Math.abs(dy) >= maxDist) continue;
-
+   
           const distSq = dx * dx + dy * dy;
-
+   
           if (distSq < maxDistSq) {
             const dist = Math.sqrt(distSq);
             const alpha = (1 - dist / maxDist) * maxLineOpacity;

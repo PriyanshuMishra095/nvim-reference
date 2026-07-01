@@ -178,7 +178,7 @@ export default function App() {
     } catch (e) {
       console.warn('localStorage is restricted in this sandboxed environment:', e);
     }
-
+    
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -237,11 +237,7 @@ export default function App() {
     };
   }, []);
 
-<<<<<<< HEAD
   const toggleTheme = (clickX?: number, clickY?: number) => {
-=======
-  const toggleTheme = () => {
->>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     
     // Default to center if coordinates are omitted
@@ -346,7 +342,7 @@ export default function App() {
 
     checkScrollbar();
     window.addEventListener('resize', checkScrollbar);
-
+    
     return () => {
       window.removeEventListener('resize', checkScrollbar);
     };
@@ -448,11 +444,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
-<<<<<<< HEAD
       
       {/* Theme transition is handled via the View Transitions API — see ::view-transition-new(root) in index.css */}
-=======
->>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
 
       {/* Dynamic Backdrops */}
       <BackgroundCanvas theme={theme} vimMode={vimMode} onLanding={onLanding} />
@@ -466,13 +459,8 @@ export default function App() {
       )}
 
       {/* Primary horizontal Scroll progress metric bar */}
-<<<<<<< HEAD
       <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none progress-bar-glow">
         <div 
-=======
-      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none">
-        <div
->>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
           ref={progressBarRef}
           className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
           style={{ width: '0%', transition: 'width 0.1s ease-out' }}
@@ -480,36 +468,37 @@ export default function App() {
       </div>
 
       {/* Floating Orbital Theme togglers */}
-      <FloatingControls
-        theme={theme}
+      <FloatingControls 
+        theme={theme} 
         vimMode={vimMode}
-        onToggleTheme={toggleTheme}
+        onToggleTheme={toggleTheme} 
         onOpenPlayground={() => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        }} 
       />
 
       <div className="relative flex flex-col min-h-screen">
-
+        
         {/* Scrollable Landing Page Hero */}
-        <TerminalLanding
+        <TerminalLanding 
           onExplore={() => {
             const landingHeight = window.innerHeight;
             window.scrollTo({ top: landingHeight, behavior: 'smooth' });
-          }}
+          }} 
           onContribute={() => setContributeOpen(true)}
-          theme={theme}
+          theme={theme} 
           siteTitle={siteTitle}
           onUpdateTitle={handleUpdateTitle}
         />
 
         {/* Core Handbook Reader layout */}
         <div className="relative flex min-h-screen">
-
+          
           {/* Mobile minimalists navigation hamburger trigger bar (hidden on landing) */}
-          <div
-            className={`fixed top-6 left-6 z-40 xl:hidden transition-all duration-500 ${onLanding ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100'
-              }`}
+          <div 
+            className={`fixed top-6 left-6 z-40 xl:hidden transition-all duration-500 ${
+              onLanding ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100'
+            }`}
           >
             <button
               onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
@@ -522,7 +511,7 @@ export default function App() {
           </div>
 
           {/* Desktop Table of Contents Sidebar (slides off left on landing or when collapsed) */}
-          <div
+          <div 
             className="hidden xl:block w-[320px] h-screen fixed left-0 top-0 border-r border-zinc-200/50 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl z-35 transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{
               transform: onLanding ? 'translate3d(calc(-100% - 60px), 0, 0)' : (sidebarVisible ? 'translate3d(0, 0, 0)' : 'translate3d(calc(-100% - 60px), 0, 0)'),
@@ -530,10 +519,10 @@ export default function App() {
               pointerEvents: onLanding || !sidebarVisible ? 'none' : 'auto'
             }}
           >
-            <Sidebar
-              chapters={CHAPTERS_DATA}
-              activeChapterId={activeChapterId}
-              onNavigateChapter={handleNavigateChapter}
+            <Sidebar 
+              chapters={CHAPTERS_DATA} 
+              activeChapterId={activeChapterId} 
+              onNavigateChapter={handleNavigateChapter} 
               vimMode={vimMode}
               setVimMode={setVimMode}
               siteTitle={siteTitle}
@@ -552,7 +541,7 @@ export default function App() {
                   onClick={() => setMobileSidebarOpen(false)}
                   className="fixed inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-md z-20 xl:hidden"
                 />
-
+                
                 {/* Sidemenu tray */}
                 <motion.div
                   initial={{ x: '-100%' }}
@@ -561,10 +550,10 @@ export default function App() {
                   transition={{ type: 'spring', damping: 25, stiffness: 220 }}
                   className="fixed top-0 left-0 w-[300px] h-screen bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-r border-zinc-200/50 dark:border-zinc-800/80 z-30 xl:hidden shadow-2xl"
                 >
-                  <Sidebar
-                    chapters={CHAPTERS_DATA}
-                    activeChapterId={activeChapterId}
-                    onNavigateChapter={handleNavigateChapter}
+                  <Sidebar 
+                    chapters={CHAPTERS_DATA} 
+                    activeChapterId={activeChapterId} 
+                    onNavigateChapter={handleNavigateChapter} 
                     vimMode={vimMode}
                     setVimMode={setVimMode}
                     siteTitle={siteTitle}
@@ -575,12 +564,13 @@ export default function App() {
           </AnimatePresence>
 
           {/* Core scrollable content container (paddings transition reactively) */}
-          <div
-            className={`flex-1 transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] ${onLanding || !sidebarVisible ? 'xl:pl-0' : 'xl:pl-[320px]'
-              }`}
+          <div 
+            className={`flex-1 transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              onLanding || !sidebarVisible ? 'xl:pl-0' : 'xl:pl-[320px]'
+            }`}
           >
             <main className="max-w-4xl mx-auto px-6 md:px-12 py-24 md:py-32 space-y-16">
-
+              
               {/* Confident Text-Only Display Hero Layout block as mandated */}
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -613,9 +603,9 @@ export default function App() {
               {/* Dynamic Chapter Lists */}
               <div className="divide-y divide-zinc-200/30 dark:divide-zinc-800/40 space-y-16 pb-24">
                 {CHAPTERS_DATA.map((chapter) => (
-                  <ChapterSection
-                    key={chapter.id}
-                    chapter={chapter}
+                  <ChapterSection 
+                    key={chapter.id} 
+                    chapter={chapter} 
                     vimMode={vimMode}
                     onYank={handleYankText}
                   />
@@ -664,14 +654,15 @@ export default function App() {
               onClick={() => setSidebarVisible(!sidebarVisible)}
               onMouseMove={handleMagneticMove}
               onMouseLeave={handleMagneticLeave}
-              className={`hidden xl:flex fixed top-6 z-40 w-12 h-12 items-center justify-center cursor-pointer active:scale-95 transition-all ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-[800ms] rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 shadow-md backdrop-blur-md ${isSidebarPopping ? 'animate-droplet-pop' : ''
-                }`}
+              className={`hidden xl:flex fixed top-6 z-40 w-12 h-12 items-center justify-center cursor-pointer active:scale-95 transition-all ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-[800ms] rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 shadow-md backdrop-blur-md ${
+                isSidebarPopping ? 'animate-droplet-pop' : ''
+              }`}
               style={{ left: sidebarVisible ? '256px' : '24px' }}
               title={sidebarVisible ? "Collapse Sidebar" : "Expand Sidebar"}
             >
-              <ChevronRight
-                className="w-5 h-5 text-zinc-500 hover:text-indigo-500 transition-transform duration-500"
-                style={{ transform: sidebarVisible ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              <ChevronRight 
+                className="w-5 h-5 text-zinc-500 hover:text-indigo-500 transition-transform duration-500" 
+                style={{ transform: sidebarVisible ? 'rotate(180deg)' : 'rotate(0deg)' }} 
               />
             </button>
           )}
@@ -685,9 +676,9 @@ export default function App() {
               className="fixed right-6 bottom-6 z-40 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all duration-500"
               title={modeBarVisible ? "Hide Statusline" : "Show Statusline"}
             >
-              <ChevronDown
-                className="w-4 h-4 text-zinc-500 hover:text-indigo-500 transition-transform duration-500"
-                style={{ transform: modeBarVisible ? 'rotate(0deg)' : 'rotate(180deg)' }}
+              <ChevronDown 
+                className="w-4 h-4 text-zinc-500 hover:text-indigo-500 transition-transform duration-500" 
+                style={{ transform: modeBarVisible ? 'rotate(0deg)' : 'rotate(180deg)' }} 
               />
             </button>
           )}
@@ -703,8 +694,9 @@ export default function App() {
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 onMouseMove={handleMagneticMove}
                 onMouseLeave={handleMagneticLeave}
-                className={`fixed z-30 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center text-indigo-500 hover:text-indigo-600 shadow-lg shadow-indigo-500/10 cursor-pointer transition-all duration-500 bottom-6 ${sidebarVisible && !onLanding ? 'xl:left-[340px] left-6' : 'left-6'
-                  }`}
+                 className={`fixed z-30 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-md flex items-center justify-center text-indigo-500 hover:text-indigo-600 shadow-lg shadow-indigo-500/10 cursor-pointer transition-all duration-500 bottom-6 ${
+                  sidebarVisible && !onLanding ? 'xl:left-[340px] left-6' : 'left-6'
+                }`}
                 title="Scroll back to structural top"
               >
                 <ArrowUpCircle className="w-5 h-5" />
@@ -742,7 +734,7 @@ export default function App() {
 
         </div>
       </div>
-
+    
       {/* Contribute Page View */}
       <AnimatePresence>
         {contributeOpen && (
@@ -755,11 +747,7 @@ export default function App() {
             className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-pointer"
           >
             <BackgroundCanvas theme={theme} />
-<<<<<<< HEAD
             <div 
-=======
-            <div
->>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
               onClick={(e) => e.stopPropagation()}
               className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
             >
