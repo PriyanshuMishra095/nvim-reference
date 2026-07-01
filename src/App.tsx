@@ -510,13 +510,26 @@ export default function App() {
             </button>
           </div>
 
-          {/* Desktop Table of Contents Sidebar (slides off left on landing or when collapsed) */}
-          <div 
-            className="hidden xl:block w-[320px] h-screen fixed left-0 top-0 border-r border-zinc-200/50 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl z-35 transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          {/* Desktop Table of Contents Sidebar (spring slides and 3D rotates from left on landing or when collapsed) */}
+          <motion.div 
+            className="hidden xl:block w-[320px] h-screen fixed left-0 top-0 border-r border-zinc-200/50 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl z-35"
+            initial={false}
+            animate={{
+              x: onLanding || !sidebarVisible ? -380 : 0,
+              opacity: onLanding || !sidebarVisible ? 0 : 1,
+              scale: onLanding || !sidebarVisible ? 0.94 : 1,
+              rotateY: onLanding || !sidebarVisible ? -15 : 0,
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 180,
+              damping: 24,
+              mass: 0.8
+            }}
             style={{
-              transform: onLanding ? 'translate3d(calc(-100% - 60px), 0, 0)' : (sidebarVisible ? 'translate3d(0, 0, 0)' : 'translate3d(calc(-100% - 60px), 0, 0)'),
-              opacity: onLanding ? 0 : (sidebarVisible ? 1 : 0),
-              pointerEvents: onLanding || !sidebarVisible ? 'none' : 'auto'
+              pointerEvents: onLanding || !sidebarVisible ? 'none' : 'auto',
+              transformOrigin: 'left center',
+              perspective: 1000
             }}
           >
             <Sidebar 
@@ -526,8 +539,9 @@ export default function App() {
               vimMode={vimMode}
               setVimMode={setVimMode}
               siteTitle={siteTitle}
+              sidebarVisible={sidebarVisible}
             />
-          </div>
+          </motion.div>
 
           {/* Mobile Slide-in Drawer Sourced Sidebar */}
           <AnimatePresence>

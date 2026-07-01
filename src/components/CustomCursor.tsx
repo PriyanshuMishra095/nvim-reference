@@ -28,6 +28,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
   // Physics velocities
   const velRef = useRef({ x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 });
 
+  // Target border radius caching to prevent layout thrashing inside 60fps loop
+  const lastLockedElementRef = useRef<HTMLElement | null>(null);
+  const targetBorderRadiusRef = useRef({ tl: 0, tr: 0, bl: 0, br: 0 });
+
   // Interactive targets and input tracking refs
   // Interactive targets and input tracking refs
   const lockedElementRef = useRef<HTMLElement | null>(null);
@@ -259,6 +263,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           padding = 4; // snug fit around search bar border
         } else if (activeLockElement.classList.contains("landing-btn")) {
           padding = 0; // snug fit on landing buttons
+        } else if (activeLockElement.closest("[data-register-card]")) {
+          padding = 6; // snug fit around register card
         }
         const modeBadge = activeLockElement ? activeLockElement.closest("[data-mode-badge]") : null;
         const hoverMode = modeBadge ? modeBadge.getAttribute("data-mode-badge") : null;
@@ -275,20 +281,27 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         targetW = rect.width + padding;
         targetH = rect.height + padding;
 
-        // Get snapped target border radius per corner
-        let brTL = 0, brTR = 0, brBL = 0, brBR = 0;
-        try {
-          const style = window.getComputedStyle(activeLockElement);
-          brTL = parseFloat(style.borderTopLeftRadius) || 0;
-          brTR = parseFloat(style.borderTopRightRadius) || 0;
-          brBL = parseFloat(style.borderBottomLeftRadius) || 0;
-          brBR = parseFloat(style.borderBottomRightRadius) || 0;
-        } catch (e) {}
+        // Cache target border radius to prevent layout thrashing on every frame
+        if (activeLockElement !== lastLockedElementRef.current) {
+          lastLockedElementRef.current = activeLockElement;
+          let brTL = 0, brTR = 0, brBL = 0, brBR = 0;
+          try {
+            const style = window.getComputedStyle(activeLockElement);
+            brTL = parseFloat(style.borderTopLeftRadius) || 0;
+            brTR = parseFloat(style.borderTopRightRadius) || 0;
+            brBL = parseFloat(style.borderBottomLeftRadius) || 0;
+            brBR = parseFloat(style.borderBottomRightRadius) || 0;
+          } catch (e) {}
+          targetBorderRadiusRef.current = { tl: brTL, tr: brTR, bl: brBL, br: brBR };
+        }
         
-        targetRTL = brTL > 0 ? Math.max(0, brTL + padding / 2) : 0;
-        targetRTR = brTR > 0 ? Math.max(0, brTR + padding / 2) : 0;
-        targetRBL = brBL > 0 ? Math.max(0, brBL + padding / 2) : 0;
-        targetRBR = brBR > 0 ? Math.max(0, brBR + padding / 2) : 0;
+        const { tl, tr, bl, br } = targetBorderRadiusRef.current;
+        targetRTL = tl > 0 ? Math.max(0, tl + padding / 2) : 0;
+        targetRTR = tr > 0 ? Math.max(0, tr + padding / 2) : 0;
+        targetRBL = bl > 0 ? Math.max(0, bl + padding / 2) : 0;
+        targetRBR = br > 0 ? Math.max(0, br + padding / 2) : 0;
+      } else {
+        lastLockedElementRef.current = null;
       }
 
       // Update position and dimensions via spring physics

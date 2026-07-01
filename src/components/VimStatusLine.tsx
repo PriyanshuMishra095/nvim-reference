@@ -800,20 +800,27 @@ export default function VimStatusLine({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(registers).map(([key, value]) => (
-                    <div key={key} className="flex flex-col p-4 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 hover:shadow-lg transition-all relative group overflow-hidden">
+                    <div 
+                      key={key} 
+                      data-register-card="true"
+                      className="flex flex-col p-4 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-amber-500/50 hover:shadow-lg transition-all relative group overflow-hidden cursor-pointer"
+                    >
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-mono font-bold text-amber-600 dark:text-amber-500 text-sm bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                           "{key}
                         </span>
                         <button
-                          onClick={() => onClearRegister(key)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-rose-500 hover:text-rose-600 font-medium bg-rose-500/10 px-2 py-1 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onClearRegister(key);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-rose-500 hover:text-rose-600 font-medium bg-rose-500/10 px-2 py-1 rounded cursor-pointer"
                         >
                           Clear
                         </button>
                       </div>
-                      <div className="font-mono text-sm text-zinc-700 dark:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic">
-                        {value}
+                      <div className="font-mono text-xs sm:text-sm text-zinc-400 dark:text-zinc-555 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic leading-relaxed">
+                        {value || 'Empty register cell. Select text in Visual Mode and yank to populate.'}
                       </div>
                     </div>
                   ))}

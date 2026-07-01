@@ -540,15 +540,6 @@ canvas {
   transition-property: none;
 }
 
-/* Enable view-transition name on the theme toggle button so it remains static during view transitions */
-.celestial-toggle {
-  view-transition-name: theme-toggle;
-}
-::view-transition-old(theme-toggle),
-::view-transition-new(theme-toggle) {
-  animation: none;
-  mix-blend-mode: normal;
-}
 
 /* ── PROGRESS BAR GLOW PULSE ── */
 @keyframes progressGlow {

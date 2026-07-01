@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, BookOpen, Layers, Cpu, Terminal, X, ArrowUpRight } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Chapter, SearchRecord } from '../types';
 import { VimMode } from './VimStatusLine';
 
@@ -10,9 +11,10 @@ interface SidebarProps {
   vimMode?: VimMode;
   setVimMode?: (mode: VimMode) => void;
   siteTitle?: string;
+  sidebarVisible?: boolean;
 }
 
-export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', setVimMode, siteTitle = 'nvim://reference' }: SidebarProps) {
+export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', setVimMode, siteTitle = 'nvim://reference', sidebarVisible = true }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -245,7 +247,22 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                   const activeClass = activeClassMap[vimMode] || activeClassMap.normal;
 
                   return (
-                    <li key={ch.id}>
+                    <motion.li 
+                      key={ch.id}
+                      initial={false}
+                      animate={{ 
+                        opacity: sidebarVisible ? 1 : 0, 
+                        x: sidebarVisible ? 0 : -12,
+                        rotateY: sidebarVisible ? 0 : -10
+                      }}
+                      transition={{ 
+                        delay: sidebarVisible ? (ch.num * 0.035) : 0, 
+                        type: 'spring', 
+                        stiffness: 220, 
+                        damping: 18 
+                      }}
+                      style={{ transformOrigin: 'left center' }}
+                    >
                       <button
                         id={`sidebar-ch-${ch.id}`}
                         onClick={() => {
@@ -262,7 +279,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                         <span className="opacity-45">ch.{String(ch.num).padStart(2, '0')}</span>
                         <span className="truncate">{ch.title.split(':')[0]}</span>
                       </button>
-                    </li>
+                    </motion.li>
                   );
                 })}
             </ul>
