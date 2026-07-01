@@ -596,9 +596,20 @@ export default function VimStatusLine({
             >
               {/* Autocomplete Hints panels */}
               <div className="mb-4 space-y-1.5 max-h-[160px] overflow-y-auto divide-y divide-zinc-900 border-b border-zinc-900 pb-3">
-                <div className="text-[11px] uppercase font-bold tracking-wider mb-1.5 flex items-center gap-1.5 pb-1" style={{ color: modeColor }}>
-                  <Terminal className="w-3.5 h-3.5 animate-pulse" />
-                  <span>nvim://command</span>
+                <div className="text-[11px] uppercase font-bold tracking-wider mb-1.5 flex items-center justify-between pb-1" style={{ color: modeColor }}>
+                  <div className="flex items-center gap-1.5">
+                    <Terminal className="w-3.5 h-3.5 animate-pulse" />
+                    <span>nvim://command</span>
+                  </div>
+                  <kbd 
+                    onClick={() => {
+                      setVimMode('normal');
+                      setCommandInput('');
+                    }}
+                    className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-850 text-[10px] text-zinc-500 font-bold cursor-pointer hover:text-rose-500 transition-colors"
+                  >
+                    ESC
+                  </kbd>
                 </div>
                 {getAutocompleteSuggestions().map((s, idx) => (
                   <button
@@ -771,7 +782,12 @@ export default function VimStatusLine({
                   In-Memory Registers
                 </h3>
                 <div className="flex gap-4 items-center">
-                  <span className="hidden sm:inline-flex px-2 py-1 rounded bg-zinc-200/50 dark:bg-zinc-800/50 text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400 border border-zinc-300/50 dark:border-zinc-700/50">Esc to close</span>
+                  <kbd 
+                    onClick={() => setShowRegistersTray(false)}
+                    className="hidden sm:inline-flex px-2.5 py-1 rounded bg-zinc-200/50 dark:bg-zinc-800/50 text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400 border border-zinc-300/50 dark:border-zinc-700/50 cursor-pointer hover:text-rose-500 transition-colors"
+                  >
+                    ESC
+                  </kbd>
                   <button 
                     onClick={() => setShowRegistersTray(false)}
                     data-close-btn="true"
@@ -850,7 +866,12 @@ export default function VimStatusLine({
               style={{ borderColor: modeColor }}
             >
               <div className="absolute top-[4%] right-[4%] flex items-center gap-2 select-none">
-                <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold">ESC</kbd>
+                <kbd 
+                  onClick={() => setActiveHelpTopic(null)}
+                  className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold cursor-pointer hover:text-rose-500 transition-colors"
+                >
+                  ESC
+                </kbd>
                 <button
                   onClick={() => setActiveHelpTopic(null)}
                   data-close-btn="true"
@@ -952,9 +973,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                             <span className="text-zinc-800 dark:text-zinc-200">{msg.content}</span>
                           </div>
                         ) : (
-                          <div className="whitespace-pre-wrap leading-relaxed text-zinc-800 dark:text-zinc-300 pr-1">
-                            {msg.content}
-                          </div>
+                          <MatrixTypewriter text={msg.content} />
                         )}
                       </div>
                     ))}
@@ -1001,32 +1020,74 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                 </div>
               )}
 
-              {/* General Tutor summary */}
+              {/* General Tutor summary & Redesigned Index View */}
               {(!activeHelpTopic || activeHelpTopic === 'general') && (
-                <div className="space-y-4 leading-relaxed">
-                  <p className="font-bold text-zinc-900 dark:text-zinc-100 text-[13px] border-b border-zinc-200/60 dark:border-zinc-800/60 pb-1">Welcome to the Neovim Interactive Tutor (2026 Edition)</p>
-                  <p>This handbook is a living environment. Practice Neovim actions by tapping keys on your physical keyboard:</p>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-150 text-lg border-b border-zinc-200/60 dark:border-zinc-800/60 pb-2">Welcome to Neovim Help</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">This interactive tutor acts as a living sandbox. Practice actions by typing keys directly on your keyboard. Select a topic guide below, or ask Gemini AI anything.</p>
+                  </div>
                   
-                  <div className="grid grid-cols-2 gap-3 text-[11px] py-1 select-none">
-                    <div className="p-2.5 rounded bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/60 dark:border-zinc-800/80">
-                      <span className="font-black text-rose-600 dark:text-rose-400 block mb-1">Modes Quick-Shift</span>
-                      <div>• <kbd className="text-rose-600 dark:text-rose-400">ESC</kbd> : Normal Mode</div>
+                  <div className="grid grid-cols-2 gap-3 text-[11px] select-none">
+                    <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/50 dark:border-zinc-800/80">
+                      <span className="font-black text-rose-600 dark:text-rose-455 block mb-1">Modes Quick-Shift</span>
+                      <div>• <kbd className="text-rose-600 dark:text-rose-455">ESC</kbd> : Normal Mode</div>
                       <div>• <kbd className="text-amber-600 dark:text-amber-500">i</kbd> : Insert (Search)</div>
-                      <div>• <kbd className="text-emerald-600 dark:text-emerald-500">v</kbd> : Visual (Yank-select)</div>
-                      <div>• <kbd className="text-rose-600 dark:text-rose-550">:</kbd> : Command mode</div>
+                      <div>• <kbd className="text-emerald-600 dark:text-emerald-500">v</kbd> : Visual (Yank)</div>
+                      <div>• <kbd className="text-rose-600 dark:text-rose-455">:</kbd> : Command mode</div>
                     </div>
  
-                    <div className="p-2.5 rounded bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/60 dark:border-zinc-800/80">
+                    <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/50 dark:border-zinc-800/80">
                       <span className="font-black text-indigo-600 dark:text-indigo-400 block mb-1">Normal Commands</span>
-                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">j</kbd> / <kbd className="text-indigo-600 dark:text-indigo-400">k</kbd> : scroll down/up</div>
-                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">/</kbd> : Search input focus</div>
-                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">:</kbd> : slide open Console</div>
+                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">j</kbd> / <kbd className="text-indigo-600 dark:text-indigo-400">k</kbd> : Scroll down/up</div>
+                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">/</kbd> : Search box focus</div>
+                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">gg</kbd> : Scroll to top</div>
+                      <div>• <kbd className="text-indigo-600 dark:text-indigo-400">G</kbd> : Scroll to bottom</div>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal select-none">
-                    Enter <span className="font-bold underline text-rose-600 dark:text-rose-400">:chapter [num]</span> to speed jump, <span className="font-bold underline text-rose-600 dark:text-rose-400">:theme light</span> to change theme, or ask Gemini with <span className="font-bold underline text-purple-600 dark:text-purple-400">:explain</span>!
-                  </p>
+                  <div className="border-t border-zinc-200/60 dark:border-zinc-800/60 pt-4">
+                    <span className="text-xs uppercase font-bold text-zinc-400 dark:text-zinc-500 tracking-wider block mb-3">Topic Documentation Guides</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <button onClick={() => setActiveHelpTopic('modal')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-indigo-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                        <div className="font-bold text-indigo-600 dark:text-indigo-400 text-xs mb-0.5">*modal-editing*</div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Understanding isolated editor control states</div>
+                      </button>
+                      <button onClick={() => setActiveHelpTopic('registers')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-amber-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                        <div className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-0.5">*registers-api*</div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Working with in-memory clipboards</div>
+                      </button>
+                      <button onClick={() => setActiveHelpTopic('keymaps')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-emerald-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs mb-0.5">*keymaps-lua*</div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Mapping declarative key bindings in Lua</div>
+                      </button>
+                      <button onClick={() => setActiveHelpTopic('macro')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-purple-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                        <div className="font-bold text-purple-600 dark:text-purple-400 text-xs mb-0.5">*macros*</div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Recording and replaying keystroke lists</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 pt-4">
+                    <button 
+                      onClick={() => {
+                        setChatMessages([]);
+                        setActiveHelpTopic('ai-explain');
+                        setShowChatInput(true);
+                        setTimeout(() => chatInputRef.current?.focus(), 50);
+                      }}
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/35 transition-colors group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="w-5 h-5 text-purple-550 group-hover:animate-pulse" />
+                        <div className="text-left">
+                          <div className="font-bold text-purple-700 dark:text-purple-400 text-xs">Consult Gemini AI Architect</div>
+                          <div className="text-[10px] text-purple-600/70 dark:text-purple-300/75">Ask any custom questions and learn Neovim live</div>
+                        </div>
+                      </div>
+                      <code className="text-[10px] font-bold text-purple-550 bg-purple-500/15 px-2 py-1 rounded select-none">:explain</code>
+                    </button>
+                  </div>
                 </div>
               )}
 

@@ -571,3 +571,12 @@ canvas {
   white-space: nowrap;
 }
 
+/* Hide default cursor during view transitions */
+::view-transition,
+::view-transition-group(*),
+::view-transition-image-pair(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  cursor: none !important;
+}
+

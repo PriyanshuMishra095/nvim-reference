@@ -263,14 +263,16 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                       }}
                       style={{ transformOrigin: 'left center' }}
                     >
-                      <button
+                      <motion.button
                         id={`sidebar-ch-${ch.id}`}
                         onClick={() => {
                           onNavigateChapter(ch.id);
                           const el = document.getElementById(ch.id);
                           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className={`w-full text-left px-3.5 py-2 rounded-lg flex items-center gap-2.5 font-mono text-sm transition-all duration-300 border hover:translate-x-[2px] transform ${
+                        whileHover={{ x: 6 }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 15 }}
+                        className={`w-full text-left px-3.5 py-2 rounded-lg flex items-center gap-2.5 font-mono text-sm border cursor-pointer ${
                           isActive
                             ? activeClass
                             : 'hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100'
@@ -278,7 +280,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                       >
                         <span className="opacity-45">ch.{String(ch.num).padStart(2, '0')}</span>
                         <span className="truncate">{ch.title.split(':')[0]}</span>
-                      </button>
+                      </motion.button>
                     </motion.li>
                   );
                 })}

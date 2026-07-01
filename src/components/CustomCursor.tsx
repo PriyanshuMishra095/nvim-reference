@@ -120,13 +120,21 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       lockedElementRef.current = isOverTitleRef.current ? null : (isMatchValid ? match : null);
     };
 
+    // Throttle mousemove coordinate updates to prevent chokes on high-polling gaming mice
+    let mouseMovePending = false;
     const handleMouseMove = (e: MouseEvent) => {
       mouseRef.current.x = e.clientX;
       mouseRef.current.y = e.clientY;
       lastMouseMoveTimeRef.current = Date.now();
       dotOpacityRef.current = 1;
 
-      updateHoverState(e.clientX, e.clientY);
+      if (!mouseMovePending) {
+        mouseMovePending = true;
+        requestAnimationFrame(() => {
+          updateHoverState(mouseRef.current.x, mouseRef.current.y);
+          mouseMovePending = false;
+        });
+      }
     };
 
     // Update hover state dynamically on scroll as well
@@ -135,7 +143,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
 
     let frameId: number;
 
