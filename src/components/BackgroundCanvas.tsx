@@ -182,9 +182,9 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         this.radius = Math.random() * 300 + 250;
         this.currentRgb = { ...colorRgb };
         this.targetRgb = { ...colorRgb };
-        // Extremely slow velocities for a relaxing, floaty effect
-        this.vx = Math.random() * 0.04 - 0.02;
-        this.vy = Math.random() * 0.04 - 0.02;
+        // Slow velocities for a relaxing, floaty drift (approx 6-12px per second)
+        this.vx = Math.random() * 0.2 - 0.1;
+        this.vy = Math.random() * 0.2 - 0.1;
         this.index = index;
         this.breathePhase = Math.random() * Math.PI * 2;
         // Slower breathing (approx 15-20s cycle)
@@ -358,11 +358,6 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         ctx.fillStyle = isDark 
           ? `rgba(255, 255, 255, ${finalAlpha})` 
           : `rgba(79, 70, 229, ${finalAlpha})`;
-        
-        if (this.radius >= 2.0) {
-          ctx.shadowBlur = (isDark ? 8 : 4) * scale;
-          ctx.shadowColor = isDark ? "#ffffff" : "rgba(79, 70, 229, 0.4)";
-        }
 
         ctx.beginPath();
         ctx.arc(this.x, renderY, renderRadius, 0, Math.PI * 2);
@@ -453,6 +448,8 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
     }
 
     function drawGlobalConstellations(landing: boolean) {
+      if (!landing) return; // Only draw global constellations on landing page to maintain high playground FPS
+      
       const isDark = themeRef.current === 'dark';
       const baseColor = isDark ? "129, 140, 248" : "79, 70, 229";
 

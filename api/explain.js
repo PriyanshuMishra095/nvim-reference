@@ -30,8 +30,8 @@ export default async function handler(req, res) {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     const systemInstruction = 
       "You are an elite Neovim config architect and modal editor wizard. " +
-      "Explain the concept or Lua code block provided in a clear, concise, and engaging way. " +
-      "Organize the explanation into structured handbook sections. " +
+      "Explain the concept or Lua code block provided in a clear, extremely short, and engaging way. " +
+      "Provide a highly concise response (maximum 3-4 sentences total). Never write long descriptions. " +
       "Keep the tone sharp and content-focused. Use markdown formats.";
 
     let contents;

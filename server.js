@@ -36,8 +36,8 @@ app.post('/api/explain', async (req, res) => {
   try {
     const systemInstruction = 
       "You are an elite Neovim config architect and modal editor wizard. " +
-      "Explain the concept or Lua code block provided in a clear, concise, and engaging way. " +
-      "Organize the explanation into structured monospaced handbook sections. " +
+      "Explain the concept or Lua code block provided in a clear, extremely short, and engaging way. " +
+      "Provide a highly concise response (maximum 3-4 sentences total). Never write long descriptions. " +
       "Keep the tone sharp and content-focused. Use markdown formats.";
 
     let contents;

@@ -631,3 +631,17 @@ canvas {
   cursor: none !important;
 }
 
+/* Exclude modals and command console from View Transition snapshots to maintain real-time backdrop blur */
+.vt-overlay-exclude {
+  view-transition-name: vt-overlay-exclude;
+}
+
+::view-transition-group(vt-overlay-exclude) {
+  animation: none !important;
+}
+::view-transition-old(vt-overlay-exclude),
+::view-transition-new(vt-overlay-exclude) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+}
+

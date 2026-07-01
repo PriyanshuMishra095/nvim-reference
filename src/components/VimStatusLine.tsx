@@ -24,19 +24,35 @@ interface VimStatusLineProps {
   onYank?: (text: string) => void;
 }
 
-// Matrix typing effect for LLM responses
+// Matrix typing effect for LLM responses (accelerates dynamically)
 const MatrixTypewriter = ({ text }: { text: string }) => {
   const [displayedText, setDisplayedText] = useState('');
 
   useEffect(() => {
     let index = 0;
     setDisplayedText('');
-    const timer = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(index));
-      index++;
-      if (index >= text.length) clearInterval(timer);
-    }, 15); // Adjust typing speed here
-    return () => clearInterval(timer);
+    let timer: any;
+    
+    const tick = () => {
+      const progress = text.length > 0 ? index / text.length : 0;
+      let charsToPrint = 1;
+      if (progress > 0.65) {
+        charsToPrint = 4;
+      } else if (progress > 0.3) {
+        charsToPrint = 2;
+      }
+
+      const nextChunk = text.slice(index, index + charsToPrint);
+      setDisplayedText((prev) => prev + nextChunk);
+      index += charsToPrint;
+
+      if (index < text.length) {
+        timer = setTimeout(tick, 15);
+      }
+    };
+
+    tick();
+    return () => clearTimeout(timer);
   }, [text]);
 
   return (
@@ -572,7 +588,7 @@ export default function VimStatusLine({
       {/* ─── FLOATING SYSTEM COMMAND INPUT BOX OVERLAY (Command state) ─── */}
       <AnimatePresence>
         {vimMode === 'command' && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-20 pointer-events-none select-none">
+          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-20 pointer-events-none select-none vt-overlay-exclude">
             {/* Visual focus blocker overlay (allows click to dismiss) */}
             <motion.div 
               initial={{ opacity: 0 }}
@@ -760,7 +776,7 @@ export default function VimStatusLine({
       {/* ─── FLOATING IN-MEMORY VIM REGISTERS POPUP OVERLAY TRAY (") ─── */}
       <AnimatePresence>
         {showRegistersTray && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -850,7 +866,7 @@ export default function VimStatusLine({
       {/* ─── FLOATING BUILT-IN VIM HELP DOCUMENTATION MODALS (:help) ─── */}
       <AnimatePresence>
         {activeHelpTopic && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -893,11 +909,11 @@ export default function VimStatusLine({
                 <div className="space-y-4 leading-relaxed">
                   <p className="font-bold" style={{ color: modeColor }}>Understanding Modality (*modal-editing*)</p>
                   <p>Neovim maintains isolated control states to give your fingers massive operational velocity. Standard modes include:</p>
-                  <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/40 rounded-lg space-y-2 border border-zinc-200/50 dark:border-zinc-800/80 text-[11px]">
+                  <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/40 rounded-lg space-y-2 border border-zinc-200/50 dark:border-zinc-800/80 text-sm">
                     <div><span className="font-black text-indigo-600 dark:text-indigo-400">NORMAL:</span> Navigational mode. Tap <code className="text-indigo-600 dark:text-indigo-400">j</code> and <code className="text-indigo-600 dark:text-indigo-400">k</code> to scroll smoothly, and <code className="text-indigo-600 dark:text-indigo-400">gg</code> to zoom to top.</div>
                     <div><span className="font-black text-amber-600 dark:text-amber-400">INSERT:</span> standard editor entry. Access via tapping <code className="text-amber-600 dark:text-amber-400">i</code>. Let's type in search parameters.</div>
                     <div><span className="font-black text-emerald-600 dark:text-emerald-400">VISUAL:</span> block selects. Copy/Yank any paragraph instantly by clicking on items.</div>
-                    <div><span className="font-black text-rose-600 dark:text-rose-400">COMMAND:</span> System actions. Triggered via <code className="text-rose-600 dark:text-rose-400">:</code>.</div>
+                    <div><span className="font-black text-rose-600 dark:text-rose-455">COMMAND:</span> System actions. Triggered via <code className="text-rose-600 dark:text-rose-455">:</code>.</div>
                   </div>
                 </div>
               )}
@@ -906,10 +922,10 @@ export default function VimStatusLine({
                 <div className="space-y-4 leading-relaxed">
                   <p className="font-bold text-amber-600 dark:text-amber-400">Working with Clipboard Registers (*registers-api*)</p>
                   <p>Traditional operating systems limit you to a single copied item. Neovim organizes an index of registers:</p>
-                  <ul className="list-disc list-inside space-y-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                    <li><code className="text-zinc-800 dark:text-zinc-200">" +</code> : standard System Clipboard. Shared with Windows/OS apps.</li>
-                    <li><code className="text-zinc-800 dark:text-zinc-200">" "</code> : the general Unnamed Register containing the last yank.</li>
-                    <li><code className="text-zinc-800 dark:text-zinc-200">" a - z</code> : custom registers which you lock and load for persistence.</li>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-555 dark:text-zinc-400">
+                    <li><code className="text-zinc-800 dark:text-zinc-250">" +</code> : standard System Clipboard. Shared with Windows/OS apps.</li>
+                    <li><code className="text-zinc-800 dark:text-zinc-250">" "</code> : the general Unnamed Register containing the last yank.</li>
+                    <li><code className="text-zinc-800 dark:text-zinc-250">" a - z</code> : custom registers which you lock and load for persistence.</li>
                   </ul>
                   <p>Press <code className="text-emerald-500 dark:text-emerald-500">v</code> to enter Visual Mode, then hover/click chapters to automatically load your registers grid!</p>
                 </div>
@@ -929,7 +945,7 @@ export default function VimStatusLine({
                   <p className="font-bold text-indigo-600 dark:text-indigo-400">Declarative Declarations (*keymaps-lua*)</p>
                   <p>Configured using standard Lua scoping: <code className="text-emerald-600 dark:text-emerald-500">vim.keymap.set(mode, trigger, action, options)</code>.</p>
                   <p>Common maps:</p>
-                  <pre className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-lg text-emerald-600 dark:text-emerald-400 text-[10px] border border-zinc-200/50 dark:border-zinc-800/80">
+                  <pre className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm border border-zinc-200/50 dark:border-zinc-800/80">
 {`vim.keymap.set("i", "jk", "<Esc>") -- Home-row exit
 vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                   </pre>
@@ -1003,7 +1019,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                             }
                           }}
                           placeholder={chatMessages.length === 0 ? "Ask Neovim LLM..." : "Ask a follow-up question..."}
-                          className="bg-transparent flex-1 text-sm text-zinc-800 dark:text-zinc-250 outline-none font-mono placeholder-zinc-700"
+                          className="bg-transparent flex-1 text-sm text-zinc-800 dark:text-white outline-none font-mono placeholder-zinc-700"
                           style={{ caretColor: '#22c55e' }}
                         />
                         <button

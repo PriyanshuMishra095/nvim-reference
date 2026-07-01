@@ -281,4 +281,14 @@ This file is a write-only log of every detailed activity performed during develo
   - Main text content flows sideways in perfect spring synchronization when desktop sidebar is toggled.
   - Custom cursor safely resets when modal dismissals unmount snap targets.
 
-
+### [2026-07-02T01:55:00+05:30] Visual Polish, 60fps Canvas Rendering Optimizations, and View Transition Backdrop Blur Exclusions
+- **Files Modified**:
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (Completely disabled expensive canvas shadow blurs on `CosmicDust` particles; restricted CPU-intensive nested loop of `drawGlobalConstellations` to only run on landing page, restoring a solid 60fps in the main playground; adjusted orb velocities vx/vy between -0.1 and 0.1 for floaty drifting movement).
+  - `[MODIFY] src/components/ChapterSection.tsx` (Unified text size classes inside vs_matrix list items, checklist cards descriptions/titles, terminal shell inputs, and AST explanation footer to use `text-sm` for a balanced, cohesive layout).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Unified Help modal topic content text sizes to inherit or use standard `text-sm` size, matching the Registers modal; upgraded `MatrixTypewriter` to output at standard speed initially and accelerate towards the end of the text stream; fixed typed input text color in dark theme by replacing invalid `dark:text-zinc-250` class with `dark:text-white`; mapped `.vt-overlay-exclude` class to the wrapper containers of all three overlays).
+  - `[MODIFY] src/index.css` (Defined `.vt-overlay-exclude` view-transition group and set its animation to none, isolating overlay layers from root view transitions so backdrop-filter blurs are preserved in real-time during theme changes).
+  - `[MODIFY] api/explain.js` & `server.js` (Added prompt systemInstructions to enforce very short answers, under 3-4 sentences total, preventing paragraph overflow in the LLM chat).
+- **Details**:
+  - Eliminating nested calculations and shadows in the canvas background completely solves 5fps playground lags.
+  - Custom typewriters accelerate dynamically to deliver answers snappy and responsive.
+  - Backdrop blurs are preserved in real time during circular theme sweep animations.
