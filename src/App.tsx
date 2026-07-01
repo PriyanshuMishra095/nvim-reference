@@ -23,6 +23,7 @@ export default function App() {
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
+  const statusBarAutoRevealedRef = useRef<boolean>(false);
 
   useEffect(() => {
     setIsSidebarPopping(true);
@@ -90,8 +91,8 @@ export default function App() {
   useEffect(() => {
     if (keystrokes.length === 0) return;
     const interval = setInterval(() => {
-      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1850));
-    }, 250);
+      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1000));
+    }, 200);
     return () => clearInterval(interval);
   }, [keystrokes]);
 
@@ -109,7 +110,17 @@ export default function App() {
       // Automatically unhide Mode Bar on any Vim key action
       const isVimKey = ['j', 'k', 'h', 'l', 'i', 'v', ':', 'Escape'].includes(e.key) || e.key.match(/^[0-9]$/) || e.key === '/';
       if (isVimKey) {
-        setModeBarVisible(true);
+        if (!modeBarVisible) {
+          setModeBarVisible(true);
+          statusBarAutoRevealedRef.current = true;
+        }
+      }
+
+      if (e.key === 'Escape' && vimMode === 'normal') {
+        if (statusBarAutoRevealedRef.current) {
+          setModeBarVisible(false);
+          statusBarAutoRevealedRef.current = false;
+        }
       }
 
       let desc = 'Tactile keystroke';
@@ -133,7 +144,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyPressVisual, true);
     return () => window.removeEventListener('keydown', handleKeyPressVisual, true);
-  }, [onLanding, setModeBarVisible]);
+  }, [onLanding, setModeBarVisible, modeBarVisible, vimMode]);
 
   const handleYankText = (text: string) => {
     setRegisters((prev) => ({
@@ -143,6 +154,9 @@ export default function App() {
       'b': prev.b || text
     }));
     setYankNotification(text);
+    setTimeout(() => {
+      setYankNotification((prev) => (prev === text ? null : prev));
+    }, 3000);
   };
 
   const handleClearYankNotification = () => {
@@ -181,15 +195,80 @@ export default function App() {
     }
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    try {
-      localStorage.setItem('handbook-theme', nextTheme);
-    } catch (e) {
-      console.warn('localStorage write failed in sandbox:', e);
+  // Synchronize contributeOpen with hash/history state
+  useEffect(() => {
+    if (contributeOpen) {
+      if (window.location.hash !== '#contribute') {
+        window.history.pushState({ contribute: true }, '', '#contribute');
+      }
+    } else {
+      if (window.location.hash === '#contribute') {
+        window.history.back();
+      }
     }
-    document.documentElement.setAttribute('data-theme', nextTheme);
+  }, [contributeOpen]);
+
+  // Listen to popstate to close contribute when backing out, and Escape key
+  useEffect(() => {
+    const handlePopState = () => {
+      if (window.location.hash !== '#contribute') {
+        setContributeOpen(false);
+      } else {
+        setContributeOpen(true);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setContributeOpen(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+
+    if (window.location.hash === '#contribute') {
+      setContributeOpen(true);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const toggleTheme = (clickX?: number, clickY?: number) => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    
+    // Default to center if coordinates are omitted
+    const targetX = clickX ?? window.innerWidth / 2;
+    const targetY = clickY ?? window.innerHeight / 2;
+
+    // Set CSS custom properties for the circular reveal origin
+    const xPercent = (targetX / window.innerWidth) * 100;
+    const yPercent = (targetY / window.innerHeight) * 100;
+    document.documentElement.style.setProperty('--vt-x', `${xPercent}%`);
+    document.documentElement.style.setProperty('--vt-y', `${yPercent}%`);
+
+    const applyTheme = () => {
+      setTheme(nextTheme);
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      try {
+        localStorage.setItem('handbook-theme', nextTheme);
+      } catch (e) {
+        console.warn('localStorage write failed in sandbox:', e);
+      }
+    };
+
+    // Use View Transitions API if supported for a smooth circular reveal
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        applyTheme();
+      });
+    } else {
+      // Graceful fallback: instant toggle
+      applyTheme();
+    }
   };
 
   // Track global scroll progression percentage to feed the reader bar
@@ -215,7 +294,7 @@ export default function App() {
       }
 
       // Reveal scroll-to-top buttons conditionally
-      const shouldShowScroll = winScroll > 600;
+      const shouldShowScroll = winScroll > landingHeight;
       setShowScrollTop((prev) => {
         if (prev !== shouldShowScroll) return shouldShowScroll;
         return prev;
@@ -366,6 +445,8 @@ export default function App() {
   return (
     <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
       
+      {/* Theme transition is handled via the View Transitions API — see ::view-transition-new(root) in index.css */}
+
       {/* Dynamic Backdrops */}
       <BackgroundCanvas theme={theme} vimMode={vimMode} onLanding={onLanding} />
       <CustomCursor vimMode={vimMode} />
@@ -378,11 +459,11 @@ export default function App() {
       )}
 
       {/* Primary horizontal Scroll progress metric bar */}
-      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none">
+      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none progress-bar-glow">
         <div 
           ref={progressBarRef}
-          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] transition-all duration-100 ease-out"
-          style={{ width: '0%' }}
+          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+          style={{ width: '0%', transition: 'width 0.1s ease-out' }}
         />
       </div>
 
@@ -443,6 +524,7 @@ export default function App() {
               activeChapterId={activeChapterId} 
               onNavigateChapter={handleNavigateChapter} 
               vimMode={vimMode}
+              setVimMode={setVimMode}
               siteTitle={siteTitle}
             />
           </div>
@@ -473,6 +555,7 @@ export default function App() {
                     activeChapterId={activeChapterId} 
                     onNavigateChapter={handleNavigateChapter} 
                     vimMode={vimMode}
+                    setVimMode={setVimMode}
                     siteTitle={siteTitle}
                   />
                 </motion.div>
@@ -536,9 +619,6 @@ export default function App() {
                   <span>{siteTitle} — Release 2026</span>
                 </div>
                 <div>Master the modal paradigm and command your terminal with pride.</div>
-                <div className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80 mt-1">
-                  Client Host: Windows 11 x64
-                </div>
               </footer>
 
             </main>
@@ -663,10 +743,14 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200"
+            onClick={() => setContributeOpen(false)}
+            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-pointer"
           >
             <BackgroundCanvas theme={theme} />
-            <div className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10">
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/70 dark:bg-zinc-950/30 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
+            >
               {/* Close Button */}
               <button
                 onClick={() => setContributeOpen(false)}

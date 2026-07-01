@@ -4,7 +4,7 @@ import { VimMode } from './VimStatusLine';
 interface FloatingControlsProps {
   theme: 'dark' | 'light';
   vimMode?: VimMode;
-  onToggleTheme: () => void;
+  onToggleTheme: (x?: number, y?: number) => void;
   onOpenPlayground: () => void;
 }
 
@@ -52,7 +52,7 @@ export default function FloatingControls({ theme, vimMode = 'normal', onToggleTh
         id="theme-toggle"
         className="celestial-toggle cursor-pointer"
         aria-label="Toggle visual theme"
-        onClick={onToggleTheme}
+        onClick={(e) => onToggleTheme(e.clientX, e.clientY)}
         onMouseMove={handleMagneticMove}
         onMouseLeave={handleMagneticLeave}
         style={{

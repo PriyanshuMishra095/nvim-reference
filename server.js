@@ -29,6 +29,10 @@ app.post('/api/explain', async (req, res) => {
     return res.status(400).json({ error: 'Prompt is required.' });
   }
 
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'AI key configuration missing on server. Please configure GEMINI_API_KEY.' });
+  }
+
   try {
     const systemInstruction = 
       "You are an elite Neovim config architect and modal editor wizard. " +
@@ -37,7 +41,7 @@ app.post('/api/explain', async (req, res) => {
       "Keep the tone sharp and content-focused. Use markdown formats.";
 
     let contents;
-    if (messages && Array.isArray(messages)) {
+    if (messages && Array.isArray(messages) && messages.length > 0) {
       contents = messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }]
@@ -47,9 +51,10 @@ app.post('/api/explain', async (req, res) => {
         parts: [{ text: prompt }]
       });
     } else {
-      contents = context 
+      const fullPrompt = context 
         ? `Context (Chapter/Section): ${context}\n\nConcept/Code to explain:\n${prompt}`
         : prompt;
+      contents = [{ role: 'user', parts: [{ text: fullPrompt }] }];
     }
 
     const response = await ai.models.generateContent({
@@ -61,10 +66,17 @@ app.post('/api/explain', async (req, res) => {
       }
     });
 
-    res.json({ text: response.text });
+    const text = response.text;
+    
+    if (!text) {
+      return res.status(500).json({ error: 'Gemini returned an empty response.' });
+    }
+
+    res.json({ text });
   } catch (error) {
     console.error('Error calling Gemini API:', error);
-    res.status(500).json({ error: 'Failed to generate explanation from Gemini API.' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: `Failed to generate explanation: ${errorMessage}` });
   }
 });
 

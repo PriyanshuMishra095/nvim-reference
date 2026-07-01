@@ -173,6 +173,8 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       vx: number;
       vy: number;
       index: number;
+      breathePhase: number;
+      breatheSpeed: number;
 
       constructor(colorRgb: { r: number; g: number; b: number }, index: number) {
         this.x = Math.random() * width;
@@ -180,9 +182,13 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         this.radius = Math.random() * 300 + 250;
         this.currentRgb = { ...colorRgb };
         this.targetRgb = { ...colorRgb };
-        this.vx = Math.random() * 0.4 - 0.2;
-        this.vy = Math.random() * 0.4 - 0.2;
+        // Slower velocities for a relaxing, floaty effect
+        this.vx = Math.random() * 0.15 - 0.075;
+        this.vy = Math.random() * 0.15 - 0.075;
         this.index = index;
+        this.breathePhase = Math.random() * Math.PI * 2;
+        // Slower breathing (approx 15-20s cycle)
+        this.breatheSpeed = 0.003 + Math.random() * 0.002; 
       }
 
       updateColors(newColorRgb: { r: number; g: number; b: number }) {
@@ -193,9 +199,23 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         this.x += this.vx;
         this.y += this.vy;
 
-        this.currentRgb.r = lerp(this.currentRgb.r, this.targetRgb.r, 0.05);
-        this.currentRgb.g = lerp(this.currentRgb.g, this.targetRgb.g, 0.05);
-        this.currentRgb.b = lerp(this.currentRgb.b, this.targetRgb.b, 0.05);
+        // Smoother theme color transitions
+        this.currentRgb.r = lerp(this.currentRgb.r, this.targetRgb.r, 0.03);
+        this.currentRgb.g = lerp(this.currentRgb.g, this.targetRgb.g, 0.03);
+        this.currentRgb.b = lerp(this.currentRgb.b, this.targetRgb.b, 0.03);
+
+        // Breathing phase
+        this.breathePhase += this.breatheSpeed;
+
+        // Subtle mouse-based parallax nudge for depth
+        if (mouse.active) {
+          const parallaxStrength = 0.0003 * (this.index + 1);
+          this.vx += (mouse.x - width / 2) * parallaxStrength * 0.01;
+          this.vy += (mouse.y - height / 2) * parallaxStrength * 0.01;
+          // Dampen velocity to prevent runaway
+          this.vx *= 0.999;
+          this.vy *= 0.999;
+        }
 
         if (this.x < -this.radius) this.x = width + this.radius;
         if (this.x > width + this.radius) this.x = -this.radius;
@@ -222,7 +242,13 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         ctx.globalCompositeOperation = isDark ? "screen" : "multiply";
         
         const baseAlpha = isDark ? 0.08 : 0.04;
-        ctx.globalAlpha = landing ? baseAlpha * 2.5 : baseAlpha;
+        const landingHeight = height * 0.85;
+        const scrollFactor = Math.min(1, scrollY / landingHeight);
+        // Dim down smoothly from 2.5x to 1.0x of baseAlpha
+        const multiplier = 2.5 - scrollFactor * 1.5;
+        // Breathing pulse: gentle ±20% alpha oscillation
+        const breathe = 1 + Math.sin(this.breathePhase) * 0.2;
+        ctx.globalAlpha = baseAlpha * multiplier * breathe;
 
         ctx.fillStyle = gradient;
         ctx.beginPath();

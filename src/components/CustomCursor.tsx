@@ -38,6 +38,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
   const isChecklistCheckedRef = useRef(false);
   const isOverTitleRef = useRef(false);
   const titleHeightRef = useRef(80);
+  const isOverCloseBtnRef = useRef(false);
+  const isOverSparklesBtnRef = useRef(false);
 
   useEffect(() => {
     // 1. Skip on touch screen / coarse pointers
@@ -62,6 +64,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         isOverChecklistRef.current = false;
         isChecklistCheckedRef.current = false;
         isOverTitleRef.current = false;
+        isOverCloseBtnRef.current = false;
+        isOverSparklesBtnRef.current = false;
         lockedElementRef.current = null;
         return;
       }
@@ -77,15 +81,25 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         titleHeightRef.current = fs;
       }
 
+      const isCloseBtn = target.closest("[data-close-btn='true']");
+      isOverCloseBtnRef.current = !!isCloseBtn;
+
+      const isSparklesBtn = target.closest("[data-sparkles-btn='true']");
+      isOverSparklesBtnRef.current = !!isSparklesBtn;
+
       const isInput = target.closest("input, textarea, [contenteditable]");
       isOverInputRef.current = !!isInput && !isOverTitleRef.current;
       
       const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
-      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current;
+      
+      // Prevent full screen overlay triggers by validating targets
+      const isOverlayBackdrop = target.classList.contains("fixed") && target.classList.contains("inset-0") && !target.classList.contains("custom-scroll-track");
+      
+      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn && !isOverlayBackdrop;
 
       // Clickable items inside code block should show hand icon, not green block caret
       const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']");
-      isOverCodeRef.current = !!isCode && !isOverClickableRef.current && !isOverTitleRef.current;
+      isOverCodeRef.current = !!isCode && !isOverClickableRef.current && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn;
 
       const checklistCard = target.closest("[data-checklist-card]") as HTMLElement | null;
       isOverChecklistRef.current = !!checklistCard;
@@ -97,7 +111,9 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       }
 
       const match = target.closest(hoverQuery) as HTMLElement | null;
-      lockedElementRef.current = isOverTitleRef.current ? null : match;
+      // Filter out dialog container panels and backdrops
+      const isMatchValid = match && (!match.classList.contains("fixed") || match.id === "theme-toggle" || match.tagName === "BUTTON");
+      lockedElementRef.current = isOverTitleRef.current ? null : (isMatchValid ? match : null);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -244,8 +260,17 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         } else if (activeLockElement.classList.contains("landing-btn")) {
           padding = 0; // snug fit on landing buttons
         }
-        targetBg = "var(--cursor-snap-bg)";
-        targetBorder = "var(--cursor-snap-border)";
+        const modeBadge = activeLockElement ? activeLockElement.closest("[data-mode-badge]") : null;
+        const hoverMode = modeBadge ? modeBadge.getAttribute("data-mode-badge") : null;
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
+        if (hoverMode === 'normal') {
+          targetBg = isDark ? "rgba(9, 9, 11, 0.08)" : "rgba(255, 255, 255, 0.08)";
+          targetBorder = isDark ? "#09090b" : "#ffffff";
+        } else {
+          targetBg = "var(--cursor-snap-bg)";
+          targetBorder = "var(--cursor-snap-border)";
+        }
 
         targetW = rect.width + padding;
         targetH = rect.height + padding;
@@ -329,8 +354,17 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       reticle.style.borderColor = targetBorder;
       reticle.style.transform = `translate3d(${cursorRef.current.x}px, ${cursorRef.current.y}px, 0) translate(-50%, -50%)`;
 
-      // Hiding circle follower only when active text input is focused OR when hovering code blocks OR hovering the title
-      if ((isOverInputRef.current && document.activeElement === activeLockElement) || isOverCodeRef.current || isOverTitleRef.current) {
+      // Blur the borders of the transparent follower reticle if left stationary for 3 seconds
+      const nowMs = Date.now();
+      const idleTimeMs = nowMs - lastMouseMoveTimeRef.current;
+      if (idleTimeMs > 3000) {
+        reticle.style.filter = "blur(4px)";
+      } else {
+        reticle.style.filter = "";
+      }
+
+      // Hiding circle follower only when active text input is focused OR when hovering code blocks OR hovering the title OR hovering close/sparkle elements
+      if ((isOverInputRef.current && document.activeElement === activeLockElement) || isOverCodeRef.current || isOverTitleRef.current || isOverCloseBtnRef.current || isOverSparklesBtnRef.current) {
         reticle.style.opacity = "0";
       } else {
         reticle.style.opacity = "";
@@ -349,10 +383,11 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         }
 
         dot.style.transform = `translate3d(${mouseRef.current.x}px, ${mouseRef.current.y}px, 0) translate(-50%, -50%)`;
-        dot.style.opacity = (isOverInputRef.current || isOverCodeRef.current || isOverChecklistRef.current || isOverTitleRef.current) ? "1" : dotOpacityRef.current.toString();
+        dot.style.opacity = (isOverInputRef.current || isOverCodeRef.current || isOverChecklistRef.current || isOverTitleRef.current || isOverCloseBtnRef.current || isOverSparklesBtnRef.current) ? "1" : dotOpacityRef.current.toString();
 
         const tickSvg = document.getElementById("custom-cursor-tick-svg") as HTMLElement | null;
         const xSvg = document.getElementById("custom-cursor-x-svg") as HTMLElement | null;
+        const sparklesEl = document.getElementById("custom-cursor-sparkles") as HTMLElement | null;
 
         if (isOverTitleRef.current) {
           // Title Caret: huge vertical text cursor matching title height
@@ -364,6 +399,31 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.className = "fixed top-0 left-0 pointer-events-none transition-all duration-150 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
+        } else if (isOverCloseBtnRef.current) {
+          // Close button: Red X (smaller fit, 20px)
+          dot.style.width = "20px";
+          dot.style.height = "20px";
+          dot.style.borderRadius = "0px";
+          dot.style.backgroundColor = "transparent";
+          dot.style.color = "#ef4444";
+          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          if (xSvg) xSvg.style.opacity = "1";
+          if (tickSvg) tickSvg.style.opacity = "0";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
+        } else if (isOverSparklesBtnRef.current) {
+          // Sparkles button: emoji spin ✨
+          dot.style.width = "24px";
+          dot.style.height = "24px";
+          dot.style.borderRadius = "50%";
+          dot.style.backgroundColor = "transparent";
+          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          if (sparklesEl) {
+            sparklesEl.style.opacity = "1";
+            sparklesEl.style.transform = "scale(1.15) translate(-50%, -50%)";
+          }
+          if (xSvg) xSvg.style.opacity = "0";
+          if (tickSvg) tickSvg.style.opacity = "0";
         } else if (isOverInputRef.current) {
           // Input Caret: thin vertical I-beam line
           dot.style.width = "2.5px";
@@ -373,6 +433,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
         } else if (isOverCodeRef.current) {
           // Code Caret: blinking green text block caret
           dot.style.width = "8px";
@@ -382,6 +443,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center ai-cursor-blink";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
         } else if (isOverChecklistRef.current) {
           // Checklist hover: Green check mark or red X (a bit larger: 26px container)
           dot.style.width = "26px";
@@ -389,6 +451,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "transparent";
           dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
           
           if (isChecklistCheckedRef.current) {
             // Already checked -> Show red X
@@ -406,6 +469,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.width = "6px";
           dot.style.height = "6px";
           dot.style.borderRadius = "50%";
+          if (sparklesEl) sparklesEl.style.opacity = "0";
           
           const modeBadge = activeLockElement ? activeLockElement.closest("[data-mode-badge]") : null;
           const hoverMode = modeBadge ? modeBadge.getAttribute("data-mode-badge") : null;
@@ -442,6 +506,24 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         id="custom-cursor-dot"
         className="fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center"
       >
+        {/* Sparkles SVG */}
+        <svg
+          id="custom-cursor-sparkles"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          style={{
+            position: 'absolute',
+            opacity: 0,
+            pointerEvents: 'none',
+            transition: 'opacity 0.15s ease, transform 0.15s ease',
+          }}
+        >
+          {/* Sparkles design */}
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
         {/* Green Tick SVG */}
         <svg
           id="custom-cursor-tick-svg"

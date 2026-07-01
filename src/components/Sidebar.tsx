@@ -8,10 +8,11 @@ interface SidebarProps {
   activeChapterId: string;
   onNavigateChapter: (chapterId: string) => void;
   vimMode?: VimMode;
+  setVimMode?: (mode: VimMode) => void;
   siteTitle?: string;
 }
 
-export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', siteTitle = 'nvim://reference' }: SidebarProps) {
+export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', setVimMode, siteTitle = 'nvim://reference' }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -161,8 +162,16 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowResults(true);
+              const val = e.target.value;
+              if (val.endsWith('jk')) {
+                if (setVimMode) setVimMode('normal');
+                setSearchQuery('');
+                setShowResults(false);
+                document.getElementById('search-input-box')?.blur();
+              } else {
+                setSearchQuery(val);
+                setShowResults(true);
+              }
             }}
             className="w-full pl-9 pr-8 py-2 font-mono text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200/30 dark:border-zinc-800 rounded-lg outline-none transition-all duration-300"
             style={{
