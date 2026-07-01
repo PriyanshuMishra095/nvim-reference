@@ -237,13 +237,6 @@ export default function App() {
     };
   }, []);
 
-  const [themeTransition, setThemeTransition] = useState<{
-    active: boolean;
-    x: number;
-    y: number;
-    newTheme: 'dark' | 'light';
-  } | null>(null);
-
   const toggleTheme = (clickX?: number, clickY?: number) => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     
@@ -251,26 +244,31 @@ export default function App() {
     const targetX = clickX ?? window.innerWidth / 2;
     const targetY = clickY ?? window.innerHeight / 2;
 
-    setThemeTransition({
-      active: true,
-      x: targetX,
-      y: targetY,
-      newTheme: nextTheme
-    });
+    // Set CSS custom properties for the circular reveal origin
+    const xPercent = (targetX / window.innerWidth) * 100;
+    const yPercent = (targetY / window.innerHeight) * 100;
+    document.documentElement.style.setProperty('--vt-x', `${xPercent}%`);
+    document.documentElement.style.setProperty('--vt-y', `${yPercent}%`);
 
-    // Change theme immediately so button rotates and elements start animating
-    setTheme(nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    try {
-      localStorage.setItem('handbook-theme', nextTheme);
-    } catch (e) {
-      console.warn('localStorage write failed in sandbox:', e);
+    const applyTheme = () => {
+      setTheme(nextTheme);
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      try {
+        localStorage.setItem('handbook-theme', nextTheme);
+      } catch (e) {
+        console.warn('localStorage write failed in sandbox:', e);
+      }
+    };
+
+    // Use View Transitions API if supported for a smooth circular reveal
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        applyTheme();
+      });
+    } else {
+      // Graceful fallback: instant toggle
+      applyTheme();
     }
-
-    // Wipes transition state after it completes expansion
-    setTimeout(() => {
-      setThemeTransition(null);
-    }, 850);
   };
 
   // Track global scroll progression percentage to feed the reader bar
@@ -447,28 +445,7 @@ export default function App() {
   return (
     <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
       
-      {/* Theme Transition Circle Expansion Overlay */}
-      <AnimatePresence>
-        {themeTransition?.active && (
-          <motion.div
-            initial={{ clipPath: `circle(0px at ${themeTransition.x}px ${themeTransition.y}px)` }}
-            animate={{ clipPath: `circle(150% at ${themeTransition.x}px ${themeTransition.y}px)` }}
-            exit={{ opacity: 0 }}
-            transition={{ 
-              clipPath: { duration: 0.95, ease: [0.19, 1, 0.22, 1] } // Classic high-end cinematic exponential ease-out curve
-            }}
-            className="fixed inset-0 z-[-5] pointer-events-none"
-            style={{
-              // Soft sparkling wave border using layered, highly transparent radial gradients for a beautiful aura
-              background: themeTransition.newTheme === 'dark'
-                ? `radial-gradient(circle at ${themeTransition.x}px ${themeTransition.y}px, rgba(99, 102, 241, 0.0) 0%, rgba(99, 102, 241, 0.05) 50%, rgba(125, 211, 252, 0.25) 75%, rgba(9, 9, 11, 0.8) 85%, rgba(9, 9, 11, 0.98) 100%)`
-                : `radial-gradient(circle at ${themeTransition.x}px ${themeTransition.y}px, rgba(129, 140, 248, 0.0) 0%, rgba(129, 140, 248, 0.08) 50%, rgba(79, 70, 229, 0.22) 75%, rgba(250, 250, 250, 0.8) 85%, rgba(250, 250, 250, 0.98) 100%)`,
-              mixBlendMode: 'normal',
-              willChange: 'clip-path'
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Theme transition is handled via the View Transitions API — see ::view-transition-new(root) in index.css */}
 
       {/* Dynamic Backdrops */}
       <BackgroundCanvas theme={theme} vimMode={vimMode} onLanding={onLanding} />
@@ -482,11 +459,11 @@ export default function App() {
       )}
 
       {/* Primary horizontal Scroll progress metric bar */}
-      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none">
+      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none progress-bar-glow">
         <div 
           ref={progressBarRef}
-          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] transition-all duration-100 ease-out"
-          style={{ width: '0%' }}
+          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+          style={{ width: '0%', transition: 'width 0.1s ease-out' }}
         />
       </div>
 

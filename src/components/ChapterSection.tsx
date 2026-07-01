@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Copy, Check, TableProperties, Sparkles, MonitorPlay, Zap, RefreshCw } from 'lucide-react';
 import { Chapter, SubSection } from '../types';
@@ -11,6 +11,52 @@ interface ChapterSectionProps {
 }
 
 export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSectionProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
+
+  // Calculate reading time estimate (~200 WPM)
+  const estimateReadingTime = () => {
+    let totalText = chapter.description + ' ' + chapter.title;
+    for (const sec of chapter.sections) {
+      if (sec.content) totalText += ' ' + sec.content;
+      if (sec.description) totalText += ' ' + sec.description;
+      if (sec.extraData) {
+        try {
+          totalText += ' ' + JSON.stringify(sec.extraData);
+        } catch (e) {}
+      }
+    }
+    const wordCount = totalText.split(/\s+/).filter(w => w.length > 0).length;
+    const minutes = Math.max(1, Math.ceil(wordCount / 200));
+    return minutes;
+  };
+
+  const readingTime = estimateReadingTime();
+
+  // Per-chapter scroll progress tracking
+  useEffect(() => {
+    const section = sectionRef.current;
+    const bar = progressRef.current;
+    if (!section || !bar) return;
+
+    const updateProgress = () => {
+      const rect = section.getBoundingClientRect();
+      const sectionHeight = rect.height;
+      const viewportHeight = window.innerHeight;
+      
+      // How far we've scrolled through this section
+      // 0 = section top just entered viewport bottom
+      // 1 = section bottom has passed viewport top
+      const scrolled = (viewportHeight - rect.top) / (sectionHeight + viewportHeight);
+      const progress = Math.max(0, Math.min(1, scrolled));
+      bar.style.transform = `scaleX(${progress})`;
+    };
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+    return () => window.removeEventListener('scroll', updateProgress);
+  }, []);
+
   // Get active accent styles dynamically matching Vim mode
   const getBadgeClass = () => {
     switch (vimMode) {
@@ -23,20 +69,29 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
 
   return (
     <motion.section
+      ref={sectionRef}
       id={chapter.id}
       initial={{ opacity: 0, y: 35 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-10% 0px -20% 0px' }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-24 scroll-mt-24"
+      className="mb-24 scroll-mt-24 relative"
     >
+      {/* Per-chapter reading progress bar */}
+      <div className="absolute top-0 left-0 right-0 overflow-hidden rounded-t-lg">
+        <div ref={progressRef} className="chapter-progress-bar" style={{ transform: 'scaleX(0)' }} />
+      </div>
+
       {/* Chapter Title Badge Header */}
-      <div className="flex items-center gap-3 mb-4 select-none">
+      <div className="flex items-center gap-3 mb-4 select-none flex-wrap">
         <span className={`font-mono text-xs font-black uppercase tracking-widest px-3 py-1 rounded border transition-colors duration-300 ${getBadgeClass()}`}>
           Chapter {String(chapter.num).padStart(2, '0')}
         </span>
         <span className="text-xs text-zinc-400 dark:text-zinc-500 font-bold tracking-wide">
           {chapter.tag}
+        </span>
+        <span className="reading-time-badge text-zinc-400 dark:text-zinc-500 bg-zinc-100/50 dark:bg-zinc-800/40 border border-zinc-200/30 dark:border-zinc-700/30">
+          ~{readingTime} min read
         </span>
       </div>
 
