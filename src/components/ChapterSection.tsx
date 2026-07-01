@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'motion/react';
 import { Copy, Check, TableProperties, Sparkles, MonitorPlay, Zap, RefreshCw } from 'lucide-react';
 import { Chapter, SubSection } from '../types';
 
@@ -12,7 +12,6 @@ interface ChapterSectionProps {
 
 export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSectionProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const progressRef = useRef<HTMLDivElement | null>(null);
 
   // Calculate reading time estimate (~200 WPM)
   const estimateReadingTime = () => {
@@ -33,29 +32,18 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
 
   const readingTime = estimateReadingTime();
 
-  // Per-chapter scroll progress tracking
-  useEffect(() => {
-    const section = sectionRef.current;
-    const bar = progressRef.current;
-    if (!section || !bar) return;
-
-    const updateProgress = () => {
-      const rect = section.getBoundingClientRect();
-      const sectionHeight = rect.height;
-      const viewportHeight = window.innerHeight;
-      
-      // How far we've scrolled through this section
-      // 0 = section top just entered viewport bottom
-      // 1 = section bottom has passed viewport top
-      const scrolled = (viewportHeight - rect.top) / (sectionHeight + viewportHeight);
-      const progress = Math.max(0, Math.min(1, scrolled));
-      bar.style.transform = `scaleX(${progress})`;
-    };
-
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    updateProgress();
-    return () => window.removeEventListener('scroll', updateProgress);
-  }, []);
+  // Physics-based scroll progress using Framer Motion
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // Apply a gentle spring for buttery smooth bar filling
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   // Get active accent styles dynamically matching Vim mode
   const getBadgeClass = () => {
@@ -79,7 +67,10 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
     >
       {/* Per-chapter reading progress bar */}
       <div className="absolute top-0 left-0 right-0 overflow-hidden rounded-t-lg">
-        <div ref={progressRef} className="chapter-progress-bar" style={{ transform: 'scaleX(0)' }} />
+        <motion.div 
+          className="chapter-progress-bar shadow-[0_0_8px_rgba(99,102,241,0.6)]" 
+          style={{ scaleX }} 
+        />
       </div>
 
       {/* Chapter Title Badge Header */}

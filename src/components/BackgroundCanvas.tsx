@@ -182,11 +182,13 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         this.radius = Math.random() * 300 + 250;
         this.currentRgb = { ...colorRgb };
         this.targetRgb = { ...colorRgb };
-        this.vx = Math.random() * 0.4 - 0.2;
-        this.vy = Math.random() * 0.4 - 0.2;
+        // Slower velocities for a relaxing, floaty effect
+        this.vx = Math.random() * 0.15 - 0.075;
+        this.vy = Math.random() * 0.15 - 0.075;
         this.index = index;
         this.breathePhase = Math.random() * Math.PI * 2;
-        this.breatheSpeed = 0.008 + Math.random() * 0.004; // ~8-12s cycle
+        // Slower breathing (approx 15-20s cycle)
+        this.breatheSpeed = 0.003 + Math.random() * 0.002; 
       }
 
       updateColors(newColorRgb: { r: number; g: number; b: number }) {

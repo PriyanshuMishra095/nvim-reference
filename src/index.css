@@ -511,7 +511,7 @@ html {
 
 ::view-transition-new(root) {
   z-index: 9999;
-  animation: vt-reveal 0.85s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: vt-reveal 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 @keyframes vt-reveal {
@@ -521,16 +521,6 @@ html {
   to {
     clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%));
   }
-}
-
-/* Disable view transition on the theme toggle button itself so it doesn't flash */
-.celestial-toggle {
-  view-transition-name: theme-toggle;
-}
-::view-transition-old(theme-toggle),
-::view-transition-new(theme-toggle) {
-  animation: none;
-  mix-blend-mode: normal;
 }
 
 /* ── SMOOTH THEME TRANSITIONS ON COMMON ELEMENTS ── */

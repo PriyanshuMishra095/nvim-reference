@@ -205,8 +205,29 @@ This file is a write-only log of every detailed activity performed during develo
   - Resolved blank help screens by verifying help lsp is correctly captured.
   - Eliminated full-screen reticle locks in modals by filtering backdrop class lists.
 
+### [2026-07-02T05:25:00+05:30] View Transitions API Theme Toggle, Animation Polish, Learner UX & Gemini API Fix
+- **Files Modified**:
+  - `[MODIFY] src/App.tsx` (Removed broken `themeTransition` state and `<AnimatePresence>` overlay; rewrote `toggleTheme()` to use `document.startViewTransition()` with CSS custom properties `--vt-x`/`--vt-y` for click origin; added `progress-bar-glow` class to progress bar; removed hardcoded `transition-all` from progress bar width).
+  - `[MODIFY] src/index.css` (Added `::view-transition-old(root)` / `::view-transition-new(root)` styles with `clip-path: circle()` animation via `@keyframes vt-reveal`; disabled view transitions on `.celestial-toggle` to prevent flash; added global smooth theme transition properties on `*` elements with override exclusions for animation/cursor elements; added `@keyframes progressGlow` for pulsing progress bar; added `.chapter-progress-bar` and `.reading-time-badge` utility classes).
+  - `[NEW] src/view-transitions.d.ts` (TypeScript type augmentation for `Document.startViewTransition()` and `ViewTransition` interface).
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (Added `breathePhase`/`breatheSpeed` properties to `AuroraOrb` class for sine-wave alpha oscillation ~8-12s cycle; added mouse-based parallax velocity nudge on orbs with damping; changed color lerp from `0.05` to `0.03` for smoother theme transitions).
+  - `[MODIFY] src/components/ChapterSection.tsx` (Imported `useEffect`/`useRef`; added `estimateReadingTime()` helper calculating word count at ~200 WPM; added per-chapter scroll progress tracking with `scaleX` transform; added `ref={sectionRef}` to section element; added progress bar div and reading time badge in chapter header).
+  - `[MODIFY] api/explain.js` (Rewrote: always use array format for `contents` instead of raw string; added CORS headers for cross-origin requests; added OPTIONS preflight handler; null-check on `response.text`; detailed error messages with `error.message`).
+  - `[NEW] vercel.json` (Configured serverless function routing for `api/**/*.js` with 30s max duration; SPA fallback rewrite for client-side routing).
+  - `[MODIFY] server.js` (Matched Vercel fix: always use array format for `contents`; added empty message array check; added null-check on `response.text`; detailed error messages).
+- **Details**:
+  - The old theme transition was fundamentally broken: it placed a `clip-path` overlay at `z-[-5]` (behind everything) and toggled the theme instantly, making the "wave" invisible. The new approach uses the native View Transitions API which captures a screenshot of the old state, applies the new DOM state, and animates `::view-transition-new(root)` with a circular `clip-path` reveal from the exact click coordinates. Unsupported browsers fall back to instant toggle.
+  - Aurora orbs now breathe with a gentle ±20% alpha sine oscillation and respond to mouse position with subtle parallax velocity, creating more organic depth.
+  - Each chapter now shows a thin gradient progress bar at the top that fills as the user scrolls through, plus a `~X min read` estimate badge.
+  - The Gemini API was broken on Vercel because the `contents` parameter was sometimes passed as a raw string instead of the required `[{ role, parts }]` array format. This is now fixed on both the Vercel serverless function and the local Express server.
 
-
-
-
-
+### [2026-07-02T00:10:00+05:30] Premium UX Polish: Matrix Chat, Vim Scrolling, Slower Canvas, and Glassmorphic Registers
+- **Files Modified**:
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Added `MatrixTypewriter` component for Gemini's output to look like a terminal typing effect; added 4.5s auto-dismiss `useEffect` for `commandError`/`commandSuccess`; mapped `j`/`k`, `gg`, `G` keys for smooth page scrolling and `/` for search focus; completely redesigned the `showRegistersTray` to a premium glassmorphic palette; added 'Ask Gemini AI' quick-link to the main `nvim://help` index).
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (Drastically reduced `vx`/`vy` initial assignments from ~0.4 to ~0.15 and `breatheSpeed` for much slower, relaxing aurora orbs).
+  - `[MODIFY] src/components/ChapterSection.tsx` (Replaced manual scroll tracking with Framer Motion `useScroll` and `useSpring` hooks for buttery smooth, physics-based progress bar filling; added a glowing drop shadow to the progress bar leading edge).
+  - `[MODIFY] src/index.css` (Removed `view-transition-name: theme-toggle` entirely to prevent the floating button from detaching into a separate composite layer and flickering during view transitions; increased `vt-reveal` animation duration from `0.85s` to `1.2s` for extreme theme sweep smoothness).
+- **Details**:
+  - The Matrix typing effect uses a `setInterval` hook processing 1 character every 15ms with a blinking block cursor.
+  - Registers tray now uses `backdrop-blur-xl bg-zinc-900/95` with a dedicated overlay blocker, making it visually distinct from a typical alert modal.
+  - `gg` is implemented via a `lastKeyRef` chord tracker matching `g` twice within 1000ms.
