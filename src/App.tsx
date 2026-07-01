@@ -24,6 +24,15 @@ export default function App() {
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
   const statusBarAutoRevealedRef = useRef<boolean>(false);
+  const [isDesktopLayout, setIsDesktopLayout] = useState<boolean>(window.innerWidth >= 1280);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktopLayout(window.innerWidth >= 1280);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setIsSidebarPopping(true);
@@ -578,10 +587,12 @@ export default function App() {
           </AnimatePresence>
 
           {/* Core scrollable content container (paddings transition reactively) */}
-          <div 
-            className={`flex-1 transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              onLanding || !sidebarVisible ? 'xl:pl-0' : 'xl:pl-[320px]'
-            }`}
+          <motion.div 
+            animate={{ 
+              paddingLeft: isDesktopLayout && !onLanding && sidebarVisible ? 320 : 0 
+            }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            className="flex-1"
           >
             <main className="max-w-4xl mx-auto px-6 md:px-12 py-24 md:py-32 space-y-16">
               
@@ -636,7 +647,7 @@ export default function App() {
               </footer>
 
             </main>
-          </div>
+          </motion.div>
 
           {/* Core Fixed Neovim Command Console and Mode Status bar (slides down on landing or when collapsed) */}
           <VimStatusLine

@@ -182,9 +182,9 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         this.radius = Math.random() * 300 + 250;
         this.currentRgb = { ...colorRgb };
         this.targetRgb = { ...colorRgb };
-        // Slower velocities for a relaxing, floaty effect
-        this.vx = Math.random() * 0.15 - 0.075;
-        this.vy = Math.random() * 0.15 - 0.075;
+        // Extremely slow velocities for a relaxing, floaty effect
+        this.vx = Math.random() * 0.04 - 0.02;
+        this.vy = Math.random() * 0.04 - 0.02;
         this.index = index;
         this.breathePhase = Math.random() * Math.PI * 2;
         // Slower breathing (approx 15-20s cycle)
@@ -217,9 +217,10 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         // Apply smooth static parallax offset to rendering coords to prevent velocity integration runaway
         const parallaxX = mouse.active ? (mouse.x - width / 2) * 0.03 * (this.index + 1) : 0;
         const parallaxY = mouse.active ? (mouse.y - height / 2) * 0.03 * (this.index + 1) : 0;
+        const scrollParallaxY = -scrollY * 0.08 * (this.index + 1);
         
         const drawX = this.x + parallaxX;
-        const drawY = this.y + parallaxY;
+        const drawY = this.y + parallaxY + scrollParallaxY;
 
         const gradient = ctx.createRadialGradient(
           drawX, drawY, 0,

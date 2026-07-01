@@ -280,7 +280,7 @@ export default function VimStatusLine({
     });
     suggestions.push({
       cmd: ':explain',
-      desc: 'Ask Gemini AI to explain any Neovim concept, config, or Lua syntax.',
+      desc: 'Ask Neovim LLM to explain any Neovim concept, config, or Lua syntax.',
       run: () => {
         setCommandInput(':explain ');
         if (commandInputRef.current) {
@@ -389,7 +389,7 @@ export default function VimStatusLine({
         setCommandError('Error: Please specify a concept or query after :explain');
         return;
       }
-      setCommandSuccess(`Querying Gemini for explanation on "${topic}"...`);
+      setCommandSuccess(`Querying Neovim LLM for explanation on "${topic}"...`);
       setVimMode('normal');
       setActiveHelpTopic('ai-explain');
       setAiLoading(true);
@@ -420,7 +420,7 @@ export default function VimStatusLine({
       })
       .catch(err => {
         console.error(err);
-        const errMsg = `Error: ${err.message || 'Could not retrieve Gemini explanation.'}`;
+        const errMsg = `Error: ${err.message || 'Could not retrieve LLM explanation.'}`;
         setAiExplanationText(errMsg);
         setChatMessages([
           { role: 'user', content: topic },
@@ -773,7 +773,7 @@ export default function VimStatusLine({
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="relative bg-zinc-50 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto custom-scroll shadow-2xl pointer-events-auto"
+              className="relative bg-zinc-50 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto custom-scroll shadow-2xl pointer-events-auto font-mono text-sm text-zinc-700 dark:text-zinc-300"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
@@ -981,7 +981,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                     {aiLoading && (
                       <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-500 py-4 justify-center">
                         <RefreshCw className="w-4 h-4 animate-spin text-purple-500" />
-                        <span>Consulting Gemini models...</span>
+                        <span>Consulting Neovim LLM...</span>
                       </div>
                     )}
                     
@@ -1002,7 +1002,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                               setChatInputValue(val);
                             }
                           }}
-                          placeholder="Ask a follow-up question..."
+                          placeholder={chatMessages.length === 0 ? "Ask Neovim LLM..." : "Ask a follow-up question..."}
                           className="bg-transparent flex-1 text-sm text-zinc-800 dark:text-zinc-250 outline-none font-mono placeholder-zinc-700"
                           style={{ caretColor: '#22c55e' }}
                         />
@@ -1025,7 +1025,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                 <div className="space-y-6">
                   <div>
                     <h3 className="font-bold text-zinc-900 dark:text-zinc-150 text-lg border-b border-zinc-200/60 dark:border-zinc-800/60 pb-2">Welcome to Neovim Help</h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">This interactive tutor acts as a living sandbox. Practice actions by typing keys directly on your keyboard. Select a topic guide below, or ask Gemini AI anything.</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">This interactive tutor acts as a living sandbox. Practice actions by typing keys directly on your keyboard. Select a topic guide below, or ask Neovim LLM anything.</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 text-[11px] select-none">
@@ -1051,19 +1051,19 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <button onClick={() => setActiveHelpTopic('modal')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-indigo-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-indigo-600 dark:text-indigo-400 text-xs mb-0.5">*modal-editing*</div>
-                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Understanding isolated editor control states</div>
+                        <div className="text-xs text-zinc-400 dark:text-zinc-500">Understanding isolated editor control states</div>
                       </button>
                       <button onClick={() => setActiveHelpTopic('registers')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-amber-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-0.5">*registers-api*</div>
-                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Working with in-memory clipboards</div>
+                        <div className="text-xs text-zinc-400 dark:text-zinc-500">Working with in-memory clipboards</div>
                       </button>
                       <button onClick={() => setActiveHelpTopic('keymaps')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-emerald-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs mb-0.5">*keymaps-lua*</div>
-                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Mapping declarative key bindings in Lua</div>
+                        <div className="text-xs text-zinc-400 dark:text-zinc-500">Mapping declarative key bindings in Lua</div>
                       </button>
                       <button onClick={() => setActiveHelpTopic('macro')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-purple-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-purple-600 dark:text-purple-400 text-xs mb-0.5">*macros*</div>
-                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">Recording and replaying keystroke lists</div>
+                        <div className="text-xs text-zinc-400 dark:text-zinc-500">Recording and replaying keystroke lists</div>
                       </button>
                     </div>
                   </div>
@@ -1081,7 +1081,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                       <div className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 text-purple-550 group-hover:animate-pulse" />
                         <div className="text-left">
-                          <div className="font-bold text-purple-700 dark:text-purple-400 text-xs">Consult Gemini AI Architect</div>
+                          <div className="font-bold text-purple-700 dark:text-purple-400 text-xs">Ask Neovim LLM</div>
                           <div className="text-[10px] text-purple-600/70 dark:text-purple-300/75">Ask any custom questions and learn Neovim live</div>
                         </div>
                       </div>

@@ -270,4 +270,15 @@ This file is a write-only log of every detailed activity performed during develo
   - Central variables manage all font sizes cohesive across the application while preserving original layout proportions and font weights.
   - Overridden Tailwind's default color utility classes dynamically targets text components, unifying contrast across both dark and light modes.
 
+### [2026-07-02T01:30:00+05:30] Tailwind v4 Typography Scale (+2px), Orb Parallax, Cursor Snapping Guard, and Smooth Layout Flows
+- **Files Modified**:
+  - `[MODIFY] src/index.css` (Mapped all text size variables inside Tailwind's `@theme` directive, resolving responsive utilities specificity bugs; added +2px increments to all `--text-size-...` variables and JIT overrides; removed custom color class overrides to restore native headings and landing page styles).
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (Dampened velocity vector vx/vy coordinates down to max 0.02px/frame; added vertical `scrollParallaxY` offset relative to depth index to make orbs scroll smoothly behind text).
+  - `[MODIFY] src/components/CustomCursor.tsx` (Added `document.body.contains(activeLockElement)` validation inside physics loop to instantly unlock and prevent reticle from flying to top-left on overlay unmounts).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Changed all Gemini branding references to "Ask Neovim LLM"; implemented context-aware placeholders: "Ask Neovim LLM..." if chat messages list is empty, and "Ask a follow-up question..." if conversation history exists; unified Registers modal typography container class to match Help modal).
+  - `[MODIFY] src/App.tsx` (Tracked `isDesktopLayout` state on window resize; converted main scrollable content wrapper to `motion.div` animating `paddingLeft` with matching spring settings to sync sideways flow with sidebar open/close).
+- **Details**:
+  - Main text content flows sideways in perfect spring synchronization when desktop sidebar is toggled.
+  - Custom cursor safely resets when modal dismissals unmount snap targets.
+
 

@@ -179,6 +179,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       let targetBorder = "var(--cursor-border)";
 
       let activeLockElement = lockedElementRef.current;
+      if (activeLockElement && !document.body.contains(activeLockElement)) {
+        activeLockElement = null;
+        lockedElementRef.current = null;
+      }
 
       // Proximity snap check to scrollbar thumb
       const thumbEl = document.querySelector(".custom-scroll-thumb") as HTMLElement | null;
