@@ -229,6 +229,21 @@ export default function VimStatusLine({
           setVimMode('normal');
         }
       }
+
+      // 2. Visual mode shortcuts (e.g. press y or v to yank browser text selection)
+      if (vimMode === 'visual') {
+        if (e.key === 'y' || e.key === 'Y' || e.key === 'v' || e.key === 'V') {
+          e.preventDefault();
+          const selection = window.getSelection();
+          const selectedText = selection ? selection.toString() : '';
+          if (selectedText && selectedText.trim().length > 0 && onYank) {
+            onYank(selectedText);
+            setCommandSuccess(`Yanked selection: "${selectedText.slice(0, 24)}..." to registers!`);
+            selection?.removeAllRanges();
+          }
+          setVimMode('normal');
+        }
+      }
     };
 
     window.addEventListener('keydown', handleGlobalKeys, true);
@@ -608,12 +623,19 @@ export default function VimStatusLine({
                       setSelectedSuggestionIdx(idx);
                       commandInputRef.current?.focus();
                     }}
+<<<<<<< HEAD
                     className={`w-full text-left py-2 px-2.5 text-base flex items-center justify-between rounded transition group ${
                       selectedSuggestionIdx === idx ? 'bg-zinc-800 text-white' : 'hover:bg-zinc-900/60'
                     }`}
                   >
                     <span className="font-bold transition-colors group-hover:text-white" style={{ color: selectedSuggestionIdx === idx ? '#fff' : modeColor }}>{s.cmd}</span>
                     <span className={`text-sm line-clamp-1 truncate ml-2 ${selectedSuggestionIdx === idx ? 'text-zinc-300' : 'text-zinc-500'}`}>{s.desc}</span>
+=======
+                    className="w-full text-left py-2 px-2.5 text-base flex items-center justify-between hover:bg-zinc-900/60 rounded transition group"
+                  >
+                    <span className="font-bold transition-colors group-hover:text-white" style={{ color: modeColor }}>{s.cmd}</span>
+                    <span className="text-sm text-zinc-500 line-clamp-1 truncate ml-2">{s.desc}</span>
+>>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
                   </button>
                 ))}
               </div>
@@ -780,6 +802,19 @@ export default function VimStatusLine({
                     ✕
                   </button>
                 </div>
+<<<<<<< HEAD
+=======
+                <div className="flex items-center gap-2 select-none">
+                  <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold">ESC</kbd>
+                  <button
+                    onClick={() => setShowRegistersTray(false)}
+                    data-close-btn="true"
+                    className="rounded-full w-7 h-7 flex items-center justify-center border border-zinc-200/50 dark:border-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all text-zinc-400 hover:text-rose-500 cursor-pointer text-sm font-black"
+                  >
+                    ✕
+                  </button>
+                </div>
+>>>>>>> af05bf9b3248e07c066c02a317a4a4e75d04c0a2
               </div>
 
               {Object.keys(registers).length === 0 ? (
