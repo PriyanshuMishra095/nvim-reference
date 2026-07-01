@@ -30,6 +30,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
   // Target border radius caching to prevent layout thrashing inside 60fps loop
   const lastLockedElementRef = useRef<HTMLElement | null>(null);
+  const cachedActiveRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
   const targetBorderRadiusRef = useRef({ tl: 0, tr: 0, bl: 0, br: 0 });
 
   // Interactive targets and input tracking refs
@@ -117,7 +118,15 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       const match = target.closest(hoverQuery) as HTMLElement | null;
       // Filter out dialog container panels and backdrops
       const isMatchValid = match && (!match.classList.contains("fixed") || match.id === "theme-toggle" || match.tagName === "BUTTON");
-      lockedElementRef.current = isOverTitleRef.current ? null : (isMatchValid ? match : null);
+      const nextLocked = isOverTitleRef.current ? null : (isMatchValid ? match : null);
+      lockedElementRef.current = nextLocked;
+
+      if (nextLocked) {
+        const r = nextLocked.getBoundingClientRect();
+        cachedActiveRectRef.current = { left: r.left, top: r.top, width: r.width, height: r.height };
+      } else {
+        cachedActiveRectRef.current = null;
+      }
     };
 
     // Throttle mousemove coordinate updates to prevent chokes on high-polling gaming mice
@@ -140,6 +149,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
     // Update hover state dynamically on scroll as well
     const handleScroll = () => {
       updateHoverState(mouseRef.current.x, mouseRef.current.y);
+      if (lockedElementRef.current) {
+        const r = lockedElementRef.current.getBoundingClientRect();
+        cachedActiveRectRef.current = { left: r.left, top: r.top, width: r.width, height: r.height };
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
@@ -184,8 +197,9 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         lockedElementRef.current = null;
       }
 
-      // Proximity snap check to scrollbar thumb
-      const thumbEl = document.querySelector(".custom-scroll-thumb") as HTMLElement | null;
+      // Proximity snap check to scrollbar thumb - only query when mouse is near the scrollbar region
+      const isMouseNearScrollbar = mouseRef.current.x > window.innerWidth - 120;
+      const thumbEl = isMouseNearScrollbar ? (document.querySelector(".custom-scroll-thumb") as HTMLElement | null) : null;
       let snapInfluence = 0;
       let thumbCenterX = 0;
       let thumbCenterY = 0;
@@ -261,7 +275,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         const borderOpacity = 0.35 * (1 - snapInfluence);
         targetBorder = isDark ? `rgba(255, 255, 255, ${borderOpacity})` : `rgba(79, 70, 229, ${borderOpacity})`;
       } else if (activeLockElement) {
-        const rect = activeLockElement.getBoundingClientRect();
+        const rect = cachedActiveRectRef.current || activeLockElement.getBoundingClientRect();
         targetX = rect.left + rect.width / 2;
         targetY = rect.top + rect.height / 2;
 
