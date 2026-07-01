@@ -91,7 +91,11 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       isOverInputRef.current = !!isInput && !isOverTitleRef.current;
       
       const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
-      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn;
+      
+      // Prevent full screen overlay triggers by validating targets
+      const isOverlayBackdrop = target.classList.contains("fixed") && target.classList.contains("inset-0") && !target.classList.contains("custom-scroll-track");
+      
+      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn && !isOverlayBackdrop;
 
       // Clickable items inside code block should show hand icon, not green block caret
       const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']");
@@ -107,7 +111,9 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       }
 
       const match = target.closest(hoverQuery) as HTMLElement | null;
-      lockedElementRef.current = isOverTitleRef.current ? null : match;
+      // Filter out dialog container panels and backdrops
+      const isMatchValid = match && (!match.classList.contains("fixed") || match.id === "theme-toggle" || match.tagName === "BUTTON");
+      lockedElementRef.current = isOverTitleRef.current ? null : (isMatchValid ? match : null);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -500,20 +506,24 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         id="custom-cursor-dot"
         className="fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center"
       >
-        {/* Sparkles emoji */}
-        <span
+        {/* Sparkles SVG */}
+        <svg
           id="custom-cursor-sparkles"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
           style={{
             position: 'absolute',
             opacity: 0,
             pointerEvents: 'none',
             transition: 'opacity 0.15s ease, transform 0.15s ease',
-            fontSize: '15px',
           }}
-          className="animate-spin duration-1000"
         >
-          ✨
-        </span>
+          {/* Sparkles design */}
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
         {/* Green Tick SVG */}
         <svg
           id="custom-cursor-tick-svg"

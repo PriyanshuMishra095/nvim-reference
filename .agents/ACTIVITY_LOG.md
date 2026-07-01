@@ -154,4 +154,59 @@ This file is a write-only log of every detailed activity performed during develo
   - Wired Contribute page overlay dismissals (Escape, backdrop click, and history state popstate routing).
   - Cleaned footer metadata and boosted table readability in dark mode.
 
+### [2026-06-25T05:35:00+05:30] Static Sparkles Cursor, Smooth Scroll Dimming, Escape Auto-Hide, Arrow Autocomplete Cycling, and Ripple Theme Mask
+- **Files Modified**:
+  - `[MODIFY] src/components/CustomCursor.tsx` (Replaced unicode sparkles ✨ with static inline SVG using fill="currentColor").
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (Calculated dynamic scroll opacity interpolation in AuroraOrb.draw() to fade glowing orbs smoothly).
+  - `[MODIFY] src/App.tsx` (Synced scroll-to-top show threshold with landingHeight, tracked auto-reveal status of statusline, implemented Escape key Normal mode auto-hide, added circular transition overlay trigger states on theme toggles).
+  - `[MODIFY] src/components/FloatingControls.tsx` (Updated theme click callback to pass mouse clientX and clientY event coordinates).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Introduced selectedSuggestionIdx state, bound ArrowUp/ArrowDown to cycle selections inside Command console, highlighted the active suggestion, and passed screen center coordinates on keyboard theme commands).
+- **Details**:
+  - Replaced the cursor emoji sparkles with a flat inline SVG, forcing it to adapt the cursor dot's color styles without spinning.
+  - Smoothed background Aurora glow circles to dim down dynamically over the scroll distance to the landing page boundary, preventing abrupt pop-out transitions.
+  - Aligned scroll-to-top button show transitions with the landing page height, eliminating rendering layout flicker.
+  - Configured status bar keyboard auto-reveals to be hidden back on hitting Escape in Normal mode.
+  - Enabled cycling and selecting console autocomplete suggestions via Up and Down arrow keys.
+  - Formulated a gorgeous circular transition wave expanding from the clicked theme button coordinates, changing screen theme colors dynamically as the mask accelerates outward.
+
+### [2026-06-25T05:50:00+05:30] Theme Circle Transition Timing Alignment & Background Wave Z-index Softening
+- **Files Modified**:
+  - `[MODIFY] src/App.tsx` (Modified overlay z-index to `z-[-5]`, adjusted opacity to 0.6, added soft blur filter `blur-[10px]`, and set toggleTheme delay to 400ms).
+- **Details**:
+  - Delayed theme color state swapping from 150ms to 400ms to allow the circular expanding transition mask to cover most screen elements first.
+  - Placed the expanding circular theme mask overlay behind text content and interactive particles (`z-[-5]`) so everything remains legible.
+  - Softened the wave boundaries by adding a blur filter and lowered the background color opacity to 60%, making the expanding transition feel extremely fluid and transparent.
+
+### [2026-06-25T05:52:00+05:30] Theme Transition Exact Background Colors and Soft blur
+- **Files Modified**:
+  - `[MODIFY] src/App.tsx` (Updated background color values to exact void hex values `#09090b` and `#fafafa` and increased blur filter to `blur-[30px]` for smooth transitions).
+- **Details**:
+  - Changed the circular transition wave colors from semi-transparent gray composites to match the target themes' solid background colors (`#09090b` and `#fafafa`).
+  - Increased the mask blur threshold to `30px` to soften the wave borders.
+  - Made the background circle overlay completely opaque to cover the voids cleanly without introducing gray/desaturated frames.
+
+### [2026-06-25T05:55:00+05:30] Theme Transition Radial Gradient Mask Optimization & Lag Fixes
+- **Files Modified**:
+  - `[MODIFY] src/App.tsx` (Replaced background-color and CSS blur filter with radial-gradient background image containing transparent stops, added `will-change: clip-path` and set `mix-blend-mode: screen`).
+- **Details**:
+  - Eliminated high animation paint lag during theme changes by removing the CPU-heavy CSS `blur()` filter.
+  - Replaced the solid transition color block with a sparkling, highly transparent dual-stop radial gradient centered at click coordinates.
+  - Placed the transition behind foreground elements (`z-[-5]`) and enabled `will-change: clip-path` to optimize hardware acceleration, keeping background particles and text content fully visible and moving at normal framerates throughout the wave cycle.
+
+### [2026-06-25T06:12:00+05:30] Theme Toggle Instant Rotation, Sparkling Radial Gradients, Autocomplete Arrow Value Population, LSP blank page fix, and Cursor Backdrop filters
+- **Files Modified**:
+  - `[MODIFY] src/App.tsx` (Trigger theme swap state immediately on click; designed a highly soft transparent radial gradient overlay with mixBlendMode normal).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Assigned cycled suggestion directly to commandInput value on ArrowUp/ArrowDown; configured valid help topics list in executeCommand to render LSP help guides correctly without blank screens).
+  - `[MODIFY] src/components/CustomCursor.tsx` (Filtered out backdrop element classes from interactive custom reticle locks, stopping full screen morphing in Contribute modal).
+- **Details**:
+  - Accelerated theme switches by setting next theme state instantly, allowing buttons to rotate and borders to update color without waiting for expansion overlays.
+  - Formulated soft sparkling radial gradients supporting both dark and light transitions (mixing light/dark indigo hues fading from transparent 3% to 80% border opacities).
+  - Wired autocomplete selection keys (Up/Down arrows) to populate current text values directly into the command input field.
+  - Resolved blank help screens by verifying help lsp is correctly captured.
+  - Eliminated full-screen reticle locks in modals by filtering backdrop class lists.
+
+
+
+
+
 

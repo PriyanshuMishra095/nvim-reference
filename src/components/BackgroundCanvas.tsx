@@ -222,7 +222,11 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
         ctx.globalCompositeOperation = isDark ? "screen" : "multiply";
         
         const baseAlpha = isDark ? 0.08 : 0.04;
-        ctx.globalAlpha = landing ? baseAlpha * 2.5 : baseAlpha;
+        const landingHeight = height * 0.85;
+        const scrollFactor = Math.min(1, scrollY / landingHeight);
+        // Dim down smoothly from 2.5x to 1.0x of baseAlpha
+        const multiplier = 2.5 - scrollFactor * 1.5;
+        ctx.globalAlpha = baseAlpha * multiplier;
 
         ctx.fillStyle = gradient;
         ctx.beginPath();

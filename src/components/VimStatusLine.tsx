@@ -7,7 +7,7 @@ export type VimMode = 'normal' | 'insert' | 'visual' | 'command';
 
 interface VimStatusLineProps {
   theme: 'dark' | 'light';
-  onToggleTheme: () => void;
+  onToggleTheme: (x?: number, y?: number) => void;
   activeChapter: Chapter | null;
   onNavigateChapter: (chapterId: string) => void;
   chapters: Chapter[];
@@ -55,6 +55,7 @@ export default function VimStatusLine({
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'model'; content: string }[]>([]);
   const [chatInputValue, setChatInputValue] = useState('');
   const [showChatInput, setShowChatInput] = useState(false);
+  const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);
 
   const commandInputRef = useRef<HTMLInputElement | null>(null);
   const chatInputRef = useRef<HTMLInputElement | null>(null);
@@ -64,6 +65,7 @@ export default function VimStatusLine({
   useEffect(() => {
     if (vimMode === 'command') {
       setCommandInput(':');
+      setSelectedSuggestionIdx(-1);
       setTimeout(() => {
         if (commandInputRef.current) {
           commandInputRef.current.focus();
@@ -74,6 +76,7 @@ export default function VimStatusLine({
     } else {
       setCommandInput('');
       setShowAutoComplete(false);
+      setSelectedSuggestionIdx(-1);
     }
   }, [vimMode]);
 
@@ -198,7 +201,7 @@ export default function VimStatusLine({
       cmd: ':theme dark',
       desc: 'Activate the eyes-safe midnight charcoal space scheme.',
       run: () => {
-        if (theme !== 'dark') onToggleTheme();
+        if (theme !== 'dark') onToggleTheme(window.innerWidth / 2, window.innerHeight / 2);
         setCommandSuccess('Applied theme: Royal Slate Dark');
       }
     });
@@ -206,7 +209,7 @@ export default function VimStatusLine({
       cmd: ':theme light',
       desc: 'Activate the high-contrast editorial soft-white scheme.',
       run: () => {
-        if (theme === 'dark') onToggleTheme();
+        if (theme === 'dark') onToggleTheme(window.innerWidth / 2, window.innerHeight / 2);
         setCommandSuccess('Applied theme: Editorial Soft-White');
       }
     });
@@ -378,15 +381,23 @@ export default function VimStatusLine({
         setCommandError(`Error: Invalid chapter. Choose a chapter between 1 and ${chapters.length}`);
       }
     } else if (clean.startsWith(':help ')) {
-      const topic = clean.replace(':help ', '');
-      setActiveHelpTopic(topic);
+      const topic = clean.replace(':help ', '').trim();
+      const validTopics = ['modal', 'registers', 'buffer', 'keymaps', 'macro', 'treesitter', 'lsp', 'general'];
+      if (validTopics.includes(topic)) {
+        setActiveHelpTopic(topic);
+        setVimMode('normal');
+      } else {
+        setCommandError(`E149: Sorry, no help for ${topic}`);
+        setVimMode('normal');
+      }
     } else if (clean === ':help') {
       setActiveHelpTopic('general');
+      setVimMode('normal');
     } else {
       setCommandError(`E492: Not an editor command: ${cmdText}`);
+      setVimMode('normal');
     }
 
-    setVimMode('normal');
     setCommandInput('');
     setShowAutoComplete(false);
   };
@@ -529,17 +540,20 @@ export default function VimStatusLine({
                   <Terminal className="w-3.5 h-3.5 animate-pulse" />
                   <span>nvim://command</span>
                 </div>
-                {getAutocompleteSuggestions().map((s) => (
+                {getAutocompleteSuggestions().map((s, idx) => (
                   <button
                     key={s.cmd}
                     onClick={() => {
                       setCommandInput(s.cmd);
+                      setSelectedSuggestionIdx(idx);
                       commandInputRef.current?.focus();
                     }}
-                    className="w-full text-left py-2 px-2.5 text-base flex items-center justify-between hover:bg-zinc-900/60 rounded transition group"
+                    className={`w-full text-left py-2 px-2.5 text-base flex items-center justify-between rounded transition group ${
+                      selectedSuggestionIdx === idx ? 'bg-zinc-800 text-white' : 'hover:bg-zinc-900/60'
+                    }`}
                   >
-                    <span className="font-bold transition-colors group-hover:text-white" style={{ color: modeColor }}>{s.cmd}</span>
-                    <span className="text-sm text-zinc-500 line-clamp-1 truncate ml-2">{s.desc}</span>
+                    <span className="font-bold transition-colors group-hover:text-white" style={{ color: selectedSuggestionIdx === idx ? '#fff' : modeColor }}>{s.cmd}</span>
+                    <span className={`text-sm line-clamp-1 truncate ml-2 ${selectedSuggestionIdx === idx ? 'text-zinc-300' : 'text-zinc-500'}`}>{s.desc}</span>
                   </button>
                 ))}
               </div>
@@ -551,16 +565,40 @@ export default function VimStatusLine({
                   type="text"
                   value={commandInput}
                   onKeyDown={(e) => {
+                    const suggestions = getAutocompleteSuggestions();
                     if (e.key === 'Tab') {
                       e.preventDefault();
-                      const suggestions = getAutocompleteSuggestions();
                       if (suggestions.length > 0) {
                         setCommandInput(suggestions[0].cmd);
+                        setSelectedSuggestionIdx(0);
+                      }
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      if (suggestions.length > 0) {
+                        setSelectedSuggestionIdx((prev) => {
+                          const nextIdx = prev + 1 >= suggestions.length ? 0 : prev + 1;
+                          return nextIdx;
+                        });
+                      }
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      if (suggestions.length > 0) {
+                        setSelectedSuggestionIdx((prev) => {
+                          const nextIdx = prev - 1 < 0 ? suggestions.length - 1 : prev - 1;
+                          return nextIdx;
+                        });
+                      }
+                    } else if (e.key === 'Enter') {
+                      if (selectedSuggestionIdx >= 0 && selectedSuggestionIdx < suggestions.length) {
+                        e.preventDefault();
+                        setCommandInput(suggestions[selectedSuggestionIdx].cmd);
+                        setSelectedSuggestionIdx(-1);
                       }
                     }
                   }}
                   onChange={(e) => {
                     const val = e.target.value;
+                    setSelectedSuggestionIdx(-1);
                     if (!val.startsWith(':')) {
                       setVimMode('normal');
                       setCommandInput('');
@@ -831,7 +869,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               {activeHelpTopic === 'lsp' && (
                 <div className="space-y-4 leading-relaxed">
                   <p className="font-bold text-emerald-600 dark:text-emerald-400">Language Server Protocol (*lspconfig*)</p>
-                  <p>Integrates code diagnostics, autocomplete dropdowns, definition jumping, and type signatures using a robust Client-Server pipeline directly in the terminal.</p>
+                  <p>Integrates code diagnostics, autocomplete dropdowns, definition jumping, and type signatures using a Client-Server pipeline directly in the terminal.</p>
                 </div>
               )}
 

@@ -23,6 +23,7 @@ export default function App() {
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
+  const statusBarAutoRevealedRef = useRef<boolean>(false);
 
   useEffect(() => {
     setIsSidebarPopping(true);
@@ -109,7 +110,17 @@ export default function App() {
       // Automatically unhide Mode Bar on any Vim key action
       const isVimKey = ['j', 'k', 'h', 'l', 'i', 'v', ':', 'Escape'].includes(e.key) || e.key.match(/^[0-9]$/) || e.key === '/';
       if (isVimKey) {
-        setModeBarVisible(true);
+        if (!modeBarVisible) {
+          setModeBarVisible(true);
+          statusBarAutoRevealedRef.current = true;
+        }
+      }
+
+      if (e.key === 'Escape' && vimMode === 'normal') {
+        if (statusBarAutoRevealedRef.current) {
+          setModeBarVisible(false);
+          statusBarAutoRevealedRef.current = false;
+        }
       }
 
       let desc = 'Tactile keystroke';
@@ -133,7 +144,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyPressVisual, true);
     return () => window.removeEventListener('keydown', handleKeyPressVisual, true);
-  }, [onLanding, setModeBarVisible]);
+  }, [onLanding, setModeBarVisible, modeBarVisible, vimMode]);
 
   const handleYankText = (text: string) => {
     setRegisters((prev) => ({
@@ -226,15 +237,40 @@ export default function App() {
     };
   }, []);
 
-  const toggleTheme = () => {
+  const [themeTransition, setThemeTransition] = useState<{
+    active: boolean;
+    x: number;
+    y: number;
+    newTheme: 'dark' | 'light';
+  } | null>(null);
+
+  const toggleTheme = (clickX?: number, clickY?: number) => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    
+    // Default to center if coordinates are omitted
+    const targetX = clickX ?? window.innerWidth / 2;
+    const targetY = clickY ?? window.innerHeight / 2;
+
+    setThemeTransition({
+      active: true,
+      x: targetX,
+      y: targetY,
+      newTheme: nextTheme
+    });
+
+    // Change theme immediately so button rotates and elements start animating
     setTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
     try {
       localStorage.setItem('handbook-theme', nextTheme);
     } catch (e) {
       console.warn('localStorage write failed in sandbox:', e);
     }
-    document.documentElement.setAttribute('data-theme', nextTheme);
+
+    // Wipes transition state after it completes expansion
+    setTimeout(() => {
+      setThemeTransition(null);
+    }, 850);
   };
 
   // Track global scroll progression percentage to feed the reader bar
@@ -260,7 +296,7 @@ export default function App() {
       }
 
       // Reveal scroll-to-top buttons conditionally
-      const shouldShowScroll = winScroll > 600;
+      const shouldShowScroll = winScroll > landingHeight;
       setShowScrollTop((prev) => {
         if (prev !== shouldShowScroll) return shouldShowScroll;
         return prev;
@@ -411,6 +447,29 @@ export default function App() {
   return (
     <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
       
+      {/* Theme Transition Circle Expansion Overlay */}
+      <AnimatePresence>
+        {themeTransition?.active && (
+          <motion.div
+            initial={{ clipPath: `circle(0px at ${themeTransition.x}px ${themeTransition.y}px)` }}
+            animate={{ clipPath: `circle(150% at ${themeTransition.x}px ${themeTransition.y}px)` }}
+            exit={{ opacity: 0 }}
+            transition={{ 
+              clipPath: { duration: 0.95, ease: [0.19, 1, 0.22, 1] } // Classic high-end cinematic exponential ease-out curve
+            }}
+            className="fixed inset-0 z-[-5] pointer-events-none"
+            style={{
+              // Soft sparkling wave border using layered, highly transparent radial gradients for a beautiful aura
+              background: themeTransition.newTheme === 'dark'
+                ? `radial-gradient(circle at ${themeTransition.x}px ${themeTransition.y}px, rgba(99, 102, 241, 0.0) 0%, rgba(99, 102, 241, 0.05) 50%, rgba(125, 211, 252, 0.25) 75%, rgba(9, 9, 11, 0.8) 85%, rgba(9, 9, 11, 0.98) 100%)`
+                : `radial-gradient(circle at ${themeTransition.x}px ${themeTransition.y}px, rgba(129, 140, 248, 0.0) 0%, rgba(129, 140, 248, 0.08) 50%, rgba(79, 70, 229, 0.22) 75%, rgba(250, 250, 250, 0.8) 85%, rgba(250, 250, 250, 0.98) 100%)`,
+              mixBlendMode: 'normal',
+              willChange: 'clip-path'
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Dynamic Backdrops */}
       <BackgroundCanvas theme={theme} vimMode={vimMode} onLanding={onLanding} />
       <CustomCursor vimMode={vimMode} />
