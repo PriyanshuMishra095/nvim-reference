@@ -14,18 +14,18 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Typography Scale Design Tokens (Nice, big, and strain-free) */
-  --text-size-xs: 0.9rem;      /* ~14.4px - Metadata, captions */
-  --text-size-sm: 1.05rem;     /* ~16.8px - Sidebar, kbds, secondary text */
-  --text-size-base: 1.2rem;    /* ~19.2px - Nice, big, strain-free body text */
-  --text-size-md: 1.35rem;     /* ~21.6px - Subsection subtitles */
-  --text-size-lg: 1.65rem;     /* ~26.4px - Section headers */
-  --text-size-xl: 2.25rem;     /* ~36px - Chapter titles */
-  --text-size-xxl: 3.5rem;     /* ~56px - Brand/Hero headings */
+  /* Typography Scale Design Tokens (Original sizes) */
+  --text-size-xs: 0.75rem;      /* 12px */
+  --text-size-sm: 0.875rem;     /* 14px */
+  --text-size-base: 1rem;       /* 16px */
+  --text-size-md: 1.125rem;     /* 18px */
+  --text-size-lg: 1.25rem;      /* 20px */
+  --text-size-xl: 1.5rem;       /* 24px */
+  --text-size-xxl: 2.25rem;     /* 36px */
   
   --line-height-tight: 1.25;
-  --line-height-snug: 1.45;
-  --line-height-normal: 1.7;   /* Highly readable spacing */
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
 
   --sidebar-width: 320px;
   --max-content-width: 920px;
@@ -222,90 +222,77 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- Redefine default headings to ensure beautiful sizes and colors --- */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
 /* --- Enforce JetBrains Mono font-family and proper weights globally --- */
 code, pre, kbd, .font-mono {
   font-family: var(--font-mono) !important;
 }
 
-/* --- Overriding Tailwind size classes to map to our strain-free typography scale --- */
+/* --- Overriding Tailwind size classes to map to our central typography variables (Original Sizes) --- */
 .text-xs {
   font-size: var(--text-size-xs) !important;
-  line-height: var(--line-height-tight) !important;
+  line-height: 1rem !important;
 }
 
 .text-sm {
   font-size: var(--text-size-sm) !important;
-  line-height: var(--line-height-snug) !important;
+  line-height: 1.25rem !important;
 }
 
 .text-base {
   font-size: var(--text-size-base) !important;
-  line-height: var(--line-height-normal) !important;
+  line-height: 1.5rem !important;
 }
 
 .text-md {
   font-size: var(--text-size-md) !important;
-  line-height: var(--line-height-snug) !important;
+  line-height: 1.5rem !important;
 }
 
 .text-lg {
   font-size: var(--text-size-lg) !important;
-  line-height: var(--line-height-snug) !important;
+  line-height: 1.75rem !important;
 }
 
 .text-xl {
   font-size: var(--text-size-xl) !important;
-  line-height: var(--line-height-snug) !important;
+  line-height: 1.75rem !important;
 }
 
 .text-2xl {
-  font-size: var(--text-size-xl) !important; /* Scale headers appropriately */
-  line-height: var(--line-height-snug) !important;
+  font-size: var(--text-size-2xl) !important;
+  line-height: 2rem !important;
 }
 
 .text-3xl {
-  font-size: calc(var(--text-size-xl) * 1.2) !important;
-  line-height: var(--line-height-tight) !important;
+  font-size: var(--text-size-3xl) !important;
+  line-height: 2.25rem !important;
 }
 
 .text-4xl {
-  font-size: calc(var(--text-size-xl) * 1.4) !important;
-  line-height: var(--line-height-tight) !important;
+  font-size: var(--text-size-4xl) !important;
+  line-height: 2.5rem !important;
 }
 
 .text-5xl {
-  font-size: var(--text-size-xxl) !important;
-  line-height: var(--line-height-tight) !important;
+  font-size: var(--text-size-5xl) !important;
+  line-height: 1 !important;
 }
 
-/* --- Overriding Tailwind JIT specific micro-size classes to make them highly readable --- */
+/* --- Overriding Tailwind JIT specific micro-size classes to restore original exact values --- */
 .text-\[9px\] {
-  font-size: calc(var(--text-size-xs) * 0.95) !important;
-  line-height: var(--line-height-tight) !important;
+  font-size: 9px !important;
 }
 .text-\[10px\] {
-  font-size: var(--text-size-xs) !important;
-  line-height: var(--line-height-tight) !important;
+  font-size: 10px !important;
 }
 .text-\[11px\] {
-  font-size: var(--text-size-sm) !important;
-  line-height: var(--line-height-snug) !important;
+  font-size: 11px !important;
 }
 .text-\[12px\] {
-  font-size: var(--text-size-sm) !important;
-  line-height: var(--line-height-snug) !important;
+  font-size: 12px !important;
 }
 .text-\[13px\] {
-  font-size: var(--text-size-base) !important;
-  line-height: var(--line-height-normal) !important;
+  font-size: 13px !important;
 }
 
 /* --- Overriding hardcoded Tailwind neutral color utility classes to bind them to theme variables --- */
