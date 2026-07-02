@@ -536,3 +536,12 @@ This file is a write-only log of every detailed activity performed during develo
   - Decoupling spring parameters delivers tight positional follow with ultra-responsive shape morphing.
   - Toggling classes via classList prevents browser style calculation interruptions, allowing caret transitions to render at 240fps.
   - Transition wrappers enable hardware-accelerated entry and exit animations.
+
+### [2026-07-02T22:48:00+05:30] Interactive Code Block Vim Simulator and Zero-Bounce Custom Cursor Damping
+- **Files Modified**:
+  - `[MODIFY] src/components/ChapterSection.tsx` (Declared `InteractiveCodeBlock` component simulating focused Vim text buffers; integrated full keyboard navigations `j`/`k`, `i` insert editor overlays, line yanking `y` mapping to registers, `:w` file writing status messages, `:q` file reloads, and `:%s/old/new/g` word replacements).
+  - `[MODIFY] src/components/CustomCursor.tsx` (Increased custom cursor physics damping factors to `posFriction=0.48` and `dimFriction=0.48` to achieve critically-damped zero-bounce settles; integrated target computed style checks detecting `computedStyle.cursor === 'text'` to trigger custom I-beam caret morphing on landing page text blocks).
+- **Details**:
+  - Interactive Vim buffers turn all static code blocks into fully editable text editors.
+  - Critically-damped coefficients eliminate hover overshoot oscillations entirely.
+  - General computed style cursors enable caret morphing across all selectable texts.

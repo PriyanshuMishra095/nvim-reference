@@ -93,7 +93,15 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       const isSparklesBtn = target.closest("[data-sparkles-btn='true']");
       isOverSparklesBtnRef.current = !!isSparklesBtn;
 
-      const isInput = target.closest("input, textarea, [contenteditable]");
+      let isTextCursorStyle = false;
+      try {
+        const computedStyle = window.getComputedStyle(target);
+        if (computedStyle.cursor === 'text' || computedStyle.cursor === 'vertical-text') {
+          isTextCursorStyle = true;
+        }
+      } catch (e) {}
+
+      const isInput = target.closest("input, textarea, [contenteditable]") || isTextCursorStyle;
       isOverInputRef.current = !!isInput && !isOverTitleRef.current;
       
       const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
@@ -181,10 +189,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
       // Separate spring physics constants for positional follow vs dimensional morphing
       const posSpring = 0.16; // floaty position tracking
-      const posFriction = 0.60;
+      const posFriction = 0.48; // zero-bounce critically-damped position
 
       const dimSpring = 0.28; // snappier dimension/morph transitions
-      const dimFriction = 0.70;
+      const dimFriction = 0.48; // zero-bounce critically-damped morphing
 
       // Target dimensions and position
 

@@ -1,7 +1,239 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'motion/react';
 import { Copy, Check, TableProperties, Sparkles, MonitorPlay, Zap, RefreshCw } from 'lucide-react';
 import { Chapter, SubSection } from '../types';
+
+interface InteractiveCodeBlockProps {
+  sectionId: string;
+  initialContent: string;
+  modeColor: string;
+  onYank: (text: string) => void;
+  getLineExplanation: (line: string) => string;
+  setActiveExplanation: (explain: string) => void;
+}
+
+function InteractiveCodeBlock({
+  sectionId,
+  initialContent,
+  modeColor,
+  onYank,
+  getLineExplanation,
+  setActiveExplanation
+}: InteractiveCodeBlockProps) {
+  const [editorLines, setEditorLines] = useState<string[]>(() => initialContent.split('\n'));
+  const [cursorLine, setCursorLine] = useState<number>(0);
+  const [editorMode, setEditorMode] = useState<'NORMAL' | 'INSERT' | 'COMMAND'>('NORMAL');
+  const [commandInput, setCommandInput] = useState<string>('');
+  const [statusMsg, setStatusMsg] = useState<string>('');
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const commandInputRef = useRef<HTMLInputElement | null>(null);
+  const [lastYankedLine, setLastYankedLine] = useState<number | null>(null);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isFocused) return;
+
+    if (editorMode === 'NORMAL') {
+      if (e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        setCursorLine(prev => Math.min(editorLines.length - 1, prev + 1));
+        setStatusMsg('');
+        setLastYankedLine(null);
+      } else if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        setCursorLine(prev => Math.max(0, prev - 1));
+        setStatusMsg('');
+        setLastYankedLine(null);
+      } else if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        setEditorMode('INSERT');
+        setStatusMsg('-- INSERT -- (Press ESC or Enter to exit)');
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        const lineText = editorLines[cursorLine];
+        onYank(lineText);
+        setLastYankedLine(cursorLine);
+        setStatusMsg(`[Yanked] Line ${cursorLine + 1} copied to registers!`);
+      } else if (e.key === ':') {
+        e.preventDefault();
+        setEditorMode('COMMAND');
+        setCommandInput('');
+        setStatusMsg('');
+        setTimeout(() => commandInputRef.current?.focus(), 20);
+      } else if (e.key === 'G') {
+        e.preventDefault();
+        setCursorLine(editorLines.length - 1);
+        setStatusMsg('');
+      } else if (e.key === 'g') {
+        e.preventDefault();
+        setCursorLine(0);
+        setStatusMsg('');
+      }
+    }
+  };
+
+  const handleLineChange = (idx: number, newVal: string) => {
+    const nextLines = [...editorLines];
+    nextLines[idx] = newVal;
+    setEditorLines(nextLines);
+  };
+
+  const handleCommandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cmd = commandInput.trim();
+    if (cmd === ':w') {
+      setStatusMsg(`"${sectionId}.lua" ${editorLines.length}L written successfully`);
+      setEditorMode('NORMAL');
+    } else if (cmd === ':q') {
+      setEditorLines(initialContent.split('\n'));
+      setCursorLine(0);
+      setEditorMode('NORMAL');
+      setStatusMsg('Buffer reloaded and reset to default.');
+    } else if (cmd.startsWith(':%s/')) {
+      const parts = cmd.split('/');
+      if (parts.length >= 3) {
+        const findVal = parts[2];
+        const replaceVal = parts[3] || '';
+        const nextLines = editorLines.map(line => line.replaceAll(findVal, replaceVal));
+        setEditorLines(nextLines);
+        setStatusMsg(`Globally replaced "${findVal}" with "${replaceVal}"`);
+      } else {
+        setStatusMsg('E486: Pattern not found');
+      }
+      setEditorMode('NORMAL');
+    } else {
+      setStatusMsg(`E492: Not a buffer command: ${cmd}`);
+      setEditorMode('NORMAL');
+    }
+    setCommandInput('');
+  };
+
+  useEffect(() => {
+    if (containerRef.current && isFocused) {
+      const activeLineEl = containerRef.current.querySelector(`[data-line-idx="${cursorLine}"]`);
+      activeLineEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [cursorLine, isFocused]);
+
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
+  return (
+    <div
+      ref={containerRef}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => {
+        setTimeout(() => {
+          if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+            setIsFocused(false);
+            setEditorMode('NORMAL');
+            setStatusMsg('');
+          }
+        }, 100);
+      }}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={`relative my-4 rounded-xl border overflow-hidden font-mono text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] select-none outline-none transition-all duration-300 ${
+        isFocused 
+          ? 'border-indigo-500/80 shadow-[0_0_20px_rgba(99,102,241,0.25)]' 
+          : 'border-zinc-800/85 hover:border-zinc-700/80'
+      }`}
+    >
+      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-950 text-[10px] text-zinc-500 font-bold select-none">
+        <div className="flex items-center gap-1.5">
+          <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-650'}`} />
+          <span>nvim://buffer/{sectionId}.lua</span>
+        </div>
+        <div className="text-zinc-600 flex items-center gap-1">
+          <span>{isFocused ? 'VIM MODE ACTIVE' : 'CLICK BUFFER TO FOCUS & EDIT'}</span>
+        </div>
+      </div>
+
+      <div className="p-4 max-h-56 overflow-y-auto custom-scroll space-y-0.5 bg-black/40">
+        {editorLines.map((line, idx) => {
+          const isCursor = idx === cursorLine && isFocused;
+          const explanation = getLineExplanation(line);
+          return (
+            <div
+              key={idx}
+              data-line-idx={idx}
+              onClick={() => {
+                setCursorLine(idx);
+                setIsFocused(true);
+              }}
+              onMouseEnter={() => {
+                if (explanation) setActiveExplanation(explanation);
+              }}
+              onMouseLeave={() => {
+                setActiveExplanation('');
+              }}
+              className={`flex gap-3 px-2 py-0.5 rounded border-l-2 transition-all duration-150 ${
+                isCursor
+                  ? 'bg-zinc-900/60 border-indigo-500 text-indigo-200'
+                  : 'border-transparent text-zinc-450 hover:bg-zinc-900/20 hover:text-zinc-300 cursor-pointer'
+              } ${lastYankedLine === idx ? 'bg-emerald-950/30 text-emerald-300' : ''}`}
+            >
+              <span className={`text-right w-5 pr-1 select-none font-bold ${isCursor ? 'text-indigo-400' : 'text-zinc-650'}`}>
+                {idx + 1}
+              </span>
+              {editorMode === 'INSERT' && isCursor ? (
+                <input
+                  type="text"
+                  value={line}
+                  onChange={(e) => handleLineChange(idx, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setEditorMode('NORMAL');
+                      setStatusMsg('-- NORMAL -- (Saved changes)');
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setEditorMode('NORMAL');
+                      setStatusMsg('-- NORMAL --');
+                    }
+                  }}
+                  autoFocus
+                  className="bg-transparent flex-1 text-indigo-100 outline-none border-b border-indigo-500/80 font-mono text-[11px] md:text-xs py-0 m-0"
+                />
+              ) : (
+                <span className="flex-1 whitespace-pre">{line || ' '}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="px-4 py-2 bg-zinc-900 border-t border-zinc-950 flex items-center justify-between text-[10px] select-none text-zinc-500">
+        <div className="flex items-center gap-2 flex-1">
+          <span className="font-black text-indigo-500">[{editorMode}]</span>
+          {editorMode === 'COMMAND' ? (
+            <form onSubmit={handleCommandSubmit} className="flex items-center flex-1">
+              <input
+                ref={commandInputRef}
+                type="text"
+                value={commandInput}
+                onChange={(e) => setCommandInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setEditorMode('NORMAL');
+                    setStatusMsg('');
+                  }
+                }}
+                className="bg-transparent text-zinc-200 font-mono outline-none border-none text-[10px] w-full py-0 m-0"
+                placeholder=":w (write), :q (reload/reset), :%s/old/new/g (replace)"
+              />
+            </form>
+          ) : (
+            <span className="text-zinc-400 truncate">{statusMsg || 'Buffer clean. j/k: navigate | i: edit | y: yank | :w: write | :q: reset'}</span>
+          )}
+        </div>
+        <div className="text-zinc-650 font-bold ml-2">
+          {cursorLine + 1}:{editorLines[cursorLine]?.length || 0}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface ChapterSectionProps {
   key?: string | number;
@@ -662,32 +894,14 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               </form>
             </div>
           ) : (
-            <div className="px-5 py-4 overflow-x-auto text-zinc-300 text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] border-b border-zinc-900/60 space-y-0.5">
-              {codeLines.map((line, idx) => {
-                const explanation = getLineExplanation(line);
-                return (
-                  <div 
-                    key={idx}
-                    onMouseEnter={() => {
-                      if (explanation) {
-                        setActiveLineExplain(prev => ({ ...prev, [sec.id]: explanation }));
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      setActiveLineExplain(prev => ({ ...prev, [sec.id]: '' }));
-                    }}
-                    className={`flex gap-3 px-2 py-0.5 rounded transition duration-155 border-l-[3px] ${
-                      explanation 
-                        ? 'hover:bg-indigo-950/20 hover:border-indigo-500 border-transparent hover:text-indigo-200 cursor-help' 
-                        : 'border-transparent'
-                    }`}
-                  >
-                    <span className="text-zinc-500 text-right select-none w-5 pr-1 font-bold">{idx+1}</span>
-                    <span className="flex-1 whitespace-pre">{line || ' '}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <InteractiveCodeBlock
+              sectionId={sec.id}
+              initialContent={sec.content || ''}
+              modeColor={modeColor}
+              onYank={onYank}
+              getLineExplanation={getLineExplanation}
+              setActiveExplanation={(explain) => setActiveLineExplain(prev => ({ ...prev, [sec.id]: explain }))}
+            />
           )}
 
           {/* Context-aware interactive AST Explanation feedback footer */}
