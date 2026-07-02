@@ -256,7 +256,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
             </h5>
             <ul className="space-y-3">
               {matrix?.leftItems?.map((item: string, idx: number) => (
-                <li key={idx} className="flex gap-2.5 text-xs text-zinc-500 dark:text-zinc-400 items-start">
+                <li key={idx} className="flex gap-2.5 text-xs md:text-sm text-zinc-600 dark:text-zinc-400 items-start">
                   <span className="text-rose-500 select-none font-bold mt-0.5 shrink-0">✕</span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
@@ -272,7 +272,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
             </h5>
             <ul className="space-y-3">
               {matrix?.rightItems?.map((item: string, idx: number) => (
-                <li key={idx} className="flex gap-2.5 text-xs text-zinc-650 dark:text-zinc-300 items-start">
+                <li key={idx} className="flex gap-2.5 text-xs md:text-sm text-zinc-800 dark:text-zinc-200 items-start">
                   <span className="select-none font-bold transition-colors duration-300 mt-0.5 shrink-0" style={{ color: modeColor }}>✓</span>
                   <span className="leading-relaxed">{item}</span>
                 </li>
@@ -294,8 +294,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               <span className="absolute -left-[35px] top-[2px] w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 flex items-center justify-center font-mono text-xs font-bold shadow-sm select-none transition-colors duration-300" style={{ color: modeColor }}>
                 {step.num}
               </span>
-              <h5 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 leading-tight">{step.title}</h5>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 pr-4 leading-relaxed mt-1">{step.desc}</p>
+              <h5 className="text-sm font-bold text-zinc-800 dark:text-zinc-250 leading-tight">{step.title}</h5>
+              <p className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 pr-4 leading-relaxed mt-1">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -656,13 +656,13 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                     const val = e.target.value;
                     setTerminalInput(inp => ({ ...inp, [sec.id]: val }));
                   }}
-                  className="bg-transparent flex-1 text-white outline-none font-mono text-xs"
+                  className="bg-transparent flex-1 text-white outline-none font-mono text-sm"
                   placeholder="Type a command (e.g. run, help, ls, clear)..."
                 />
               </form>
             </div>
           ) : (
-            <div className="px-5 py-4 overflow-x-auto text-zinc-400 dark:text-zinc-400 text-xs leading-relaxed bg-[#0b0c10] border-b border-zinc-900/60 space-y-0.5">
+            <div className="px-5 py-4 overflow-x-auto text-zinc-300 text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] border-b border-zinc-900/60 space-y-0.5">
               {codeLines.map((line, idx) => {
                 const explanation = getLineExplanation(line);
                 return (
@@ -730,7 +730,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               <thead>
                 <tr className="bg-zinc-50/50 dark:bg-zinc-900/30 border-b border-zinc-200/50 dark:border-zinc-800/80">
                   {tableData?.headers?.map((head: string, idx: number) => (
-                    <th key={idx} className="px-4 py-3 font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider text-[10px]">
+                    <th key={idx} className="px-4 py-3 font-bold text-zinc-500 dark:text-zinc-300 uppercase tracking-wider text-[10px]">
                       {head}
                     </th>
                   ))}
@@ -740,7 +740,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 {tableData?.rows?.map((row: string[], rowIdx: number) => (
                   <tr key={rowIdx} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
                     {row.map((cell: string, cellIdx: number) => (
-                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold text-zinc-950 dark:text-zinc-50' : 'text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm'}`} style={{ color: cellIdx === 0 ? (vimMode === 'normal' ? 'var(--neon-indigo)' : modeColor) : '' }}>
+                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold text-zinc-950 dark:text-zinc-50' : 'text-zinc-650 dark:text-zinc-200'}`} style={{ color: cellIdx === 0 ? (vimMode === 'normal' ? 'var(--neon-indigo)' : modeColor) : '' }}>
                         {cell}
                       </td>
                     ))}
@@ -777,9 +777,9 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 >
                   <div className="flex items-center gap-2 mb-2 font-semibold">
                     <Check className={`w-4 h-4 shrink-0 transition-colors duration-300 ${isChecked ? 'text-emerald-500 font-bold' : 'text-zinc-400'}`} />
-                    <span className="text-sm">{item.title}</span>
+                    <span className="text-xs md:text-sm">{item.title}</span>
                   </div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-normal">{item.desc}</p>
+                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-normal">{item.desc}</p>
                 </div>
               );
             })}

@@ -7,17 +7,6 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-
-  --text-xs: var(--text-size-xs);
-  --text-sm: var(--text-size-sm);
-  --text-base: var(--text-size-base);
-  --text-md: var(--text-size-md);
-  --text-lg: var(--text-size-lg);
-  --text-xl: var(--text-size-xl);
-  --text-2xl: var(--text-size-2xl);
-  --text-3xl: var(--text-size-3xl);
-  --text-4xl: var(--text-size-4xl);
-  --text-5xl: var(--text-size-5xl);
 }
 
 /* --- THEME ROOT CONFIGURATION --- */
@@ -25,21 +14,6 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Typography Scale Design Tokens (Original sizes + 2px for strain-free legibility) */
-  --text-size-xs: 0.875rem;     /* 14px */
-  --text-size-sm: 1rem;         /* 16px */
-  --text-size-base: 1.125rem;   /* 18px */
-  --text-size-md: 1.25rem;      /* 20px */
-  --text-size-lg: 1.375rem;     /* 22px */
-  --text-size-xl: 1.625rem;     /* 26px */
-  --text-size-2xl: 2rem;        /* 32px */
-  --text-size-3xl: 2.375rem;    /* 38px */
-  --text-size-4xl: 3.125rem;    /* 50px */
-  --text-size-5xl: 3.875rem;    /* 62px */
-  
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
 
   --sidebar-width: 320px;
   --max-content-width: 920px;
@@ -229,35 +203,10 @@ body {
   background-color: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: var(--text-size-base);
-  line-height: var(--line-height-normal);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-/* --- Enforce JetBrains Mono font-family and proper weights globally --- */
-code, pre, kbd, .font-mono {
-  font-family: var(--font-mono) !important;
-}
-
-/* --- Overriding Tailwind JIT specific micro-size classes (+2px for legibility) --- */
-.text-\[9px\] {
-  font-size: 11px !important;
-}
-.text-\[10px\] {
-  font-size: 12px !important;
-}
-.text-\[11px\] {
-  font-size: 13px !important;
-}
-.text-\[12px\] {
-  font-size: 14px !important;
-}
-.text-\[13px\] {
-  font-size: 15px !important;
-}
-
 #root {
   display: flex;
   flex-direction: column;

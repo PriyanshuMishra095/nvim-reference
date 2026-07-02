@@ -815,7 +815,7 @@ export default function VimStatusLine({
               </div>
 
               {/* Restore the original information and guide about registers */}
-              <div className="mb-6 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl leading-relaxed text-xs text-zinc-500 dark:text-zinc-400">
+              <div className="mb-6 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl leading-relaxed text-xs sm:text-sm text-zinc-650 dark:text-zinc-400">
                 <p className="mb-2">
                   <strong>What are Registers?</strong> In Vim/Neovim, registers are separate clipboard memory cells used to store text. Instead of having just one clipboard, Vim offers named registers like <code className="text-indigo-500 font-bold dark:text-indigo-400">"a</code>, <code className="text-indigo-500 font-bold dark:text-indigo-400">"b</code>, and special clipboards like <code className="text-indigo-550 font-bold dark:text-indigo-400">""</code> (unnamed default register) or <code className="text-indigo-550 font-bold dark:text-indigo-400">"+</code> (system clipboard).
                 </p>
@@ -851,7 +851,7 @@ export default function VimStatusLine({
                           Clear
                         </button>
                       </div>
-                      <div className="font-mono text-xs text-zinc-500 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic leading-relaxed">
+                      <div className="font-mono text-xs sm:text-sm text-zinc-400 dark:text-zinc-555 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic leading-relaxed">
                         {value || 'Empty register cell. Select text in Visual Mode and yank to populate.'}
                       </div>
                     </div>

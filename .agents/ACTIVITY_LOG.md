@@ -496,3 +496,12 @@ This file is a write-only log of every detailed activity performed during develo
 - **Details**:
   - Eliminating layout thrashing from `getBoundingClientRect` calls yields a silky smooth 200+ FPS coordinate lock.
   - High-contrast visual rhythm established across code blocks, tables, lists, and modal bodies.
+
+### [2026-07-02T22:15:00+05:30] Typography Alignment with Hope Commit
+- **Files Modified**:
+  - `[MODIFY] src/index.css` (Removed all custom `@theme` typography mapping tokens, `:root` `--text-size-xs` to `--text-size-5xl` variables, body custom font sizes, JetBrains Mono overrides, and custom JIT overrides to restore native Tailwind text scales).
+  - `[MODIFY] src/components/ChapterSection.tsx` (Reverted matrix list items to `text-xs md:text-sm`, steps description text to `text-xs md:text-sm`, table cells and headers classes to their original size and color classes, checklist card titles and descriptions to their original styles).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Reverted registers tray informative guide block and register cells text contents to sm/xs original typography sizes and contrast rules).
+- **Details**:
+  - Text scales, line-heights, letter-spacing, and type weights are aligned perfectly with the `hope` commit.
+  - Native Tailwind v4 text sizing restored cleanly across all document guides, blocks, and modals.
