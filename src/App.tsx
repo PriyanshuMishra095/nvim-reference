@@ -781,7 +781,7 @@ export default function App() {
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl shadow-2xl z-10 cursor-default"
+              className="relative max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/98 dark:bg-zinc-900/98 p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl shadow-2xl z-10 cursor-default"
             >
               {/* Close Button */}
               <button

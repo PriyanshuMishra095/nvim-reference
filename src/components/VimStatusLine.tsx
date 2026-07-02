@@ -791,7 +791,7 @@ export default function VimStatusLine({
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-              className="relative bg-zinc-50 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto custom-scroll shadow-2xl pointer-events-auto font-mono text-sm text-zinc-700 dark:text-zinc-300"
+              className="relative bg-zinc-50/98 dark:bg-zinc-900/98 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto custom-scroll shadow-2xl pointer-events-auto font-mono text-sm text-zinc-700 dark:text-zinc-300"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">

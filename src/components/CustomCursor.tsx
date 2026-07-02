@@ -32,6 +32,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
   const lastLockedElementRef = useRef<HTMLElement | null>(null);
   const cachedActiveRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
   const targetBorderRadiusRef = useRef({ tl: 0, tr: 0, bl: 0, br: 0 });
+  const lastFrameTimeRef = useRef<number>(performance.now());
 
   // Interactive targets and input tracking refs
   // Interactive targets and input tracking refs
@@ -173,9 +174,14 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       // We removed updateHoverState call here because document.elementFromPoint forces reflows on every frame, causing massive lag when modals/backdrops are active.
       // Hover states are now updated efficiently only on 'mousemove' and 'scroll' events.
 
-      // Spring physics constants matching reference
-      const spring = 0.22;
-      const friction = 0.65;
+      const now = performance.now();
+      const deltaMs = now - lastFrameTimeRef.current;
+      lastFrameTimeRef.current = now;
+      const dt = Math.min(3, deltaMs / 16.666);
+
+      // Spring physics constants matching reference (original slow & floaty values)
+      const spring = 0.12;
+      const friction = 0.55;
 
       // Target dimensions and position
 
@@ -342,13 +348,13 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         cursorRef.current.rBR = targetRBR;
         velRef.current = { x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 };
       } else {
-        // Position spring physics updates
-        velRef.current.x += (targetX - cursorRef.current.x) * spring;
-        velRef.current.y += (targetY - cursorRef.current.y) * spring;
-        velRef.current.x *= friction;
-        velRef.current.y *= friction;
-        cursorRef.current.x += velRef.current.x;
-        cursorRef.current.y += velRef.current.y;
+        // Position spring physics updates (framerate-independent with dt)
+        velRef.current.x += (targetX - cursorRef.current.x) * spring * dt;
+        velRef.current.y += (targetY - cursorRef.current.y) * spring * dt;
+        velRef.current.x *= Math.pow(friction, dt);
+        velRef.current.y *= Math.pow(friction, dt);
+        cursorRef.current.x += velRef.current.x * dt;
+        cursorRef.current.y += velRef.current.y * dt;
 
         // Position settling lock (stops minor micro-shakes)
         if (Math.abs(targetX - cursorRef.current.x) < 0.05 && Math.abs(velRef.current.x) < 0.05) {
@@ -360,13 +366,13 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           velRef.current.y = 0;
         }
 
-        // Dimension spring physics updates
-        velRef.current.w += (targetW - cursorRef.current.w) * spring;
-        velRef.current.h += (targetH - cursorRef.current.h) * spring;
-        velRef.current.w *= friction;
-        velRef.current.h *= friction;
-        cursorRef.current.w += velRef.current.w;
-        cursorRef.current.h += velRef.current.h;
+        // Dimension spring physics updates (framerate-independent with dt)
+        velRef.current.w += (targetW - cursorRef.current.w) * spring * dt;
+        velRef.current.h += (targetH - cursorRef.current.h) * spring * dt;
+        velRef.current.w *= Math.pow(friction, dt);
+        velRef.current.h *= Math.pow(friction, dt);
+        cursorRef.current.w += velRef.current.w * dt;
+        cursorRef.current.h += velRef.current.h * dt;
 
         // Dimension settling lock (stops minor micro-shakes)
         if (Math.abs(targetW - cursorRef.current.w) < 0.05 && Math.abs(velRef.current.w) < 0.05) {
@@ -381,22 +387,23 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
         const rSpring = 0.32;
         const rFriction = 0.85; // highly damped to prevent overshoot
+        const rFrictionScaled = Math.pow(rFriction, dt);
         
-        velRef.current.rTL += (targetRTL - cursorRef.current.rTL) * rSpring;
-        velRef.current.rTL *= rFriction;
-        cursorRef.current.rTL += velRef.current.rTL;
+        velRef.current.rTL += (targetRTL - cursorRef.current.rTL) * rSpring * dt;
+        velRef.current.rTL *= rFrictionScaled;
+        cursorRef.current.rTL += velRef.current.rTL * dt;
 
-        velRef.current.rTR += (targetRTR - cursorRef.current.rTR) * rSpring;
-        velRef.current.rTR *= rFriction;
-        cursorRef.current.rTR += velRef.current.rTR;
+        velRef.current.rTR += (targetRTR - cursorRef.current.rTR) * rSpring * dt;
+        velRef.current.rTR *= rFrictionScaled;
+        cursorRef.current.rTR += velRef.current.rTR * dt;
 
-        velRef.current.rBL += (targetRBL - cursorRef.current.rBL) * rSpring;
-        velRef.current.rBL *= rFriction;
-        cursorRef.current.rBL += velRef.current.rBL;
+        velRef.current.rBL += (targetRBL - cursorRef.current.rBL) * rSpring * dt;
+        velRef.current.rBL *= rFrictionScaled;
+        cursorRef.current.rBL += velRef.current.rBL * dt;
 
-        velRef.current.rBR += (targetRBR - cursorRef.current.rBR) * rSpring;
-        velRef.current.rBR *= rFriction;
-        cursorRef.current.rBR += velRef.current.rBR;
+        velRef.current.rBR += (targetRBR - cursorRef.current.rBR) * rSpring * dt;
+        velRef.current.rBR *= rFrictionScaled;
+        cursorRef.current.rBR += velRef.current.rBR * dt;
 
         // Radii settling lock
         if (Math.abs(targetRTL - cursorRef.current.rTL) < 0.05 && Math.abs(velRef.current.rTL) < 0.05) {

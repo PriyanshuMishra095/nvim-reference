@@ -516,3 +516,12 @@ This file is a write-only log of every detailed activity performed during develo
   - Excluded `transform` from CSS cursor transitions, solving input caret lag and achieving an instant 200+ FPS reticle response.
   - Separated blur filters from scale transitions, resulting in ultra-smooth modal opening animations.
   - Added physical sleep checks to completely eliminate cursor hovering micro-oscillations.
+
+### [2026-07-02T22:30:00+05:30] Framerate-Independent Physics and Modal Rendering optimization
+- **Files Modified**:
+  - `[MODIFY] src/components/CustomCursor.tsx` (Declared `lastFrameTimeRef` and integrated delta-time `dt` calculation relative to 60fps; scaled spring forces and friction integrations by `dt` to make coordinates, sizes, and radius paths perfectly framerate-independent; restored slow, floaty spring `0.12` and friction `0.55` constants).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Replaced `backdrop-blur-xl` with solid `bg-zinc-50/98` / `bg-zinc-900/98` on Registers modal card to prevent GPU scale bottleneck).
+  - `[MODIFY] src/App.tsx` (Replaced `backdrop-blur-md` with solid `bg-white/98` / `bg-zinc-900/98` on Contribute modal card to prevent scale rendering bottlenecks).
+- **Details**:
+  - Delta-time normalized physics enables 240Hz+ monitors to render 4x more frames without speeding up coordinates.
+  - Removed secondary backdrop blurs on active content cards, eliminating GPU redraw lag on modal entry and exit.
