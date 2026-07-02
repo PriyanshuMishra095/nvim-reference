@@ -505,3 +505,14 @@ This file is a write-only log of every detailed activity performed during develo
 - **Details**:
   - Text scales, line-heights, letter-spacing, and type weights are aligned perfectly with the `hope` commit.
   - Native Tailwind v4 text sizing restored cleanly across all document guides, blocks, and modals.
+
+### [2026-07-02T22:25:00+05:30] High-FPS Custom Cursor Transform-Exempt Transitions and Separated Modal Pops
+- **Files Modified**:
+  - `[MODIFY] src/components/CustomCursor.tsx` (Increased spring constant to `0.22` and damping/friction to `0.65` for faster Snapping; replaced `transition-all` and `transition-opacity` with `.cursor-transition` class; integrated physics settling checks locking dimensions, positions, and border-radii directly to target when within `0.05px` of rest).
+  - `[MODIFY] src/index.css` (Added `.cursor-transition` class targeting only opacity, width, height, border-radius, background-color, and color transitions, explicitly leaving `transform` transitions off to avoid browser vs JS animation conflict loops).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Configured fast `0.15s` backdrop overlays and snappy spring transitions `{ type: 'spring', stiffness: 420, damping: 30 }` on Registers and Help modal cards).
+  - `[MODIFY] src/App.tsx` (Separated the Contribute modal into an independent backdrop wrapper and a floating modal card, animating backdrop opacity separately from the modal card spring zoom to prevent sluggish full-screen redraws).
+- **Details**:
+  - Excluded `transform` from CSS cursor transitions, solving input caret lag and achieving an instant 200+ FPS reticle response.
+  - Separated blur filters from scale transitions, resulting in ultra-smooth modal opening animations.
+  - Added physical sleep checks to completely eliminate cursor hovering micro-oscillations.

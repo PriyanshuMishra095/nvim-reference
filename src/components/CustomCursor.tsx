@@ -174,8 +174,8 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       // Hover states are now updated efficiently only on 'mousemove' and 'scroll' events.
 
       // Spring physics constants matching reference
-      const spring = 0.12;
-      const friction = 0.55;
+      const spring = 0.22;
+      const friction = 0.65;
 
       // Target dimensions and position
 
@@ -342,6 +342,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         cursorRef.current.rBR = targetRBR;
         velRef.current = { x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 };
       } else {
+        // Position spring physics updates
         velRef.current.x += (targetX - cursorRef.current.x) * spring;
         velRef.current.y += (targetY - cursorRef.current.y) * spring;
         velRef.current.x *= friction;
@@ -349,8 +350,33 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         cursorRef.current.x += velRef.current.x;
         cursorRef.current.y += velRef.current.y;
 
+        // Position settling lock (stops minor micro-shakes)
+        if (Math.abs(targetX - cursorRef.current.x) < 0.05 && Math.abs(velRef.current.x) < 0.05) {
+          cursorRef.current.x = targetX;
+          velRef.current.x = 0;
+        }
+        if (Math.abs(targetY - cursorRef.current.y) < 0.05 && Math.abs(velRef.current.y) < 0.05) {
+          cursorRef.current.y = targetY;
+          velRef.current.y = 0;
+        }
+
+        // Dimension spring physics updates
         velRef.current.w += (targetW - cursorRef.current.w) * spring;
         velRef.current.h += (targetH - cursorRef.current.h) * spring;
+        velRef.current.w *= friction;
+        velRef.current.h *= friction;
+        cursorRef.current.w += velRef.current.w;
+        cursorRef.current.h += velRef.current.h;
+
+        // Dimension settling lock (stops minor micro-shakes)
+        if (Math.abs(targetW - cursorRef.current.w) < 0.05 && Math.abs(velRef.current.w) < 0.05) {
+          cursorRef.current.w = targetW;
+          velRef.current.w = 0;
+        }
+        if (Math.abs(targetH - cursorRef.current.h) < 0.05 && Math.abs(velRef.current.h) < 0.05) {
+          cursorRef.current.h = targetH;
+          velRef.current.h = 0;
+        }
         
         // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
         const rSpring = 0.32;
@@ -372,10 +398,23 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         velRef.current.rBR *= rFriction;
         cursorRef.current.rBR += velRef.current.rBR;
 
-        velRef.current.w *= friction;
-        velRef.current.h *= friction;
-        cursorRef.current.w += velRef.current.w;
-        cursorRef.current.h += velRef.current.h;
+        // Radii settling lock
+        if (Math.abs(targetRTL - cursorRef.current.rTL) < 0.05 && Math.abs(velRef.current.rTL) < 0.05) {
+          cursorRef.current.rTL = targetRTL;
+          velRef.current.rTL = 0;
+        }
+        if (Math.abs(targetRTR - cursorRef.current.rTR) < 0.05 && Math.abs(velRef.current.rTR) < 0.05) {
+          cursorRef.current.rTR = targetRTR;
+          velRef.current.rTR = 0;
+        }
+        if (Math.abs(targetRBL - cursorRef.current.rBL) < 0.05 && Math.abs(velRef.current.rBL) < 0.05) {
+          cursorRef.current.rBL = targetRBL;
+          velRef.current.rBL = 0;
+        }
+        if (Math.abs(targetRBR - cursorRef.current.rBR) < 0.05 && Math.abs(velRef.current.rBR) < 0.05) {
+          cursorRef.current.rBR = targetRBR;
+          velRef.current.rBR = 0;
+        }
 
         // Physical clamp: border radius should never exceed half of the current width or height
         const maxPhysicalR = Math.min(cursorRef.current.w / 2, cursorRef.current.h / 2);
@@ -435,7 +474,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = `${caretHeight}px`;
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-all duration-150 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -446,7 +485,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "transparent";
           dot.style.color = "#ef4444";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (xSvg) xSvg.style.opacity = "1";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -456,7 +495,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "24px";
           dot.style.borderRadius = "50%";
           dot.style.backgroundColor = "transparent";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (sparklesEl) {
             sparklesEl.style.opacity = "1";
             sparklesEl.style.transform = "scale(1.15) translate(-50%, -50%)";
@@ -469,7 +508,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "22px";
           dot.style.borderRadius = "1.5px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -479,7 +518,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "15px";
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "#22c55e";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center ai-cursor-blink";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition ai-cursor-blink";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -489,7 +528,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "26px";
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "transparent";
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (sparklesEl) sparklesEl.style.opacity = "0";
           
           if (isChecklistCheckedRef.current) {
@@ -519,7 +558,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
             dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
           }
           
-          dot.className = "fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center";
+          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
         }
@@ -543,7 +582,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       <div
         ref={dotRef}
         id="custom-cursor-dot"
-        className="fixed top-0 left-0 pointer-events-none transition-opacity duration-200 will-change-transform z-[100000000] flex items-center justify-center"
+        className="fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition"
       >
         {/* Sparkles SVG */}
         <svg

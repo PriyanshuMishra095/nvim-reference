@@ -763,17 +763,25 @@ export default function App() {
       {/* Contribute Page View */}
       <AnimatePresence>
         {contributeOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            onClick={() => setContributeOpen(false)}
-            className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/40 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-default"
-          >
-            <div 
+          <div className="fixed inset-0 z-50 overflow-y-auto flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-default vt-overlay-exclude">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              onClick={() => setContributeOpen(false)}
+              className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm pointer-events-auto"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl relative shadow-2xl z-10 cursor-default"
+              className="relative max-w-2xl w-full border border-zinc-200/50 dark:border-zinc-800/85 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl shadow-2xl z-10 cursor-default"
             >
               {/* Close Button */}
               <button
@@ -827,8 +835,8 @@ export default function App() {
                   This handbook interface and its system components were designed and implemented with the assistance of agentic Large Language Models (LLMs) to ensure extreme modal fidelity, liquid physics, and premium APCA aesthetics.
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
       <Analytics />

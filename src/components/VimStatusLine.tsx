@@ -781,6 +781,7 @@ export default function VimStatusLine({
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
               onClick={() => setShowRegistersTray(false)}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto filter-backdrop-ignore"
             />
@@ -789,6 +790,7 @@ export default function VimStatusLine({
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
               className="relative bg-zinc-50 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl p-6 sm:p-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto custom-scroll shadow-2xl pointer-events-auto font-mono text-sm text-zinc-700 dark:text-zinc-300"
               onClick={e => e.stopPropagation()}
             >
@@ -870,6 +872,8 @@ export default function VimStatusLine({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
               onClick={() => setActiveHelpTopic(null)}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             />
@@ -878,6 +882,7 @@ export default function VimStatusLine({
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
               className="relative bg-white dark:bg-zinc-950 border rounded-2xl p-8 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl font-mono text-sm text-zinc-700 dark:text-zinc-300 pointer-events-auto"
               style={{ borderColor: modeColor }}
             >

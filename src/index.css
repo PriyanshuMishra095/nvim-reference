@@ -188,6 +188,15 @@
     will-change: transform;
     transition: opacity 0.2s ease, background-color 0.3s ease, width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
   }
+
+  .cursor-transition {
+    transition: opacity 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+                color 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                height 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                border-radius 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 /* --- BASE STYLES --- */
