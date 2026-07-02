@@ -90,8 +90,7 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
     const pullX = (dx / (rect.width / 2)) * maxPull;
     const pullY = (dy / (rect.height / 2)) * maxPull;
 
-    // Use a smooth bezier curve for the active hover state transition to eliminate lag/snapping
-    elem.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1)';
+    elem.style.transition = 'none';
     elem.style.transform = `translate3d(${pullX}px, ${pullY}px, 0) scale(1.04)`;
   };
 

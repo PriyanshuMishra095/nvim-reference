@@ -763,7 +763,10 @@ export default function App() {
       {/* Contribute Page View */}
       <AnimatePresence>
         {contributeOpen && (
-          <div className="fixed inset-0 z-50 overflow-y-auto flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-default vt-overlay-exclude">
+          <motion.div
+            key="contribute-overlay"
+            className="fixed inset-0 z-50 overflow-y-auto flex flex-col items-center justify-start sm:justify-center py-12 px-4 sm:p-6 text-zinc-800 dark:text-zinc-200 cursor-default vt-overlay-exclude"
+          >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -836,7 +839,7 @@ export default function App() {
                 </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
       <Analytics />

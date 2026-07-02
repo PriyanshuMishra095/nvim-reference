@@ -776,7 +776,10 @@ export default function VimStatusLine({
       {/* ─── FLOATING IN-MEMORY VIM REGISTERS POPUP OVERLAY TRAY (") ─── */}
       <AnimatePresence>
         {showRegistersTray && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude">
+          <motion.div
+            key="registers-overlay"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude"
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -861,14 +864,17 @@ export default function VimStatusLine({
                 </div>
               )}
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       {/* ─── FLOATING BUILT-IN VIM HELP DOCUMENTATION MODALS (:help) ─── */}
       <AnimatePresence>
         {activeHelpTopic && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude">
+          <motion.div
+            key="help-overlay"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 vt-overlay-exclude"
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -1029,6 +1035,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                         />
                         <button
                           type="submit"
+                          data-sparkles-btn="true"
                           className="px-3.5 py-1.5 rounded bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs cursor-pointer"
                         >
                           Send
@@ -1143,7 +1150,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                 )}
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>

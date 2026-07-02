@@ -525,3 +525,14 @@ This file is a write-only log of every detailed activity performed during develo
 - **Details**:
   - Delta-time normalized physics enables 240Hz+ monitors to render 4x more frames without speeding up coordinates.
   - Removed secondary backdrop blurs on active content cards, eliminating GPU redraw lag on modal entry and exit.
+
+### [2026-07-02T22:40:00+05:30] Custom Cursor and Modal Animation Polish
+- **Files Modified**:
+  - `[MODIFY] src/components/CustomCursor.tsx` (Decoupled position tracking springs `posSpring=0.16`/`posFriction=0.60` from snappy morphing springs `dimSpring=0.28`/`dimFriction=0.70`; removed all dynamic `dot.className` overrides, using `classList.add`/`classList.remove` to toggle blinking states; replaced standard sparkles with custom rotating and bouncing Gemini logo elements).
+  - `[MODIFY] src/components/TerminalLanding.tsx` (Disabled active CSS transition on magnetic hover elements during dragging to resolve low-fps stutters).
+  - `[MODIFY] src/components/VimStatusLine.tsx` (Converted Registers and Help overlays wrapper divs to motion.divs with unique keys to enable exit transitions; added `data-sparkles-btn` to Ask Neovim LLM Send button).
+  - `[MODIFY] src/App.tsx` (Converted Contribute overlay wrapper div to motion.div with a unique key to support exit transitions).
+- **Details**:
+  - Decoupling spring parameters delivers tight positional follow with ultra-responsive shape morphing.
+  - Toggling classes via classList prevents browser style calculation interruptions, allowing caret transitions to render at 240fps.
+  - Transition wrappers enable hardware-accelerated entry and exit animations.

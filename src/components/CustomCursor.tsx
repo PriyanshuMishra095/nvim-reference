@@ -179,9 +179,12 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       lastFrameTimeRef.current = now;
       const dt = Math.min(3, deltaMs / 16.666);
 
-      // Spring physics constants matching reference (original slow & floaty values)
-      const spring = 0.12;
-      const friction = 0.55;
+      // Separate spring physics constants for positional follow vs dimensional morphing
+      const posSpring = 0.16; // floaty position tracking
+      const posFriction = 0.60;
+
+      const dimSpring = 0.28; // snappier dimension/morph transitions
+      const dimFriction = 0.70;
 
       // Target dimensions and position
 
@@ -349,10 +352,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         velRef.current = { x: 0, y: 0, w: 0, h: 0, rTL: 0, rTR: 0, rBL: 0, rBR: 0 };
       } else {
         // Position spring physics updates (framerate-independent with dt)
-        velRef.current.x += (targetX - cursorRef.current.x) * spring * dt;
-        velRef.current.y += (targetY - cursorRef.current.y) * spring * dt;
-        velRef.current.x *= Math.pow(friction, dt);
-        velRef.current.y *= Math.pow(friction, dt);
+        velRef.current.x += (targetX - cursorRef.current.x) * posSpring * dt;
+        velRef.current.y += (targetY - cursorRef.current.y) * posSpring * dt;
+        velRef.current.x *= Math.pow(posFriction, dt);
+        velRef.current.y *= Math.pow(posFriction, dt);
         cursorRef.current.x += velRef.current.x * dt;
         cursorRef.current.y += velRef.current.y * dt;
 
@@ -367,10 +370,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         }
 
         // Dimension spring physics updates (framerate-independent with dt)
-        velRef.current.w += (targetW - cursorRef.current.w) * spring * dt;
-        velRef.current.h += (targetH - cursorRef.current.h) * spring * dt;
-        velRef.current.w *= Math.pow(friction, dt);
-        velRef.current.h *= Math.pow(friction, dt);
+        velRef.current.w += (targetW - cursorRef.current.w) * dimSpring * dt;
+        velRef.current.h += (targetH - cursorRef.current.h) * dimSpring * dt;
+        velRef.current.w *= Math.pow(dimFriction, dt);
+        velRef.current.h *= Math.pow(dimFriction, dt);
         cursorRef.current.w += velRef.current.w * dt;
         cursorRef.current.h += velRef.current.h * dt;
 
@@ -481,7 +484,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = `${caretHeight}px`;
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -492,7 +494,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "transparent";
           dot.style.color = "#ef4444";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (xSvg) xSvg.style.opacity = "1";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -502,7 +503,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "24px";
           dot.style.borderRadius = "50%";
           dot.style.backgroundColor = "transparent";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (sparklesEl) {
             sparklesEl.style.opacity = "1";
             sparklesEl.style.transform = "scale(1.15) translate(-50%, -50%)";
@@ -515,7 +515,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "22px";
           dot.style.borderRadius = "1.5px";
           dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -525,7 +524,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "15px";
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "#22c55e";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition ai-cursor-blink";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
           if (sparklesEl) sparklesEl.style.opacity = "0";
@@ -535,7 +533,6 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
           dot.style.height = "26px";
           dot.style.borderRadius = "0px";
           dot.style.backgroundColor = "transparent";
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (sparklesEl) sparklesEl.style.opacity = "0";
           
           if (isChecklistCheckedRef.current) {
@@ -565,9 +562,16 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
             dot.style.backgroundColor = isDark ? "#ffffff" : "var(--neon-indigo)";
           }
           
-          dot.className = "fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition";
           if (tickSvg) tickSvg.style.opacity = "0";
           if (xSvg) xSvg.style.opacity = "0";
+        }
+
+        // Toggle blinking class on code hover to prevent browser layout reflows from className re-evaluation
+        const isBlinking = dot.classList.contains("ai-cursor-blink");
+        if (isOverCodeRef.current) {
+          if (!isBlinking) dot.classList.add("ai-cursor-blink");
+        } else {
+          if (isBlinking) dot.classList.remove("ai-cursor-blink");
         }
       }
 
@@ -591,24 +595,44 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         id="custom-cursor-dot"
         className="fixed top-0 left-0 pointer-events-none will-change-transform z-[100000000] flex items-center justify-center cursor-transition"
       >
-        {/* Sparkles SVG */}
-        <svg
+        {/* Sparkling Gemini logo container */}
+        <div
           id="custom-cursor-sparkles"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="currentColor"
           style={{
             position: 'absolute',
             opacity: 0,
             pointerEvents: 'none',
             transition: 'opacity 0.15s ease, transform 0.15s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '28px',
+            height: '28px',
           }}
         >
-          {/* Sparkles design */}
-          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
+          {/* Main Large Sparkle */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-purple-550 dark:text-purple-400 animate-[spin_6s_linear_infinite]"
+          >
+            <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10 0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z" />
+          </svg>
+          {/* Small Secondary Sparkle */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-purple-450 dark:text-purple-300 absolute top-0.5 right-0.5 animate-[bounce_1.5s_infinite]"
+          >
+            <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10 0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z" />
+          </svg>
+        </div>
         {/* Green Tick SVG */}
         <svg
           id="custom-cursor-tick-svg"
