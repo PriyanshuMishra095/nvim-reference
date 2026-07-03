@@ -189,10 +189,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
       // Separate spring physics constants for positional follow vs dimensional morphing
       const posSpring = 0.16; // floaty position tracking
-      const posFriction = 0.48; // zero-bounce critically-damped position
+      const posFriction = 0.40; // overdamped zero-bounce position
 
       const dimSpring = 0.28; // snappier dimension/morph transitions
-      const dimFriction = 0.48; // zero-bounce critically-damped morphing
+      const dimFriction = 0.40; // overdamped zero-bounce morphing
 
       // Target dimensions and position
 
@@ -397,7 +397,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         
         // Use a faster spring constant and higher damping (friction) for the radius to prevent overshoot capsule shapes
         const rSpring = 0.32;
-        const rFriction = 0.85; // highly damped to prevent overshoot
+        const rFriction = 0.40; // highly damped (overdamped) to prevent shape wobble/bubble bouncing
         const rFrictionScaled = Math.pow(rFriction, dt);
         
         velRef.current.rTL += (targetRTL - cursorRef.current.rTL) * rSpring * dt;
