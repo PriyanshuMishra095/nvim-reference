@@ -489,7 +489,7 @@ export default function VimStatusLine({
 
   // Statusline Mode configuration styling
   const modeSpec = {
-    normal: { label: 'NORMAL', bg: 'bg-[#4f46e5] dark:bg-[#818cf8]', text: 'text-white border-indigo-650' },
+    normal: { label: 'NORMAL', bg: 'bg-[#4f46e5] dark:bg-[#818cf8]', text: 'text-white border-indigo-700' },
     insert: { label: 'INSERT', bg: 'bg-amber-600 dark:bg-amber-500 animate-pulse-subtle', text: 'text-white font-bold' },
     visual: { label: 'VISUAL', bg: 'bg-emerald-600 dark:bg-emerald-500', text: 'text-white font-bold' },
     command: { label: 'COMMAND', bg: 'bg-rose-600 dark:bg-rose-500', text: 'text-white' },
@@ -569,7 +569,7 @@ export default function VimStatusLine({
               <span className="text-[10px] text-zinc-400 uppercase mr-1 font-bold">Keys:</span>
               <kbd onClick={() => setVimMode('normal')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'normal' ? 'bg-[#4f46e5]/10 dark:bg-[#818cf8]/10 border-indigo-500 text-indigo-600 dark:text-indigo-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>ESC</kbd>
               <kbd onClick={() => setVimMode('insert')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'insert' ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>i</kbd>
-              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] text-emerald-600 rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-650 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
+              <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] text-emerald-600 rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
               <kbd onClick={() => setVimMode('command')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'command' ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>:</kbd>
             </div>
 
@@ -622,7 +622,7 @@ export default function VimStatusLine({
                       setVimMode('normal');
                       setCommandInput('');
                     }}
-                    className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-850 text-[10px] text-zinc-500 font-bold cursor-pointer hover:text-rose-500 transition-colors"
+                    className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-500 font-bold cursor-pointer hover:text-rose-500 transition-colors"
                   >
                     ESC
                   </kbd>
@@ -820,9 +820,9 @@ export default function VimStatusLine({
               </div>
 
               {/* Restore the original information and guide about registers */}
-              <div className="mb-6 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl leading-relaxed text-xs sm:text-sm text-zinc-650 dark:text-zinc-400">
+              <div className="mb-6 p-4 bg-zinc-100/50 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-800/80 rounded-xl leading-relaxed text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
                 <p className="mb-2">
-                  <strong>What are Registers?</strong> In Vim/Neovim, registers are separate clipboard memory cells used to store text. Instead of having just one clipboard, Vim offers named registers like <code className="text-indigo-500 font-bold dark:text-indigo-400">"a</code>, <code className="text-indigo-500 font-bold dark:text-indigo-400">"b</code>, and special clipboards like <code className="text-indigo-550 font-bold dark:text-indigo-400">""</code> (unnamed default register) or <code className="text-indigo-550 font-bold dark:text-indigo-400">"+</code> (system clipboard).
+                  <strong>What are Registers?</strong> In Vim/Neovim, registers are separate clipboard memory cells used to store text. Instead of having just one clipboard, Vim offers named registers like <code className="text-indigo-500 font-bold dark:text-indigo-400">"a</code>, <code className="text-indigo-500 font-bold dark:text-indigo-400">"b</code>, and special clipboards like <code className="text-indigo-600 font-bold dark:text-indigo-400">""</code> (unnamed default register) or <code className="text-indigo-600 font-bold dark:text-indigo-400">"+</code> (system clipboard).
                 </p>
                 <p>
                   <strong>How to use them here:</strong> Drag-highlight text inside any page section or code block. Highlighting automatically yanks the selection into register <code className="text-amber-500 font-bold">"</code> and the system clipboard <code className="text-amber-500 font-bold">+</code>. Use this grid to inspect your live clipboard stack!
@@ -856,7 +856,7 @@ export default function VimStatusLine({
                           Clear
                         </button>
                       </div>
-                      <div className="font-mono text-xs sm:text-sm text-zinc-400 dark:text-zinc-555 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic leading-relaxed">
+                      <div className="font-mono text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 break-words whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll pr-2 italic leading-relaxed">
                         {value || 'Empty register cell. Select text in Visual Mode and yank to populate.'}
                       </div>
                     </div>
@@ -924,7 +924,7 @@ export default function VimStatusLine({
                     <div><span className="font-black text-indigo-600 dark:text-indigo-400">NORMAL:</span> Navigational mode. Tap <code className="text-indigo-600 dark:text-indigo-400">j</code> and <code className="text-indigo-600 dark:text-indigo-400">k</code> to scroll smoothly, and <code className="text-indigo-600 dark:text-indigo-400">gg</code> to zoom to top.</div>
                     <div><span className="font-black text-amber-600 dark:text-amber-400">INSERT:</span> standard editor entry. Access via tapping <code className="text-amber-600 dark:text-amber-400">i</code>. Let's type in search parameters.</div>
                     <div><span className="font-black text-emerald-600 dark:text-emerald-400">VISUAL:</span> block selects. Copy/Yank any paragraph instantly by clicking on items.</div>
-                    <div><span className="font-black text-rose-600 dark:text-rose-455">COMMAND:</span> System actions. Triggered via <code className="text-rose-600 dark:text-rose-455">:</code>.</div>
+                    <div><span className="font-black text-rose-600 dark:text-rose-400">COMMAND:</span> System actions. Triggered via <code className="text-rose-600 dark:text-rose-400">:</code>.</div>
                   </div>
                 </div>
               )}
@@ -933,10 +933,10 @@ export default function VimStatusLine({
                 <div className="space-y-4 leading-relaxed">
                   <p className="font-bold text-amber-600 dark:text-amber-400">Working with Clipboard Registers (*registers-api*)</p>
                   <p>Traditional operating systems limit you to a single copied item. Neovim organizes an index of registers:</p>
-                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-555 dark:text-zinc-400">
-                    <li><code className="text-zinc-800 dark:text-zinc-250">" +</code> : standard System Clipboard. Shared with Windows/OS apps.</li>
-                    <li><code className="text-zinc-800 dark:text-zinc-250">" "</code> : the general Unnamed Register containing the last yank.</li>
-                    <li><code className="text-zinc-800 dark:text-zinc-250">" a - z</code> : custom registers which you lock and load for persistence.</li>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <li><code className="text-zinc-800 dark:text-zinc-200">" +</code> : standard System Clipboard. Shared with Windows/OS apps.</li>
+                    <li><code className="text-zinc-800 dark:text-zinc-200">" "</code> : the general Unnamed Register containing the last yank.</li>
+                    <li><code className="text-zinc-800 dark:text-zinc-200">" a - z</code> : custom registers which you lock and load for persistence.</li>
                   </ul>
                   <p>Press <code className="text-emerald-500 dark:text-emerald-500">v</code> to enter Visual Mode, then hover/click chapters to automatically load your registers grid!</p>
                 </div>
@@ -1013,7 +1013,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                     )}
                     
                     {showChatInput && (
-                      <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2.5 border-t border-zinc-200/60 dark:border-zinc-850/60 pt-3">
+                      <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2.5 border-t border-zinc-200/60 dark:border-zinc-800/60 pt-3">
                         <span className="text-purple-500 font-bold font-mono select-none">&gt;</span>
                         <input
                           ref={chatInputRef}
@@ -1052,17 +1052,17 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
               {(!activeHelpTopic || activeHelpTopic === 'general') && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-bold text-zinc-900 dark:text-zinc-150 text-lg border-b border-zinc-200/60 dark:border-zinc-800/60 pb-2">Welcome to Neovim Help</h3>
+                    <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-lg border-b border-zinc-200/60 dark:border-zinc-800/60 pb-2">Welcome to Neovim Help</h3>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">This interactive tutor acts as a living sandbox. Practice actions by typing keys directly on your keyboard. Select a topic guide below, or ask Neovim LLM anything.</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 text-[11px] select-none">
                     <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/50 dark:border-zinc-800/80">
-                      <span className="font-black text-rose-600 dark:text-rose-455 block mb-1">Modes Quick-Shift</span>
-                      <div>• <kbd className="text-rose-600 dark:text-rose-455">ESC</kbd> : Normal Mode</div>
+                      <span className="font-black text-rose-600 dark:text-rose-400 block mb-1">Modes Quick-Shift</span>
+                      <div>• <kbd className="text-rose-600 dark:text-rose-400">ESC</kbd> : Normal Mode</div>
                       <div>• <kbd className="text-amber-600 dark:text-amber-500">i</kbd> : Insert (Search)</div>
                       <div>• <kbd className="text-emerald-600 dark:text-emerald-500">v</kbd> : Visual (Yank)</div>
-                      <div>• <kbd className="text-rose-600 dark:text-rose-455">:</kbd> : Command mode</div>
+                      <div>• <kbd className="text-rose-600 dark:text-rose-400">:</kbd> : Command mode</div>
                     </div>
  
                     <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/65 border border-zinc-200/50 dark:border-zinc-800/80">
@@ -1077,19 +1077,19 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                   <div className="border-t border-zinc-200/60 dark:border-zinc-800/60 pt-4">
                     <span className="text-xs uppercase font-bold text-zinc-400 dark:text-zinc-500 tracking-wider block mb-3">Topic Documentation Guides</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <button onClick={() => setActiveHelpTopic('modal')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-indigo-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                      <button onClick={() => setActiveHelpTopic('modal')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-indigo-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-indigo-600 dark:text-indigo-400 text-xs mb-0.5">*modal-editing*</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Understanding isolated editor control states</div>
                       </button>
-                      <button onClick={() => setActiveHelpTopic('registers')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-amber-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                      <button onClick={() => setActiveHelpTopic('registers')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-amber-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-0.5">*registers-api*</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Working with in-memory clipboards</div>
                       </button>
-                      <button onClick={() => setActiveHelpTopic('keymaps')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-emerald-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                      <button onClick={() => setActiveHelpTopic('keymaps')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-emerald-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs mb-0.5">*keymaps-lua*</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Mapping declarative key bindings in Lua</div>
                       </button>
-                      <button onClick={() => setActiveHelpTopic('macro')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-850/60 hover:border-purple-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
+                      <button onClick={() => setActiveHelpTopic('macro')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-purple-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
                         <div className="font-bold text-purple-600 dark:text-purple-400 text-xs mb-0.5">*macros*</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Recording and replaying keystroke lists</div>
                       </button>
@@ -1107,13 +1107,13 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                       className="w-full flex items-center justify-between p-4 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/35 transition-colors group cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <Sparkles className="w-5 h-5 text-purple-550 group-hover:animate-pulse" />
+                        <Sparkles className="w-5 h-5 text-purple-500 group-hover:animate-pulse" />
                         <div className="text-left">
                           <div className="font-bold text-purple-700 dark:text-purple-400 text-xs">Ask Neovim LLM</div>
                           <div className="text-[10px] text-purple-600/70 dark:text-purple-300/75">Ask any custom questions and learn Neovim live</div>
                         </div>
                       </div>
-                      <code className="text-[10px] font-bold text-purple-550 bg-purple-500/15 px-2 py-1 rounded select-none">:explain</code>
+                      <code className="text-[10px] font-bold text-purple-500 bg-purple-500/15 px-2 py-1 rounded select-none">:explain</code>
                     </button>
                   </div>
                 </div>

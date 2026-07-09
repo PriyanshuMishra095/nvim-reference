@@ -140,7 +140,7 @@ export default function App() {
       else if (key === 'i' || key === 'I') desc = 'Set Mode: INSERT / SEARCH';
       else if (key === 'v' || key === 'V') desc = 'Set Mode: VISUAL / block yank';
       else if (key === ':') desc = 'Set Mode: COMMAND prompt overlay';
-      else if (key === 'Escape') desc = 'Normal Node / Dismiss help';
+      else if (key === 'Escape') desc = 'Normal Mode / Dismiss help';
       else if (key === 'h' || key === 'H') desc = 'Tapping Left (Vim Navigation)';
       else if (key === 'l' || key === 'L') desc = 'Tapping Right (Vim Navigation)';
       else if (key === '/') desc = 'In-Page search filter input';
@@ -618,7 +618,7 @@ export default function App() {
                   One reference to rule them all. An encyclopedic developer showcase designed with absolute modal precision, structural syntax parsers, and custom configurations.
                 </p>
 
-                <div className="flex flex-flow gap-3 font-mono text-xs text-zinc-400">
+                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-400">
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">22 Chapters</span>
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Zero Mouse Overhead</span>
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Pure Velocity</span>
@@ -789,7 +789,7 @@ export default function App() {
               {/* Close Button */}
               <button
                 onClick={() => setContributeOpen(false)}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:text-zinc-850 dark:hover:text-white cursor-pointer active:scale-95 transition-all"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:text-zinc-800 dark:hover:text-white cursor-pointer active:scale-95 transition-all"
                 title="Close Contribute Panel"
               >
                 <X className="w-4.5 h-4.5" />
@@ -804,7 +804,7 @@ export default function App() {
                   nvim://<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">contribute</span>
                 </h2>
 
-                <div className="space-y-4 text-sm md:text-base leading-relaxed text-zinc-650 dark:text-zinc-300">
+                <div className="space-y-4 text-sm md:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
                   <p>
                     <strong>Why this handbook was needed:</strong> Neovim has a steep learning curve. Newbies are often overwhelmed by obscure config files and modal keystroke layouts. This website was built to help beginners master Neovim's modal paradigm on a clean, beautiful, and interactive interface.
                   </p>
@@ -821,8 +821,8 @@ export default function App() {
                   className="p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/70 bg-zinc-50/50 dark:bg-zinc-900/20 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 hover:border-indigo-500/40 transition duration-300 group flex flex-col gap-2 cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-indigo-550 dark:text-indigo-400">GitHub Repository</span>
-                    <ArrowUpCircle className="w-5 h-5 text-indigo-550 dark:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">GitHub Repository</span>
+                    <ArrowUpCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-50 break-all text-sm md:text-base">
                     PriyanshuMishra095/Neovim-Handbook-Studio
@@ -833,8 +833,8 @@ export default function App() {
                 </a>
 
                 {/* LLM Disclosure Statement */}
-                <div className="p-4 rounded-xl border border-zinc-200/40 dark:border-zinc-800/40 bg-zinc-100/40 dark:bg-zinc-900/10 text-xs text-zinc-500 dark:text-zinc-550 font-mono leading-relaxed mt-2">
-                  <span className="font-bold text-zinc-700 dark:text-zinc-450 block mb-1">Full AI Disclosure:</span>
+                <div className="p-4 rounded-xl border border-zinc-200/40 dark:border-zinc-800/40 bg-zinc-100/40 dark:bg-zinc-900/10 text-xs text-zinc-500 dark:text-zinc-500 font-mono leading-relaxed mt-2">
+                  <span className="font-bold text-zinc-700 dark:text-zinc-400 block mb-1">Full AI Disclosure:</span>
                   This handbook interface and its system components were designed and implemented with the assistance of agentic Large Language Models (LLMs) to ensure extreme modal fidelity, liquid physics, and premium APCA aesthetics.
                 </div>
               </div>

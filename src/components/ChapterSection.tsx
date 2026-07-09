@@ -140,7 +140,7 @@ function InteractiveCodeBlock({
     >
       <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-950 text-[10px] text-zinc-500 font-bold select-none">
         <div className="flex items-center gap-1.5">
-          <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-650'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-600'}`} />
           <span>nvim://buffer/{sectionId}.lua</span>
         </div>
         <div className="text-zinc-600 flex items-center gap-1">
@@ -169,10 +169,10 @@ function InteractiveCodeBlock({
               className={`flex gap-3 px-2 py-0.5 rounded border-l-2 transition-all duration-150 ${
                 isCursor
                   ? 'bg-zinc-900/60 border-indigo-500 text-indigo-200'
-                  : 'border-transparent text-zinc-450 hover:bg-zinc-900/20 hover:text-zinc-300 cursor-pointer'
+                  : 'border-transparent text-zinc-400 hover:bg-zinc-900/20 hover:text-zinc-300 cursor-pointer'
               } ${lastYankedLine === idx ? 'bg-emerald-950/30 text-emerald-300' : ''}`}
             >
-              <span className={`text-right w-5 pr-1 select-none font-bold ${isCursor ? 'text-indigo-400' : 'text-zinc-650'}`}>
+              <span className={`text-right w-5 pr-1 select-none font-bold ${isCursor ? 'text-indigo-400' : 'text-zinc-600'}`}>
                 {idx + 1}
               </span>
               {editorMode === 'INSERT' && isCursor ? (
@@ -227,7 +227,7 @@ function InteractiveCodeBlock({
             <span className="text-zinc-400 truncate">{statusMsg || 'Buffer clean. j/k: navigate | i: edit | y: yank | :w: write | :q: reset'}</span>
           )}
         </div>
-        <div className="text-zinc-650 font-bold ml-2">
+        <div className="text-zinc-600 font-bold ml-2">
           {cursorLine + 1}:{editorLines[cursorLine]?.length || 0}
         </div>
       </div>
@@ -378,7 +378,7 @@ function SubSectionWrapper({ children, sec, vimMode, onYank }: SubSectionWrapper
       <AnimatePresence>
         {isVisual && (
           <div className="absolute top-2.5 right-2.5 pointer-events-none opacity-0 group-hover/yank:opacity-100 transition-opacity z-10">
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-mono font-bold tracking-widest uppercase shadow-sm border border-emerald-550/15">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-mono font-bold tracking-widest uppercase shadow-sm border border-emerald-500/15">
               <Sparkles className="w-2.5 h-2.5 text-emerald-500" />
               <span>Yank Row to Register</span>
             </span>
@@ -392,7 +392,7 @@ function SubSectionWrapper({ children, sec, vimMode, onYank }: SubSectionWrapper
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.03] border-2 border-emerald-500 rounded-2xl pointer-events-none flex items-center justify-center z-20"
           >
-            <span className="font-mono text-emerald-550 dark:text-emerald-400 font-bold px-4 py-2 rounded-lg bg-zinc-950 border border-emerald-550/35 flex items-center gap-2 text-xs shadow-xl scale-105">
+            <span className="font-mono text-emerald-500 dark:text-emerald-400 font-bold px-4 py-2 rounded-lg bg-zinc-950 border border-emerald-500/35 flex items-center gap-2 text-xs shadow-xl scale-105">
               <Zap className="w-4 h-4 text-emerald-400 animate-bounce" />
               Yanked to register slot!
             </span>
@@ -526,7 +526,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               <span className="absolute -left-[35px] top-[2px] w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 flex items-center justify-center font-mono text-xs font-bold shadow-sm select-none transition-colors duration-300" style={{ color: modeColor }}>
                 {step.num}
               </span>
-              <h5 className="text-sm font-bold text-zinc-800 dark:text-zinc-250 leading-tight">{step.title}</h5>
+              <h5 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{step.title}</h5>
               <p className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 pr-4 leading-relaxed mt-1">{step.desc}</p>
             </div>
           ))}
@@ -537,8 +537,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 1: USER SETTINGS INTERACTIVE PLAYGROUND (c17-s1) ───
       if (sec.id === 'c17-s1') {
         return (
-          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-250/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-850/80 text-xs font-mono select-none">
+          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs font-mono select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4 animate-pulse" />
                 <span>Interactive lua/user/settings.lua Simulator</span>
@@ -602,7 +602,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 optTrueColor ? '' : 'grayscale contrast-125'
               }`}>
                 <div className="space-y-4">
-                  <div className="text-[10px] text-zinc-550 uppercase tracking-widest font-black mb-1 flex items-center justify-between">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-black mb-1 flex items-center justify-between">
                     <span>SIMULATED NVIM RENDERER PORT:</span>
                     <span className={optTrueColor ? "font-bold text-zinc-400" : "text-zinc-500"} style={{ color: optTrueColor ? modeColor : '' }}>
                       {optTrueColor ? "TRUECOLOR ENABLED" : "MONOCHROME TERMINAL"}
@@ -626,7 +626,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                     </div>
 
                     <div className="flex gap-4">
-                      <span className="text-zinc-55 w-6 text-right select-none">
+                      <span className="text-zinc-50 w-6 text-right select-none">
                         {optNumber ? (optRelative ? '2' : '3') : ''}
                       </span>
                       <span>print(<span className={optTrueColor ? "text-sky-400" : "text-white"}>"Neovim Online"</span>)</span>
@@ -647,8 +647,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 2: LUA KEYMAPS INTERACTIVE SIMULATOR (c18-s1) ───
       if (sec.id === 'c18-s1') {
         return (
-          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-250/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden font-mono">
-            <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-850/80 text-xs select-none">
+          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4" />
                 <span>Interactive lua/user/keymaps.lua Sandbox</span>
@@ -674,7 +674,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                     </button>
                   </div>
                   <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
-                    Watch simulated cursor transition from insert mode typing typing back to Normal navigation state smoothly!
+                    Watch simulated cursor transition from insert mode typing back to Normal navigation state smoothly!
                   </p>
                 </div>
 
@@ -954,7 +954,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 {tableData?.rows?.map((row: string[], rowIdx: number) => (
                   <tr key={rowIdx} className="hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
                     {row.map((cell: string, cellIdx: number) => (
-                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold text-zinc-950 dark:text-zinc-50' : 'text-zinc-650 dark:text-zinc-200'}`} style={{ color: cellIdx === 0 ? (vimMode === 'normal' ? 'var(--neon-indigo)' : modeColor) : '' }}>
+                      <td key={cellIdx} className={`px-4 py-3.5 ${cellIdx === 0 ? 'font-bold text-zinc-950 dark:text-zinc-50' : 'text-zinc-600 dark:text-zinc-200'}`} style={{ color: cellIdx === 0 ? (vimMode === 'normal' ? 'var(--neon-indigo)' : modeColor) : '' }}>
                         {cell}
                       </td>
                     ))}

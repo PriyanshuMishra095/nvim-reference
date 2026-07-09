@@ -625,7 +625,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
             height="20"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="text-purple-550 dark:text-purple-400 animate-[spin_6s_linear_infinite]"
+            className="text-purple-500 dark:text-purple-400 animate-[spin_6s_linear_infinite]"
           >
             <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10 0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z" />
           </svg>
@@ -636,7 +636,7 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
             height="10"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="text-purple-450 dark:text-purple-300 absolute top-0.5 right-0.5 animate-[bounce_1.5s_infinite]"
+            className="text-purple-400 dark:text-purple-300 absolute top-0.5 right-0.5 animate-[bounce_1.5s_infinite]"
           >
             <path d="M12 2c0 5.523 4.477 10 10 10-5.523 0-10 4.477-10 10 0-5.523-4.477-10-10-10 5.523 0 10-4.477 10-10z" />
           </svg>
