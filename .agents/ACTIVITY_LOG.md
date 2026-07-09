@@ -562,3 +562,21 @@ This file is a write-only log of every detailed activity performed during develo
 - **Details**:
   - Generated full continuation assets so that future agents or developers can resume the project instantly in a clean environment without chat history.
 
+
+### [2026-07-09T00:00:00+05:30] Awwwards Design Overhaul + Branch Unification (unified-overhaul)
+- **Branch**: Created `unified-overhaul` from `private-backup`; merged all local/remote branches (main, private-dev, private-ux-polish, private-premium-ux-*, no-back-buttons, stable-morning) — content superseded by current line where diverged.
+- **Files Modified**:
+  - `[FIX] 47 invalid Tailwind shades (zinc-650/850/450/550/250/150, indigo-550/650, emerald-550/650, rose-455, purple-550/450) → valid shades across App/ChapterSection/VimStatusLine/CustomCursor`
+  - `[MODIFY] src/index.css` (mode-accent atmosphere vars, ::selection mode color, reduced-motion block, content-visibility chapters, kbd press physics, screen-shake, buffer-wipe VT, block caret, ghost numerals, ghost-caret walk, @fontsource variable fonts replace Google Fonts)
+  - `[REWRITE] src/components/TerminalLanding.tsx` (boot sequence typing `nvim reference.md`, line-number rail, solid title + phosphor caret, `:e handbook` filled CTA, `:read more` hint)
+  - `[NEW] src/components/CommandPalette.tsx` (Telescope-style Ctrl+K fuzzy jump with preview pane + match highlighting)
+  - `[NEW] src/components/TutorGame.tsx` (:Tutor hjkl motion golf vs par)
+  - `[MODIFY] src/App.tsx` (data-vim-mode attr, mode wash overlay, IO scroll-spy, screenkey HUD pills with ×count merge, idle ghost caret, buffer-open wipe on explore, hero copy rewrite)
+  - `[MODIFY] src/components/ChapterSection.tsx` (Lua syntax highlighter, ghost parallax numerals, sans prose at 65ch, full-bleed code on lg+, editorial tables)
+  - `[MODIFY] src/components/Sidebar.tsx` (ScrambleText glyph-decode hover)
+  - `[MODIFY] src/components/VimStatusLine.tsx` (:Tutor command, :q! screen shake, ^K palette chip, modifier-combo guard, tutorOpen keyboard gate)
+  - `[MODIFY] src/components/CustomCursor.tsx` (velocity droplet stretch, reduced-motion bail)
+  - `[MODIFY] src/components/BackgroundCanvas.tsx` (primary orb lerps to vim-mode color, reduced-motion static frame)
+- **Details**:
+  - All features verified live via dev-server preview: boot, wipe, palette fuzzy+preview, syntax colors, HUD merge (×3), :Tutor game (keys gated), light theme, mode atmosphere.
+  - New rule reminders: mode accent flows from `--mode-accent` via `data-vim-mode` on <html>; palette closes via window-capture Escape; TutorGame stopPropagation + `tutorOpen` guard in VimStatusLine.

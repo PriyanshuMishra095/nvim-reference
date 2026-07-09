@@ -130,6 +130,16 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
     }
   }, [open]);
 
+  // Escape must close the palette even if focus has wandered outside the panel
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape, true);
+    return () => window.removeEventListener('keydown', closeOnEscape, true);
+  }, [open, onClose]);
+
   useEffect(() => {
     setSelectedIdx(0);
   }, [query]);

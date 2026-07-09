@@ -51,6 +51,8 @@ Rules of engagement live in AGENTS.md (single source for rules — not duplicate
 - 2026-07-09: fixed 47 invalid Tailwind shade classes (zinc-650 etc.) + `flex-flow`
   typo; entered **design-upgrade phase** targeting Awwwards-level polish.
 
+- 2026-07-09: Awwwards overhaul on unified-overhaul branch — boot landing, mode atmosphere, Ctrl+K palette, syntax highlighting, :Tutor game, reduced-motion, self-hosted fonts; all branches merged into unified-overhaul and pushed to backup.
+
 ## 6. Open Work
 - Design-upgrade review in progress (macro/micro interaction overhaul proposals).
 - Backlog: localStorage persistence for buffers, visual block mode, dd/o/u/undo,

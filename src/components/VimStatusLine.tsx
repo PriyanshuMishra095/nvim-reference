@@ -284,7 +284,10 @@ export default function VimStatusLine({
     suggestions.push({
       cmd: ':Tutor',
       desc: 'Motion golf — catch the $ with hjkl in as few keystrokes as possible.',
-      run: () => setTutorOpen(true)
+      run: () => {
+        setVimMode('normal');
+        setTutorOpen(true);
+      }
     });
     suggestions.push({
       cmd: ':wq',
