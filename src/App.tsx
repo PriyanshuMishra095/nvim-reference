@@ -467,6 +467,22 @@ export default function App() {
     setMobileSidebarOpen(false); // Auto collapse on mobile selections
   };
 
+  // Landing → handbook macro transition: the new view wipes up from the bottom
+  // like a buffer being read into the window (View Transitions API, CSS in index.css)
+  const openHandbook = () => {
+    const target = window.innerHeight;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !reducedMotion) {
+      document.documentElement.setAttribute('data-vt', 'wipe');
+      const vt = document.startViewTransition(() => {
+        window.scrollTo({ top: target, behavior: 'instant' as ScrollBehavior });
+      });
+      vt.finished.finally(() => document.documentElement.removeAttribute('data-vt'));
+    } else {
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
       
@@ -523,11 +539,8 @@ export default function App() {
       <div className="relative flex flex-col min-h-screen">
         
         {/* Scrollable Landing Page Hero */}
-        <TerminalLanding 
-          onExplore={() => {
-            const landingHeight = window.innerHeight;
-            window.scrollTo({ top: landingHeight, behavior: 'smooth' });
-          }} 
+        <TerminalLanding
+          onExplore={openHandbook}
           onContribute={() => setContributeOpen(true)}
           theme={theme} 
           siteTitle={siteTitle}
