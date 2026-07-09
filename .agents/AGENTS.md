@@ -1,23 +1,59 @@
-# Workspace Rules for nvim-reference
+# Workspace Rules for nvim://reference
 
-- **Single-Confirmation for Public Pushes**: You must explicitly ask and confirm with the user ONCE before running any `git push` commands to the public GitHub repository (e.g., origin at `https://github.com/PriyanshuMishra095/nvim-reference.git` or `Neovim-Handbook-Studio.git`).
-- **Data Security Guardrail**: Do not upload anything sensitive. Do not upload anything that is not required by the developers to work on the project. Do not upload anything which might imply to sensitive data. Do not upload any such data which might seem safe to upload but when compiled and analysed with other data might reveal sesitive or personal information. Do not upload any email, password or phone number or any personal information of any kind.
-- **Private Backup Target**: Always remain on the `private-backup` branch and perform all Git version control operations and code pushes exclusively to the private backup repository. Do not use or switch to the public `main` branch or push to the public repo unless explicitly instructed otherwise.
-- **Persistent Memory File Management**: Before starting work on any prompt, you must read the project memory file at `.agents/MEMORY.md`. After completing any task or prompt, you must update this memory file with any changes, additions, or new context to prevent loss of information when the chat context is compressed or reset. Always notify the user of any modifications, additions, or context deletions made in the memory file.
-- **Detailed Activity Log Maintenance**: After completing any task or prompt, you must append a detailed log entry of all performed activities to `.agents/ACTIVITY_LOG.md`. You do not need to read this file every time on startup, but refer to it when historical implementation details are required.
-- **Important Events Review**: After completing any task, check if the activity is important enough (e.g., architectural change, major UI milestone, deployment updates) to be mentioned in Section 4 of `.agents/MEMORY.md` under "Important Events". If so, append a highly concise, information-rich summary there.
-- **Context/Memory Clearance Exception**: When explicitly asked to 'Clear your contexts' or 'Clear your memory', do not update the memory file or modify any files for that command.
+## Git & Security (hard rules)
+- **Private-first workflow**: Stay on the `private-backup` branch; all commits and
+  pushes default to the private `backup` remote (`nvim-reference-backup`). Never
+  switch to or push the public `main` branch unless explicitly instructed.
+- **Single confirmation for public pushes**: Ask the user once and get an explicit
+  yes before any `git push` targeting the public repository
+  (`github.com/PriyanshuMishra095/nvim-reference`).
+- **No sensitive data in public pushes**: Never commit or push API keys, `.env`
+  files, emails, phone numbers, or personal info — including data that only becomes
+  identifying when combined with other data. `.agents/`, `.vscode/`, `.antigravity/`
+  stay out of the public repo.
 
-### Liquid UX & Custom Cursor Engineering Rules
+## Memory & Logging (lightweight process)
+- Read `.agents/MEMORY.md` before starting work; update it after tasks that change
+  project state, and tell the user what changed in it.
+- Append a brief entry to `.agents/ACTIVITY_LOG.md` after completing a task. Don't
+  read it on startup; consult it only when historical detail is needed.
+- MEMORY.md is a **summary**, not a changelog. One line per milestone in
+  "Important Events"; detailed history belongs in ACTIVITY_LOG.md / CHANGELOG.md.
+- If asked to "clear your context/memory", do not write to any files for that command.
 
-- **Zero-Bounce Custom Cursor Physics**: Always decouple custom cursor physics variables into:
-  - Position Follow: `posSpring = 0.16`, `posFriction = 0.40`
-  - Dimension Morph: `dimSpring = 0.28`, `dimFriction = 0.40`
-  - Shape Morph Radius: `rSpring = 0.32`, `rFriction = 0.40`
-  Using overdamped friction values (`0.40` or lower) is required to prevent coordinate overshoots or shape "bubble bouncing".
-- **Dynamic ClassName Override Ban**: Do not overwrite or assign to `element.className` on every frame inside the `requestAnimationFrame` physics loop. Always use static class lists in JSX and use `classList.add`/`remove` to toggle temporary caret states (like blinking) to avoid stylesheet reflows.
-- **Active CSS Transition Suppression**: When implementing drag/magnetic pull on elements:
-  - Set `style.transition = 'none'` during drag/mousemove events to avoid transition-transform wars.
-  - Reset the style and restore transition (e.g. `transition = 'transform 0.6s var(--ease-inertial)'`) on mouseleave.
-- **AnimatePresence Exit Wrappers**: The immediate child of `<AnimatePresence>` must be a `<motion.div>` (or motion component) with a unique `key` prop, otherwise exit transitions are dropped immediately.
-- **Computed Cursor Style Detection**: To dynamically morph custom cursors into I-beam text carets on selectable texts, query the target's computed style using `window.getComputedStyle(target).cursor === 'text'` (or `'vertical-text'`) instead of hardcoding element selectors.
+## Design North Star
+- Target: **Awwwards-level** — best-possible macro and micro interactions, punchy
+  but smooth and surprising animations. The interface should feel like a high-end
+  terminal application, not a documentation site.
+- Every interaction must hold 60fps+; motion that stutters is worse than no motion.
+- Big creative overhauls are welcome when proposed first; small polish and bug
+  fixes can be applied directly.
+
+## Tailwind v4 Rules (no tailwind.config.js in this project)
+- Dark mode is `@custom-variant dark` on `[data-theme=dark]` in `index.css`; theme
+  switching sets `data-theme` on `<html>`.
+- **Only use real shade steps** (50, 100, 200 … 900, 950). Classes like `zinc-650`,
+  `indigo-550`, `zinc-850` do not exist — they compile to *nothing* and silently
+  break colors. (A sweep on 2026-07-09 fixed 47 of these; don't reintroduce them.)
+- Use native Tailwind text-size classes; don't override the type scale with custom
+  CSS variables (conflicts with the v4 engine).
+
+## Liquid UX / Performance Rules
+- **Zero-bounce cursor physics**: keep decoupled springs — position `posSpring=0.16`,
+  dimensions `dimSpring=0.28`, radius `rSpring=0.32`, all with overdamped
+  `friction=0.40` (values >0.48 visibly rubber-band). The physics loop is
+  delta-time normalized to 60fps; keep it that way.
+- **No layout reads in rAF loops**: never call `getComputedStyle()` or
+  `elementFromPoint()` inside `requestAnimationFrame`; update hover state on
+  `mousemove`/`scroll` events only.
+- **No `element.className` writes in animation loops**: base classes stay static in
+  JSX; use `classList.add/remove` only for binary toggles (e.g. caret blink).
+- **Magnetic/drag elements**: set `style.transition='none'` during mousemove-driven
+  transforms; restore the transition on mouseleave.
+- **AnimatePresence**: the immediate child must be a `motion.*` element with a
+  unique `key`, or exit animations are dropped.
+- **Text caret morphing**: detect via `getComputedStyle(target).cursor === 'text' |
+  'vertical-text'`, not hardcoded selectors.
+- **No `backdrop-blur` on cards that also scale-animate** — use high-opacity solid
+  backgrounds. No canvas `shadowBlur`. Constellation web renders on the landing
+  page only.
