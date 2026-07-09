@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Terminal, Shield, Keyboard, Copy, BookOpen, AlertCircle, HelpCircle, CornerDownLeft, Sparkles, Folder, Cpu, RefreshCw } from 'lucide-react';
 import { Chapter } from '../types';
+import TutorGame from './TutorGame';
 
 export type VimMode = 'normal' | 'insert' | 'visual' | 'command';
 
@@ -87,6 +88,7 @@ export default function VimStatusLine({
   const [commandSuccess, setCommandSuccess] = useState<string | null>(null);
   const [showRegistersTray, setShowRegistersTray] = useState(false);
   const [activeHelpTopic, setActiveHelpTopic] = useState<string | null>(null);
+  const [tutorOpen, setTutorOpen] = useState(false);
   const [aiExplanationText, setAiExplanationText] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -161,6 +163,7 @@ export default function VimStatusLine({
         setVimMode('normal');
         setActiveHelpTopic(null);
         setShowRegistersTray(false);
+        setTutorOpen(false);
         setCommandError(null);
         setCommandInput('');
         if (document.activeElement instanceof HTMLElement) {
@@ -168,6 +171,9 @@ export default function VimStatusLine({
         }
         return;
       }
+
+      // While the :Tutor game owns the keyboard, hjkl must not scroll the page
+      if (tutorOpen) return;
 
       if (isTyping && vimMode !== 'command') {
         return;
@@ -252,7 +258,7 @@ export default function VimStatusLine({
 
     window.addEventListener('keydown', handleGlobalKeys, true);
     return () => window.removeEventListener('keydown', handleGlobalKeys, true);
-  }, [vimMode, setVimMode, sidebarVisible, setSidebarVisible, onYank]);
+  }, [vimMode, setVimMode, sidebarVisible, setSidebarVisible, onYank, tutorOpen]);
 
   // Command Autocomplete list parser
   const getAutocompleteSuggestions = () => {
@@ -262,8 +268,23 @@ export default function VimStatusLine({
     // Base commands
     suggestions.push({
       cmd: ':q!',
-      desc: 'Quit. Return immediately to terminal editor landing.',
-      run: () => onOpenPlayground()
+      desc: 'Force quit. Slams the buffer shut and returns to the terminal landing.',
+      run: () => {
+        // Force-quit deserves force: a short screen shake before bailing out
+        const shell = document.getElementById('app-shell');
+        if (shell && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          shell.classList.remove('screen-shake');
+          void shell.offsetWidth; // restart the animation
+          shell.classList.add('screen-shake');
+          setTimeout(() => shell.classList.remove('screen-shake'), 450);
+        }
+        setTimeout(() => onOpenPlayground(), 120);
+      }
+    });
+    suggestions.push({
+      cmd: ':Tutor',
+      desc: 'Motion golf — catch the $ with hjkl in as few keystrokes as possible.',
+      run: () => setTutorOpen(true)
     });
     suggestions.push({
       cmd: ':wq',
@@ -1161,6 +1182,9 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* :Tutor — hjkl motion golf mini-game */}
+      <TutorGame open={tutorOpen} onClose={() => setTutorOpen(false)} />
     </>
   );
 }

@@ -14,6 +14,56 @@ interface SidebarProps {
   sidebarVisible?: boolean;
 }
 
+/* ── TEXT SCRAMBLE ──
+   On hover the label flickers through terminal glyphs and resolves left-to-right.
+   Attaches to the closest button/anchor so the whole row is the hover target. */
+const SCRAMBLE_GLYPHS = '!<>-_\\/[]{}—=+*^?#$%&';
+
+function ScrambleText({ text, className }: { text: string; className?: string }) {
+  const [display, setDisplay] = useState(text);
+  const spanRef = React.useRef<HTMLSpanElement | null>(null);
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    setDisplay(text);
+  }, [text]);
+
+  useEffect(() => {
+    const parent = spanRef.current?.closest('button, a');
+    if (!parent) return;
+
+    const scramble = () => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let frame = 0;
+      const totalFrames = 9;
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        frame++;
+        const resolved = Math.floor((frame / totalFrames) * text.length);
+        let out = '';
+        for (let i = 0; i < text.length; i++) {
+          if (i < resolved || text[i] === ' ') out += text[i];
+          else out += SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
+        }
+        if (frame >= totalFrames) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          setDisplay(text);
+        } else {
+          setDisplay(out);
+        }
+      }, 26);
+    };
+
+    parent.addEventListener('mouseenter', scramble);
+    return () => {
+      parent.removeEventListener('mouseenter', scramble);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [text]);
+
+  return <span ref={spanRef} className={`scramble-glyph ${className || ''}`}>{display}</span>;
+}
+
 export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, vimMode = 'normal', setVimMode, siteTitle = 'nvim://reference', sidebarVisible = true }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -279,7 +329,7 @@ export default function Sidebar({ chapters, activeChapterId, onNavigateChapter, 
                         }`}
                       >
                         <span className="opacity-45">ch.{String(ch.num).padStart(2, '0')}</span>
-                        <span className="truncate">{ch.title.split(':')[0]}</span>
+                        <ScrambleText text={ch.title.split(':')[0]} className="truncate" />
                       </motion.button>
                     </motion.li>
                   );

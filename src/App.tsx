@@ -127,17 +127,45 @@ export default function App() {
     'c': ''
   });
 
-  // Intel keyboard keys hud tracking state
-  const [keystrokes, setKeystrokes] = useState<{ id: string; key: string; desc: string; timestamp: number }[]>([]);
+  // Screenkey-style keystroke HUD: repeated keys merge into one pill with a ×count
+  const [keystrokes, setKeystrokes] = useState<{ id: string; key: string; desc: string; count: number; timestamp: number }[]>([]);
 
-  // Periodically clean up expired keystroke badges
+  // Periodically clean up expired keystroke pills
   useEffect(() => {
     if (keystrokes.length === 0) return;
     const interval = setInterval(() => {
-      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1000));
+      setKeystrokes((prev) => prev.filter((k) => Date.now() - k.timestamp < 1600));
     }, 200);
     return () => clearInterval(interval);
   }, [keystrokes]);
+
+  // Idle easter egg: after 30s of stillness a ghost caret walks across the screen
+  const [ghostWalk, setGhostWalk] = useState(false);
+  useEffect(() => {
+    if (onLanding) return;
+    let idleTimer: ReturnType<typeof setTimeout>;
+    let walkTimer: ReturnType<typeof setTimeout>;
+
+    const armIdle = () => {
+      clearTimeout(idleTimer);
+      setGhostWalk(false);
+      idleTimer = setTimeout(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        setGhostWalk(true);
+        walkTimer = setTimeout(() => setGhostWalk(false), 7200);
+      }, 30000);
+    };
+
+    const activityEvents = ['mousemove', 'keydown', 'scroll', 'mousedown', 'touchstart'];
+    activityEvents.forEach((evt) => window.addEventListener(evt, armIdle, { passive: true }));
+    armIdle();
+
+    return () => {
+      clearTimeout(idleTimer);
+      clearTimeout(walkTimer);
+      activityEvents.forEach((evt) => window.removeEventListener(evt, armIdle));
+    };
+  }, [onLanding]);
 
   // Global reader keystroke tracker hook
   useEffect(() => {
@@ -181,8 +209,16 @@ export default function App() {
       else if (key.match(/^[0-9]$/)) desc = `Speed jump bookmark [Ch.${key}]`;
       else return;
 
-      const id = `${Date.now()}-${Math.random()}`;
-      setKeystrokes((prev) => [...prev.slice(-2), { id, key, desc, timestamp: Date.now() }]);
+      const displayKey = key === ' ' ? 'SPC' : key === 'Escape' ? 'Esc' : key;
+      setKeystrokes((prev) => {
+        const last = prev[prev.length - 1];
+        // Merge rapid repeats of the same key into one pill (j j j → j ×3)
+        if (last && last.key === displayKey && Date.now() - last.timestamp < 1200) {
+          return [...prev.slice(0, -1), { ...last, count: last.count + 1, desc, timestamp: Date.now() }];
+        }
+        const id = `${Date.now()}-${Math.random()}`;
+        return [...prev.slice(-4), { id, key: displayKey, desc, count: 1, timestamp: Date.now() }];
+      });
     };
 
     window.addEventListener('keydown', handleKeyPressVisual, true);
@@ -505,7 +541,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:text-indigo-300 bg-transparent overflow-x-hidden">
+    <div id="app-shell" className="min-h-screen font-sans antialiased text-zinc-800 dark:text-zinc-200 bg-transparent overflow-x-hidden">
       
       {/* Theme transition is handled via the View Transitions API — see ::view-transition-new(root) in index.css */}
 
@@ -800,31 +836,54 @@ export default function App() {
             )}
           </AnimatePresence>
 
-          {/* Stacking glassmorphic interactive keystroke logger overlay (HUD - hidden on landing) */}
+          {/* Screenkey-style keystroke HUD — centered pills above the statusline */}
           {!onLanding && (
-            <div className="fixed bottom-24 right-6 z-40 flex flex-col items-end gap-2 pointer-events-none select-none max-w-xs font-mono">
+            <div className="fixed bottom-[4.75rem] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 pointer-events-none select-none font-mono">
+              <div className="flex items-end gap-2">
+                <AnimatePresence>
+                  {keystrokes.map((feed) => (
+                    <motion.div
+                      layout
+                      key={feed.id}
+                      initial={{ opacity: 0, y: 14, scale: 0.7 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.8 }}
+                      transition={{ type: 'spring', damping: 22, stiffness: 380 }}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl shadow-xl"
+                      title={feed.desc}
+                    >
+                      <span className="text-sm font-black text-zinc-900 dark:text-zinc-50 tracking-wider">{feed.key}</span>
+                      {feed.count > 1 && (
+                        <span className="text-[10px] font-bold text-[var(--phosphor)]">×{feed.count}</span>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+              {/* Shared caption teaches what the last key did */}
               <AnimatePresence>
-                {keystrokes.map((feed) => (
+                {keystrokes.length > 0 && (
                   <motion.div
-                    key={feed.id}
-                    initial={{ opacity: 0, x: 50, scale: 0.85, y: 15 }}
-                    animate={{ opacity: 1, x: 0, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, x: 25, scale: 0.85, y: -10 }}
-                    transition={{ type: 'spring', damping: 20, stiffness: 280 }}
-                    className="p-3.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-2xl flex items-center gap-3.5 w-[250px]"
+                    key="key-caption"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 dark:text-zinc-500 bg-white/70 dark:bg-zinc-950/70 backdrop-blur px-2 py-0.5 rounded"
                   >
-                    <div className="px-2.5 py-1 rounded bg-zinc-950 dark:bg-zinc-900 border-b-[2.5px] border-zinc-950 text-white dark:text-zinc-100 text-xs font-black shadow-md shrink-0 flex items-center justify-center min-w-[34px] tracking-wider">
-                      {feed.key === ' ' ? 'SPC' : feed.key}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[9px] text-indigo-500 font-extrabold uppercase tracking-widest mb-0.5">Tactile Key HUD</div>
-                      <div className="text-[11px] font-medium text-zinc-700 dark:text-zinc-200 truncate pr-1">
-                        {feed.desc}
-                      </div>
-                    </div>
+                    {keystrokes[keystrokes.length - 1].desc}
                   </motion.div>
-                ))}
+                )}
               </AnimatePresence>
+            </div>
+          )}
+
+          {/* Idle easter egg: a ghost caret hops across the screen in discrete `l l l` steps */}
+          {ghostWalk && !onLanding && (
+            <div className="fixed bottom-36 left-0 right-0 z-30 pointer-events-none select-none" aria-hidden="true">
+              <div className="ghost-caret relative flex flex-col items-center gap-1.5 w-fit">
+                <kbd className="font-mono text-[10px] font-black px-1.5 py-0.5 rounded border border-zinc-300/50 dark:border-zinc-700/60 bg-white/70 dark:bg-zinc-950/70 text-[var(--phosphor)] animate-pulse">l</kbd>
+                <span className="w-2.5 h-5 bg-[var(--phosphor)] opacity-80 shadow-[0_0_12px_var(--phosphor)]" />
+              </div>
             </div>
           )}
 

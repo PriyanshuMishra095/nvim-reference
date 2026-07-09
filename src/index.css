@@ -711,6 +711,15 @@ kbd[data-pressable]:active {
   font-variant-ligatures: none;
 }
 
+/* ── IDLE GHOST CARET WALK — discrete steps() = hjkl hops ── */
+@keyframes ghostWalkAcross {
+  from { transform: translateX(-5vw); }
+  to   { transform: translateX(104vw); }
+}
+.ghost-caret {
+  animation: ghostWalkAcross 7s steps(56) forwards;
+}
+
 /* ── ACCESSIBILITY: RESPECT REDUCED MOTION ──
    Kept last so it wins the cascade against every animation above. */
 @media (prefers-reduced-motion: reduce) {
