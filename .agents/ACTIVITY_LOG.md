@@ -591,3 +591,10 @@ This file is a write-only log of every detailed activity performed during develo
 - **ChapterSection.tsx**: removed full-bleed negative margins (was clipping code text horizontally); softened heavy code-block drop shadow; dropped per-chapter useSpring (22 physics loops) for raw scroll-linked scaleX; data-vim-buffer marks buffers so the cursor keeps the green block caret over code lines; buffer gained dd/o/O/u.
 - **Verified live (eval-based, renderer/screenshots were unresponsive this session)**: palette Esc-after-click closes (~200ms), palette arrows + list autoscroll, help back button returns to index, theme toggle back-to-back registers both flips + clears switching attr, held j/k scrolls continuously (~936px), build green.
 - **Push**: unified-overhaul → backup remote only. No public push this round (per user).
+
+### [2026-07-09T03:00:00+05:30] Curated public release pushed to origin main
+- Built `public-release` branch from `unified-overhaul`, stripped `.agents/`, `.claude/`, `CHANGELOG.md`, `project_continuation_document.md` (LLM handover docs, per the new "curated not mirrored" rule).
+- Verified: builds clean, no tracked `.env`/API-key patterns, curated file list matches only what's needed to build/run.
+- Force-pushed to `origin main` (`e1b7c82..aec91ce`) — user gave explicit confirmation this session ("commit this to the main branch of the public repo... so it goes live on vercel").
+- Deleted the local `public-release` scratch branch after push; `unified-overhaul` remains the active dev branch.
+- Vercel should auto-deploy from `origin/main` on the next build hook.
