@@ -1,18 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Self-hosted variable fonts (no render-blocking third-party request, zero FOUT) */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/jetbrains-mono/wght-italic.css';
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
 }
 
 /* --- THEME ROOT CONFIGURATION --- */
 :root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
 
 
   --sidebar-width: 320px;
@@ -26,6 +30,10 @@
   --transition-fluid: transform 0.6s var(--ease-inertial), opacity 0.6s var(--ease-inertial), background-color 0.6s var(--ease-inertial), color 0.6s var(--ease-inertial), border-color 0.6s var(--ease-inertial), box-shadow 0.6s var(--ease-inertial);
   --transition-snap: transform 0.25s var(--ease-mechanical), opacity 0.25s var(--ease-mechanical), background-color 0.25s var(--ease-mechanical), color 0.25s var(--ease-mechanical), border-color 0.25s var(--ease-mechanical), box-shadow 0.25s var(--ease-mechanical), border-bottom-width 0.25s var(--ease-mechanical);
   --transition-medium: transform 0.4s var(--ease-inertial), opacity 0.4s var(--ease-inertial), background-color 0.4s var(--ease-inertial), color 0.4s var(--ease-inertial), border-color 0.4s var(--ease-inertial), box-shadow 0.4s var(--ease-inertial);
+
+  /* Vim mode atmosphere — --mode-accent cascades into selection, cursor, progress
+     bar, and canvas. Swapped via data-vim-mode attribute on <html>. */
+  --mode-accent: var(--neon-indigo);
 
   /* Stacking Context Design Tokens */
   --z-back: -1;
@@ -62,6 +70,7 @@
   --neon-emerald: #a7f3d0;
   --neon-amber: #fde047;
   --neon-crimson: #fecdd3;
+  --phosphor: #34d399; /* signature terminal-green caret color */
 
   /* Mode accents alignment */
   --color-mode-normal: var(--neon-indigo);
@@ -108,6 +117,7 @@
   --neon-emerald: #059669;
   --neon-amber: #d97706;
   --neon-crimson: #be123c;
+  --phosphor: #059669; /* signature terminal-green caret color */
 
   /* Mode accents alignment */
   --color-mode-normal: var(--neon-indigo);
@@ -130,6 +140,17 @@
   /* Particle connection color */
   --particle-connection: rgba(79, 70, 229, 0.08);
   --card-glow: 0 0 40px rgba(79, 70, 229, 0.02);
+}
+
+/* ── VIM MODE ATMOSPHERE ── */
+:root[data-vim-mode="insert"]  { --mode-accent: var(--neon-amber); }
+:root[data-vim-mode="visual"]  { --mode-accent: var(--neon-emerald); }
+:root[data-vim-mode="command"] { --mode-accent: var(--neon-crimson); }
+
+/* Text selection follows the active mode color */
+::selection {
+  background: color-mix(in srgb, var(--mode-accent) 28%, transparent);
+  color: var(--text-primary);
 }
 
 /* Hide default cursor on desktop with mouse only, preserve standard caret for inputs */
@@ -178,7 +199,7 @@
     left: 0;
     width: 6px;
     height: 6px;
-    background-color: var(--neon-indigo);
+    background-color: var(--mode-accent);
     border-radius: 50%;
     pointer-events: none;
     z-index: var(--z-cursor-dot) !important;
@@ -532,9 +553,11 @@ html {
   }
 }
 
-/* ── SMOOTH THEME TRANSITIONS ON COMMON ELEMENTS ── */
+/* ── SMOOTH THEME TRANSITIONS ON COMMON ELEMENTS ──
+   box-shadow removed from the list: shadow transitions on every element forced
+   expensive paints during theme swaps. Shadows now snap (VT sweep hides it). */
 *:not(.celestial-toggle):not(.celestial-toggle *):not(.custom-scroll-thumb):not(#custom-cursor-follower):not(#custom-cursor-dot):not(canvas) {
-  transition-property: background-color, color, border-color, box-shadow, fill, stroke;
+  transition-property: background-color, color, border-color, fill, stroke;
   transition-duration: 0.45s;
   transition-timing-function: var(--ease-inertial);
 }
@@ -563,7 +586,7 @@ canvas {
 /* ── CHAPTER READING PROGRESS BAR ── */
 .chapter-progress-bar {
   height: 2px;
-  background: linear-gradient(90deg, var(--neon-indigo), var(--neon-teal));
+  background: linear-gradient(90deg, var(--mode-accent), var(--neon-teal));
   border-radius: 1px;
   transform-origin: left;
   transition: transform 0.15s ease-out;
@@ -601,5 +624,110 @@ canvas {
 ::view-transition-new(vt-overlay-exclude) {
   animation: none !important;
   mix-blend-mode: normal !important;
+}
+
+/* ── BUFFER-OPEN WIPE (landing → handbook macro transition) ──
+   Activated by setting data-vt="wipe" on <html> before startViewTransition. */
+:root[data-vt="wipe"]::view-transition-new(root) {
+  animation: vt-buffer-wipe 0.85s cubic-bezier(0.83, 0, 0.17, 1) forwards;
+}
+:root[data-vt="wipe"]::view-transition-old(root) {
+  animation: none;
+}
+
+@keyframes vt-buffer-wipe {
+  from { clip-path: inset(100% 0 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* ── SIGNATURE BLOCK CARET (terminal phosphor) ── */
+.block-caret {
+  display: inline-block;
+  width: 0.52em;
+  height: 0.92em;
+  margin-left: 0.06em;
+  background-color: var(--phosphor);
+  vertical-align: baseline;
+  transform: translateY(0.08em);
+  animation: caretBlink 1.06s step-end infinite;
+}
+
+@keyframes caretBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* ── GHOST CHAPTER NUMERALS ── */
+.chapter-ghost-num {
+  position: absolute;
+  top: -0.22em;
+  right: -0.04em;
+  z-index: -1;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(8rem, 17vw, 15rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: var(--text-primary);
+  opacity: 0.05;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+/* ── MECHANICAL KEY-PRESS PHYSICS on kbd chips ── */
+.kbd-btn,
+kbd[data-pressable] {
+  box-shadow: 0 2px 0 0 var(--kbd-border);
+  transition: transform 0.07s ease-out, box-shadow 0.07s ease-out;
+}
+.kbd-btn:active,
+kbd[data-pressable]:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 0 var(--kbd-border);
+}
+
+/* ── :q! SCREEN SHAKE ── */
+@keyframes screenShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  15% { transform: translate3d(-7px, 3px, 0); }
+  30% { transform: translate3d(6px, -4px, 0); }
+  45% { transform: translate3d(-5px, 2px, 0); }
+  60% { transform: translate3d(4px, -2px, 0); }
+  80% { transform: translate3d(-2px, 1px, 0); }
+}
+.screen-shake {
+  animation: screenShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* ── LAZY CHAPTER RENDERING (huge scroll perf win: 22 chapters mount at once) ── */
+.chapter-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* ── TEXT SCRAMBLE (glyph decode) ── */
+.scramble-glyph {
+  font-variant-ligatures: none;
+}
+
+/* ── ACCESSIBILITY: RESPECT REDUCED MOTION ──
+   Kept last so it wins the cascade against every animation above. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, input, textarea, button, a {
+    cursor: auto !important;
+  }
+  #custom-cursor-follower,
+  #custom-cursor-dot {
+    display: none !important;
+  }
 }
 

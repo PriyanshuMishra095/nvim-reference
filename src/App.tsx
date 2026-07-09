@@ -85,6 +85,19 @@ export default function App() {
   // Unified Interactive Vim States
   const [vimMode, setVimMode] = useState<VimMode>('normal');
   const [yankNotification, setYankNotification] = useState<string | null>(null);
+
+  // Vim mode atmosphere: expose the active mode on <html> so CSS (--mode-accent,
+  // ::selection, cursor dot, progress bar) and the canvas can react to it.
+  // modeWash counts real mode *changes* so the wash never plays on initial mount.
+  const [modeWash, setModeWash] = useState(0);
+  const prevVimModeRef = useRef<VimMode>(vimMode);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-vim-mode', vimMode);
+    if (prevVimModeRef.current !== vimMode) {
+      prevVimModeRef.current = vimMode;
+      setModeWash((w) => w + 1);
+    }
+  }, [vimMode]);
   const [registers, setRegisters] = useState<Record<string, string>>({
     '"': '',
     '+': '',
@@ -309,30 +322,33 @@ export default function App() {
         return prev;
       });
 
-      // Scroll-spy active chapters to highlight in Sidebar Table of Contents
-      if (!onLanding) {
-        let currentActive = CHAPTERS_DATA[0].id;
-        for (const ch of CHAPTERS_DATA) {
-          const el = document.getElementById(ch.id);
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            // Match viewport middle boundary line
-            if (rect.top <= window.innerHeight * 0.4) {
-              currentActive = ch.id;
-            }
-          }
-        }
-        setActiveChapterId((prev) => {
-          if (prev !== currentActive) return currentActive;
-          return prev;
-        });
-      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Initial run to sync progress
     return () => window.removeEventListener('scroll', handleScroll);
   }, [onLanding]);
+
+  // Scroll-spy via IntersectionObserver — replaces the per-scroll-event loop that
+  // called getBoundingClientRect on all 22 chapters (a layout reflow per frame)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveChapterId((entry.target as HTMLElement).id);
+          }
+        }
+      },
+      // A thin horizontal band ~38% down the viewport decides the active chapter
+      { rootMargin: '-35% 0px -60% 0px', threshold: 0 }
+    );
+    CHAPTERS_DATA.forEach((ch) => {
+      const el = document.getElementById(ch.id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // Custom Scrollbar track & thumb handler matching reference navigation.js
   const [showCustomScrollbar, setShowCustomScrollbar] = useState(false);
@@ -469,12 +485,30 @@ export default function App() {
 
       {/* Primary horizontal Scroll progress metric bar */}
       <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none progress-bar-glow">
-        <div 
+        <div
           ref={progressBarRef}
-          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-          style={{ width: '0%', transition: 'width 0.1s ease-out' }}
+          className="h-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+          style={{
+            width: '0%',
+            transition: 'width 0.1s ease-out',
+            background: 'linear-gradient(90deg, var(--mode-accent), var(--neon-teal))'
+          }}
         />
       </div>
+
+      {/* Mode atmosphere wash — a brief tinted breath across the page on every mode change */}
+      {modeWash > 0 && (
+        <motion.div
+          key={modeWash}
+          className="fixed inset-0 pointer-events-none z-30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.14, 0] }}
+          transition={{ duration: 1.0, times: [0, 0.22, 1], ease: 'easeOut' }}
+          style={{
+            background: 'radial-gradient(120% 90% at 50% 100%, var(--mode-accent) 0%, transparent 62%)'
+          }}
+        />
+      )}
 
       {/* Floating Orbital Theme togglers */}
       <FloatingControls 

@@ -295,7 +295,7 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-10% 0px -20% 0px' }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-24 scroll-mt-24 relative"
+      className="chapter-section mb-24 scroll-mt-24 relative"
     >
       {/* Per-chapter reading progress bar */}
       <div className="absolute top-0 left-0 right-0 overflow-hidden rounded-t-lg">
