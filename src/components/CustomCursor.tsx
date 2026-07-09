@@ -48,9 +48,10 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
   const isOverSparklesBtnRef = useRef(false);
 
   useEffect(() => {
-    // 1. Skip on touch screen / coarse pointers
+    // 1. Skip on touch screen / coarse pointers, and honor reduced-motion
     const coarseMedia = window.matchMedia("(pointer: coarse)");
     if (coarseMedia.matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // Set initial mouse position
     mouseRef.current.x = window.innerWidth / 2;
@@ -442,13 +443,27 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
         if (cursorRef.current.rBR > maxPhysicalR) { cursorRef.current.rBR = maxPhysicalR; velRef.current.rBR = 0; }
       }
 
+      // Velocity stretch: while flying free (not locked to an element or the
+      // scrollbar) the reticle squashes along its motion vector like a droplet.
+      // rotate → scale → un-rotate keeps the stretch axis aligned with travel.
+      let stretchTransform = '';
+      if (!activeLockElement && snapInfluence === 0) {
+        const speed = Math.hypot(velRef.current.x, velRef.current.y);
+        if (speed > 2.5) {
+          const angle = Math.atan2(velRef.current.y, velRef.current.x);
+          const sx = 1 + Math.min(0.22, (speed - 2.5) * 0.006);
+          const sy = Math.max(0.88, 1 - Math.min(0.12, (speed - 2.5) * 0.0035));
+          stretchTransform = ` rotate(${angle}rad) scale(${sx}, ${sy}) rotate(${-angle}rad)`;
+        }
+      }
+
       // Render follower reticle DOM styles
       reticle.style.width = `${cursorRef.current.w}px`;
       reticle.style.height = `${cursorRef.current.h}px`;
       reticle.style.borderRadius = `${cursorRef.current.rTL}px ${cursorRef.current.rTR}px ${cursorRef.current.rBR}px ${cursorRef.current.rBL}px`;
       reticle.style.backgroundColor = targetBg;
       reticle.style.borderColor = targetBorder;
-      reticle.style.transform = `translate3d(${cursorRef.current.x}px, ${cursorRef.current.y}px, 0) translate(-50%, -50%)`;
+      reticle.style.transform = `translate3d(${cursorRef.current.x}px, ${cursorRef.current.y}px, 0) translate(-50%, -50%)${stretchTransform}`;
 
       // Blur the borders of the transparent follower reticle if left stationary for 3 seconds
       const nowMs = Date.now();

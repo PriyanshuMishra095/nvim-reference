@@ -90,10 +90,26 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
     // Color Helpers
     function getThemeColors() {
       const isDark = themeRef.current === 'dark';
-      
-      // Celestial default accents from variables.css
+
+      // Primary orb breathes with the active Vim mode: the whole atmosphere
+      // shifts hue when the reader changes modes (orbs lerp at 0.03/frame)
+      const mode = document.documentElement.getAttribute('data-vim-mode') || 'normal';
+      const modePrimary: Record<string, { r: number; g: number; b: number }> = isDark
+        ? {
+            normal: { r: 99, g: 102, b: 241 },   // indigo
+            insert: { r: 245, g: 158, b: 11 },   // amber
+            visual: { r: 16, g: 185, b: 129 },   // emerald
+            command: { r: 244, g: 63, b: 94 }    // rose
+          }
+        : {
+            normal: { r: 79, g: 70, b: 229 },
+            insert: { r: 217, g: 119, b: 6 },
+            visual: { r: 5, g: 150, b: 105 },
+            command: { r: 190, g: 18, b: 60 }
+          };
+
       return {
-        primary: isDark ? { r: 99, g: 102, b: 241 } : { r: 79, g: 70, b: 229 },    // Neon Indigo
+        primary: modePrimary[mode] || modePrimary.normal,
         secondary: isDark ? { r: 125, g: 211, b: 252 } : { r: 2, g: 132, b: 198 }, // Neon Teal
         accent: isDark ? { r: 110, g: 231, b: 183 } : { r: 5, g: 150, b: 105 }     // Neon Emerald
       };
@@ -518,14 +534,18 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
       drawConnections(landing);
       drawGlobalConstellations(landing);
 
-      animationFrameId = requestAnimationFrame(animBackgroundLoop);
+      if (!reducedMotion) {
+        animationFrameId = requestAnimationFrame(animBackgroundLoop);
+      }
     };
 
+    // Re-tint orbs on theme swap AND vim-mode change (colors lerp smoothly)
     const observer = new MutationObserver(() => initBackgroundElements(false));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-vim-mode"] });
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     initBackgroundElements(true);
-    animBackgroundLoop();
+    animBackgroundLoop(); // reduced motion: renders exactly one static frame
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
