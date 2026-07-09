@@ -713,7 +713,7 @@ export default function App() {
 
                 {/* CONFIDENT Typography with adjusted line-height to prevent font clipping */}
                 <h1 className="text-4xl md:text-7xl font-black font-display text-zinc-900 dark:text-zinc-50 tracking-tight leading-[1.18] py-1 mb-6">
-                  <span style={{ color: 'var(--neon-teal)' }}>{prefix}</span>{suffix}
+                  {prefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400">{suffix}</span>
                   <span className="block-caret" aria-hidden="true" />
                 </h1>
 

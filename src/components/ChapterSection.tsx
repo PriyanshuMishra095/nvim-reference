@@ -223,12 +223,15 @@ function InteractiveCodeBlock({
       }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`relative my-4 rounded-xl border overflow-hidden font-mono text-[11px] md:text-xs leading-relaxed bg-[#0b0c10] select-none outline-none transition-all duration-300 ${
-        isFocused 
-          ? 'border-indigo-500/80 shadow-[0_0_20px_rgba(99,102,241,0.25)]' 
-          : 'border-zinc-800/85 hover:border-zinc-700/80'
+      className={`relative my-4 rounded-xl font-mono text-[11px] md:text-xs leading-relaxed select-none outline-none transition-all duration-300 ${
+        isFocused ? 'shadow-[0_0_20px_rgba(99,102,241,0.25)]' : ''
       }`}
     >
+      {/* overflow-hidden moved off the shadow-carrying outer element — see the
+          note on the code_block wrappers above for why that combo clips the glow */}
+      <div className={`rounded-xl border overflow-hidden bg-[#0b0c10] transition-colors duration-300 ${
+        isFocused ? 'border-indigo-500/80' : 'border-zinc-800/85 hover:border-zinc-700/80'
+      }`}>
       <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-950 text-[11px] text-zinc-400 font-bold select-none">
         <div className="flex items-center gap-1.5">
           <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-600'}`} />
@@ -321,6 +324,7 @@ function InteractiveCodeBlock({
         <div className="text-zinc-600 font-bold ml-2">
           {cursorLine + 1}:{editorLines[cursorLine]?.length || 0}
         </div>
+      </div>
       </div>
     </div>
   );
@@ -639,7 +643,11 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 1: USER SETTINGS INTERACTIVE PLAYGROUND (c17-s1) ───
       if (sec.id === 'c17-s1') {
         return (
-          <div id={sec.id} className="my-8 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden">
+          <div id={sec.id} className="my-8 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)]">
+          {/* overflow-hidden lives on this inner wrapper, not the shadow-carrying
+              outer one — overflow-hidden clips an element's OWN box-shadow too,
+              which was cutting the shadow off at the sides. */}
+          <div className="rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs font-mono select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4 animate-pulse" />
@@ -743,13 +751,15 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
 
             </div>
           </div>
+          </div>
         );
       }
 
       // ─── OPTION 2: LUA KEYMAPS INTERACTIVE SIMULATOR (c18-s1) ───
       if (sec.id === 'c18-s1') {
         return (
-          <div id={sec.id} className="my-8 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden font-mono">
+          <div id={sec.id} className="my-8 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] font-mono">
+          <div className="rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4" />
@@ -846,6 +856,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
 
             </div>
           </div>
+          </div>
         );
       }
 
@@ -875,7 +886,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       const isTerminal = terminalActive[sec.id] || false;
 
       return (
-        <div id={sec.id} className="my-8 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden font-mono group/code block select-text">
+        <div id={sec.id} className="my-8 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] font-mono group/code block select-text">
+        <div className="rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800 text-xs select-none">
             <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: modeColor }} />
@@ -1030,6 +1042,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
               </span>
             )}
           </div>
+        </div>
         </div>
       );
 

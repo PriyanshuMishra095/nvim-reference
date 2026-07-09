@@ -255,8 +255,8 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
                   onClick={() => setIsEditing(true)}
                   className="landing-title text-[clamp(2.5rem,9vw,7rem)] font-black font-display tracking-tight text-[var(--text-primary)] leading-none cursor-text transition-all duration-300 hover:opacity-90 select-text"
                 >
-                  <span style={{ color: 'var(--neon-teal)' }}>{prefix}</span>{suffix}
-                  <span className="block-caret" aria-hidden="true" />
+                  {prefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-indigo)] to-[var(--neon-teal)]">{suffix}</span>
+                  <span className="block-caret-landing" aria-hidden="true" />
                 </h1>
               )}
 
