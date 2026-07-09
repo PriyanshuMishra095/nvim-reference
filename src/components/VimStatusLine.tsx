@@ -149,6 +149,9 @@ export default function VimStatusLine({
   // Hook global keys to swap Vim Modes cleanly across screens
   useEffect(() => {
     const handleGlobalKeys = (e: KeyboardEvent) => {
+      // Modifier combos (Ctrl+K palette, browser shortcuts) are never Vim motions
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
       // Disallow stealing input if typing within a standard form/sidebar search input (except if key is Escape)
       const target = e.target as HTMLElement;
       const isTyping = target && (target.closest('input, textarea, [contenteditable="true"]'));
@@ -571,6 +574,11 @@ export default function VimStatusLine({
               <kbd onClick={() => setVimMode('insert')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'insert' ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>i</kbd>
               <kbd onClick={() => setVimMode('visual')} className={`kbd-btn px-2 py-0.5 text-[10px] text-emerald-600 rounded border cursor-pointer font-mono transition-all ${vimMode === 'visual' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>v</kbd>
               <kbd onClick={() => setVimMode('command')} className={`kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all ${vimMode === 'command' ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300 font-bold' : 'border-zinc-200 dark:border-zinc-800 text-zinc-500'}`}>:</kbd>
+              <kbd
+                onClick={() => window.dispatchEvent(new CustomEvent('nvim:palette'))}
+                className="kbd-btn px-2 py-0.5 text-[10px] rounded border cursor-pointer font-mono transition-all border-zinc-200 dark:border-zinc-800 text-[var(--phosphor)]"
+                title="Open the fuzzy jump palette (Ctrl+K)"
+              >^K</kbd>
             </div>
 
             {/* Section E: Keyboard Tutor info icon */}

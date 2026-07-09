@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import ChapterSection from './components/ChapterSection';
 import FloatingControls from './components/FloatingControls';
 import VimStatusLine, { VimMode } from './components/VimStatusLine';
+import CommandPalette from './components/CommandPalette';
 import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
@@ -21,6 +22,26 @@ export default function App() {
   const [isSidebarPopping, setIsSidebarPopping] = useState<boolean>(false);
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
+  const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
+
+  // Ctrl+K / Ctrl+P open the fuzzy jump palette (capture phase so the Vim key
+  // handler never mistakes ^k for a scroll)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'p')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    const openFromUi = () => setPaletteOpen(true);
+    window.addEventListener('keydown', handler, true);
+    window.addEventListener('nvim:palette', openFromUi);
+    return () => {
+      window.removeEventListener('keydown', handler, true);
+      window.removeEventListener('nvim:palette', openFromUi);
+    };
+  }, []);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [siteTitle, setSiteTitle] = useState<string>('nvim://reference');
   const statusBarAutoRevealedRef = useRef<boolean>(false);
@@ -810,6 +831,14 @@ export default function App() {
         </div>
       </div>
     
+      {/* Fuzzy jump palette (Ctrl+K / Ctrl+P) */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        chapters={CHAPTERS_DATA}
+        onNavigateChapter={handleNavigateChapter}
+      />
+
       {/* Contribute Page View */}
       <AnimatePresence>
         {contributeOpen && (
