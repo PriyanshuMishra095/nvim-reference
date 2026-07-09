@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Terminal, Shield, Keyboard, Copy, BookOpen, AlertCircle, HelpCircle, CornerDownLeft, Sparkles, Folder, Cpu, RefreshCw } from 'lucide-react';
+import { Terminal, Shield, Keyboard, Copy, BookOpen, AlertCircle, HelpCircle, CornerDownLeft, Sparkles, Folder, Cpu, RefreshCw, ChevronLeft } from 'lucide-react';
 import { Chapter } from '../types';
 import TutorGame from './TutorGame';
 
@@ -206,13 +206,14 @@ export default function VimStatusLine({
           e.preventDefault();
           setVimMode('command');
         } else if (e.key === 'j' || e.key === 'J') {
-          // Scroll page down smoothly
+          // A single tap glides one smooth 35% page. When HELD, key-repeat fires
+          // every ~30ms — stacking smooth scrolls just fights itself and flickers,
+          // so held repeats use small INSTANT steps for continuous fast scrolling.
           e.preventDefault();
-          window.scrollBy({ top: window.innerHeight * 0.35, behavior: 'smooth' });
+          window.scrollBy({ top: window.innerHeight * (e.repeat ? 0.12 : 0.35), behavior: e.repeat ? 'auto' : 'smooth' });
         } else if (e.key === 'k' || e.key === 'K') {
-          // Scroll page up smoothly
           e.preventDefault();
-          window.scrollBy({ top: -window.innerHeight * 0.35, behavior: 'smooth' });
+          window.scrollBy({ top: -window.innerHeight * (e.repeat ? 0.12 : 0.35), behavior: e.repeat ? 'auto' : 'smooth' });
         } else if (e.key === 'g') {
           if (lastKeyRef.current === 'g') {
             e.preventDefault();
@@ -279,6 +280,14 @@ export default function VimStatusLine({
           setTimeout(() => shell.classList.remove('screen-shake'), 450);
         }
         setTimeout(() => onOpenPlayground(), 120);
+      }
+    });
+    suggestions.push({
+      cmd: ':wizard',
+      desc: 'Answer four questions, get a personal init.lua — copy or download it.',
+      run: () => {
+        setVimMode('normal');
+        window.dispatchEvent(new CustomEvent('nvim:wizard'));
       }
     });
     suggestions.push({
@@ -541,7 +550,7 @@ export default function VimStatusLine({
         className="fixed bottom-0 left-0 w-full z-40 px-4 pb-4 pointer-events-none select-none"
         style={style}
       >
-        <div className="vim-statusline max-w-4xl mx-auto flex items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono h-11 md:h-12 w-[calc(100%-2rem)] md:w-full">
+        <div className="vim-statusline max-w-4xl mx-auto flex items-center justify-between border border-zinc-200/50 dark:border-zinc-800/80 bg-white/97 dark:bg-zinc-950/97 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_-15px_50px_rgba(0,0,0,0.4)] rounded-xl pointer-events-auto overflow-hidden text-xs font-mono h-11 md:h-12 w-[calc(100%-2rem)] md:w-full">
           <div className="flex items-center h-full min-w-0">
             {/* Section A: Active Mode Badge */}
             <button
@@ -626,7 +635,7 @@ export default function VimStatusLine({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-zinc-950/20 dark:bg-black/40 backdrop-blur-[2px] pointer-events-auto"
+              className="absolute inset-0 bg-zinc-950/30 dark:bg-black/50 pointer-events-auto"
               onClick={() => {
                 setVimMode('normal');
                 setCommandInput('');
@@ -757,7 +766,7 @@ export default function VimStatusLine({
             exit={{ opacity: 0, y: -10 }}
             className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4"
           >
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-rose-500/30 bg-rose-950/95 text-rose-200 backdrop-blur-md shadow-2xl font-mono text-xs">
+            <div className="flex items-center gap-3 p-4 rounded-xl border border-rose-500/30 bg-rose-950/95 text-rose-200 shadow-2xl font-mono text-xs">
               <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
               <div>{commandError}</div>
               <button onClick={() => setCommandError(null)} className="ml-auto text-rose-400 hover:text-white font-bold">×</button>
@@ -772,7 +781,7 @@ export default function VimStatusLine({
             exit={{ opacity: 0, y: -10 }}
             className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4"
           >
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/95 text-emerald-200 backdrop-blur-md shadow-2xl font-mono text-xs">
+            <div className="flex items-center gap-3 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/95 text-emerald-200 shadow-2xl font-mono text-xs">
               <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
               <div>{commandSuccess}</div>
               <button onClick={() => setCommandSuccess(null)} className="ml-auto text-emerald-400 hover:text-white font-bold">×</button>
@@ -787,7 +796,7 @@ export default function VimStatusLine({
             exit={{ opacity: 0, x: 30, scale: 0.95 }}
             className="fixed top-6 right-6 z-50 max-w-sm w-full px-4"
           >
-            <div className="flex flex-col gap-1.5 p-4 rounded-xl border border-indigo-500/30 bg-white/95 dark:bg-[#0c0f13]/95 text-zinc-800 dark:text-indigo-200 backdrop-blur-md shadow-2xl font-mono text-xs relative overflow-hidden group">
+            <div className="flex flex-col gap-1.5 p-4 rounded-xl border border-indigo-500/30 bg-white/95 dark:bg-[#0c0f13]/95 text-zinc-800 dark:text-indigo-200 shadow-2xl font-mono text-xs relative overflow-hidden group">
               <div className="absolute top-0 left-0 h-full w-[3px]" style={{ backgroundColor: modeColor }} />
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 animate-spin" style={{ color: modeColor }} />
@@ -818,7 +827,7 @@ export default function VimStatusLine({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               onClick={() => setShowRegistersTray(false)}
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto filter-backdrop-ignore"
+              className="absolute inset-0 bg-black/60 pointer-events-auto filter-backdrop-ignore"
             />
             
             <motion.div
@@ -913,7 +922,7 @@ export default function VimStatusLine({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
               onClick={() => setActiveHelpTopic(null)}
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60"
             />
 
             <motion.div
@@ -921,7 +930,7 @@ export default function VimStatusLine({
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-              className="relative bg-white dark:bg-zinc-950 border rounded-2xl p-8 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl font-mono text-sm text-zinc-700 dark:text-zinc-300 pointer-events-auto"
+              className="relative bg-white dark:bg-zinc-950 border rounded-2xl p-8 max-w-3xl w-full min-h-[460px] max-h-[85vh] overflow-y-auto shadow-2xl font-mono text-sm text-zinc-700 dark:text-zinc-300 pointer-events-auto"
               style={{ borderColor: modeColor }}
             >
               <div className="absolute top-[4%] right-[4%] flex items-center gap-2 select-none">
@@ -941,13 +950,29 @@ export default function VimStatusLine({
               </div>
 
               <div className="flex items-center gap-2 border-b border-zinc-200/60 dark:border-zinc-800/60 pb-3 mb-4 select-none">
+                {activeHelpTopic && activeHelpTopic !== 'general' && (
+                  <button
+                    onClick={() => setActiveHelpTopic('general')}
+                    className="flex items-center gap-0.5 text-xs font-bold text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer mr-1"
+                    title="Back to help index"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>back</span>
+                  </button>
+                )}
                 <Terminal className="w-4 h-4" style={{ color: modeColor }} />
                 <span className="font-bold text-zinc-900 dark:text-zinc-100 text-base">
-                  nvim://help
+                  nvim://help{activeHelpTopic && activeHelpTopic !== 'general' ? <span className="text-zinc-400 dark:text-zinc-500"> / {activeHelpTopic === 'ai-explain' ? 'llm' : activeHelpTopic}</span> : ''}
                 </span>
               </div>
 
-              {/* Dynamic explanations */}
+              {/* Dynamic explanations — keyed wrapper cross-fades between topics */}
+              <motion.div
+                key={activeHelpTopic || 'general'}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              >
               {activeHelpTopic === 'modal' && (
                 <div className="space-y-4 leading-relaxed">
                   <p className="font-bold" style={{ color: modeColor }}>Understanding Modality (*modal-editing*)</p>
@@ -963,7 +988,7 @@ export default function VimStatusLine({
 
               {activeHelpTopic === 'registers' && (
                 <div className="space-y-4 leading-relaxed">
-                  <p className="font-bold text-amber-600 dark:text-amber-400">Working with Clipboard Registers (*registers-api*)</p>
+                  <p className="font-bold text-amber-600 dark:text-amber-400">Working with Clipboard Registers (*registers*)</p>
                   <p>Traditional operating systems limit you to a single copied item. Neovim organizes an index of registers:</p>
                   <ul className="list-disc list-inside space-y-2 text-sm text-zinc-500 dark:text-zinc-400">
                     <li><code className="text-zinc-800 dark:text-zinc-200">" +</code> : standard System Clipboard. Shared with Windows/OS apps.</li>
@@ -1114,7 +1139,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Understanding isolated editor control states</div>
                       </button>
                       <button onClick={() => setActiveHelpTopic('registers')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-amber-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
-                        <div className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-0.5">*registers-api*</div>
+                        <div className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-0.5">*registers*</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500">Working with in-memory clipboards</div>
                       </button>
                       <button onClick={() => setActiveHelpTopic('keymaps')} className="text-left p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 hover:border-emerald-500/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer">
@@ -1150,6 +1175,7 @@ vim.keymap.set("n", "<C-h>", "<C-w>h") -- split jumps`}
                   </div>
                 </div>
               )}
+              </motion.div>
 
               <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex justify-between items-center text-[10px] text-zinc-500 dark:text-zinc-500 select-none">
                 <span />

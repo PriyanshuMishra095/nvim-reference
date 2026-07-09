@@ -541,7 +541,7 @@ html {
 
 ::view-transition-new(root) {
   z-index: 9999;
-  animation: vt-reveal 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: vt-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes vt-reveal {
@@ -572,25 +572,28 @@ canvas {
   transition-property: none;
 }
 
-
-/* ── PROGRESS BAR GLOW PULSE ── */
-@keyframes progressGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.4)); }
-  50% { filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.7)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)); }
+/* During a theme View Transition the snapshot already cross-fades the whole page.
+   Snap every real element instantly underneath it — animating thousands of
+   color transitions at the same time is the main source of theme-change lag. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
 }
 
-.progress-bar-glow {
-  animation: progressGlow 3s ease-in-out infinite;
-}
 
-/* ── CHAPTER READING PROGRESS BAR ── */
+/* progressGlow removed: an infinitely-animating drop-shadow filter on a fixed
+   full-width bar forced continuous repaints — measurable fps cost site-wide. */
+
+/* ── CHAPTER READING PROGRESS BAR ──
+   No will-change: 22 permanently GPU-promoted layers cost more than they save on
+   a 2px bar. The compositor still handles the scroll-linked scaleX fine. */
 .chapter-progress-bar {
   height: 2px;
   background: linear-gradient(90deg, var(--mode-accent), var(--neon-teal));
   border-radius: 1px;
   transform-origin: left;
-  transition: transform 0.15s ease-out;
-  will-change: transform;
 }
 
 /* ── READING TIME BADGE ── */
@@ -657,22 +660,25 @@ canvas {
   50%, 100% { opacity: 0; }
 }
 
-/* ── GHOST CHAPTER NUMERALS ── */
+/* ── GHOST CHAPTER NUMERALS ──
+   Lives in the title band only. Kept short and top-anchored so it never reaches
+   the first code block below (which is opaque and would half-cover it) and never
+   overflows the section's paint-containment box (content-visibility clips that).
+   No will-change — 22 permanently-promoted big text layers would tank fps. */
 .chapter-ghost-num {
   position: absolute;
-  top: -0.22em;
-  right: -0.04em;
+  top: 0.1em;
+  right: 0.15rem;
   z-index: -1;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(8rem, 17vw, 15rem);
+  font-size: clamp(4.5rem, 10vw, 8rem);
   line-height: 1;
   letter-spacing: -0.06em;
   color: var(--text-primary);
-  opacity: 0.05;
+  opacity: 0.06;
   pointer-events: none;
   user-select: none;
-  will-change: transform;
 }
 
 /* ── MECHANICAL KEY-PRESS PHYSICS on kbd chips ── */
@@ -711,14 +717,6 @@ kbd[data-pressable]:active {
   font-variant-ligatures: none;
 }
 
-/* ── IDLE GHOST CARET WALK — discrete steps() = hjkl hops ── */
-@keyframes ghostWalkAcross {
-  from { transform: translateX(-5vw); }
-  to   { transform: translateX(104vw); }
-}
-.ghost-caret {
-  animation: ghostWalkAcross 7s steps(56) forwards;
-}
 
 /* ── ACCESSIBILITY: RESPECT REDUCED MOTION ──
    Kept last so it wins the cascade against every animation above. */

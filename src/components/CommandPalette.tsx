@@ -130,25 +130,9 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
     }
   }, [open]);
 
-  // Escape must close the palette even if focus has wandered outside the panel
-  useEffect(() => {
-    if (!open) return;
-    const closeOnEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', closeOnEscape, true);
-    return () => window.removeEventListener('keydown', closeOnEscape, true);
-  }, [open, onClose]);
-
   useEffect(() => {
     setSelectedIdx(0);
   }, [query]);
-
-  // Keep the active row scrolled into view
-  useEffect(() => {
-    const el = listRef.current?.querySelector('[data-active="true"]');
-    el?.scrollIntoView({ block: 'nearest' });
-  }, [selectedIdx, results]);
 
   const jumpTo = (record: PaletteRecord) => {
     onClose();
@@ -163,24 +147,45 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
     }, 80);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    const down = e.key === 'ArrowDown' || (e.ctrlKey && (e.key === 'j' || e.key === 'n'));
-    const up = e.key === 'ArrowUp' || (e.ctrlKey && (e.key === 'k' || e.key === 'p'));
-    if (down) {
-      e.preventDefault();
-      setSelectedIdx((i) => Math.min(results.length - 1, i + 1));
-    } else if (up) {
-      e.preventDefault();
-      setSelectedIdx((i) => Math.max(0, i - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (selected) jumpTo(selected.record);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      onClose();
-    }
-    e.stopPropagation();
-  };
+  // All key handling lives at the window (capture phase) so it keeps working no
+  // matter where focus is — clicking a result row, the preview pane, or empty
+  // panel space used to blur the input and silently kill arrow/Enter/Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      const down = e.key === 'ArrowDown' || (e.ctrlKey && (e.key === 'j' || e.key === 'n'));
+      const up = e.key === 'ArrowUp' || (e.ctrlKey && (e.key === 'k' || e.key === 'p'));
+      if (down) {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.min(results.length - 1, i + 1));
+      } else if (up) {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.max(0, i - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selected) jumpTo(selected.record);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, results, selected]);
+
+  // Manual autoscroll: keep the active row visible inside the results container
+  // (rect-delta math works regardless of offsetParent / grid layout)
+  useEffect(() => {
+    const container = listRef.current;
+    const el = container?.querySelector('[data-active="true"]') as HTMLElement | null;
+    if (!container || !el) return;
+    const cr = container.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    if (er.top < cr.top) container.scrollTop -= (cr.top - er.top) + 8;
+    else if (er.bottom > cr.bottom) container.scrollTop += (er.bottom - cr.bottom) + 8;
+  }, [selectedIdx, results]);
 
   return (
     <AnimatePresence>
@@ -196,7 +201,7 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             onClick={onClose}
-            className="absolute inset-0 bg-zinc-950/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-zinc-950/65"
           />
 
           {/* Palette panel */}
@@ -206,7 +211,6 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
             exit={{ scale: 0.97, y: -12, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 500, damping: 34 }}
             className="relative w-full max-w-3xl rounded-2xl border border-zinc-200/60 dark:border-zinc-800/90 bg-white/98 dark:bg-zinc-950/98 shadow-2xl overflow-hidden font-mono"
-            onKeyDown={handleKeyDown}
           >
             {/* Header: telescope-style prompt */}
             <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200/60 dark:border-zinc-800/70 text-[11px] font-bold text-zinc-400 dark:text-zinc-500 select-none">
@@ -233,9 +237,11 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
               <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] max-h-[46vh]">
-              {/* Results list */}
-              <div ref={listRef} className="overflow-y-auto no-scrollbar py-2">
+            <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] max-h-[46vh] min-h-0">
+              {/* Results list — max-h on the scroll element itself; a grid parent's
+                  max-height alone does not cap an auto-height child, so it never
+                  overflowed and the active row could scroll out of view */}
+              <div ref={listRef} className="max-h-[46vh] overflow-y-auto no-scrollbar py-2">
                 {results.length === 0 ? (
                   <div className="px-4 py-8 text-center text-xs text-zinc-400 dark:text-zinc-600">
                     E486: Pattern not found: {query}
@@ -270,7 +276,7 @@ export default function CommandPalette({ open, onClose, chapters, onNavigateChap
               </div>
 
               {/* Preview pane */}
-              <div className="hidden md:block border-l border-zinc-200/60 dark:border-zinc-800/70 p-4 overflow-y-auto no-scrollbar bg-zinc-50/60 dark:bg-zinc-900/25">
+              <div className="hidden md:block border-l border-zinc-200/60 dark:border-zinc-800/70 p-4 max-h-[46vh] overflow-y-auto no-scrollbar bg-zinc-50/60 dark:bg-zinc-900/25">
                 {selected ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">

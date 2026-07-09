@@ -7,10 +7,12 @@
 - **Single confirmation for public pushes**: Ask the user once and get an explicit
   yes before any `git push` targeting the public repository
   (`github.com/PriyanshuMishra095/nvim-reference`).
-- **No sensitive data in public pushes**: Never commit or push API keys, `.env`
-  files, emails, phone numbers, or personal info — including data that only becomes
-  identifying when combined with other data. `.agents/`, `.vscode/`, `.antigravity/`
-  stay out of the public repo.
+- **Public repo is curated, not mirrored**: The public repo receives only
+  the files needed to build and run the project. `.agents/`, `.vscode/`,
+  `.antigravity/`, docs meant for LLM handover, and anything sensitive
+  (API keys, `.env`, emails, phone numbers, personal info — including data
+  that becomes identifying when combined) never go public. Every public
+  push requires explicit user confirmation first.
 
 ## Memory & Logging (lightweight process)
 - Read `.agents/MEMORY.md` before starting work; update it after tasks that change

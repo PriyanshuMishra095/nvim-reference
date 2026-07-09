@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Gamepad2, RefreshCw } from 'lucide-react';
+import { Gamepad2, RefreshCw, Share2, Check } from 'lucide-react';
 
 const COLS = 12;
 const ROWS = 7;
@@ -22,6 +22,7 @@ export default function TutorGame({ open, onClose }: TutorGameProps) {
   const [caught, setCaught] = useState(0);
   const [finished, setFinished] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [shared, setShared] = useState(false);
   const playerRef = useRef(player);
   playerRef.current = player;
 
@@ -109,6 +110,17 @@ export default function TutorGame({ open, onClose }: TutorGameProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player, open]);
 
+  const copyScorecard = () => {
+    const card = [
+      `nvim://tutor — motion golf`,
+      `⛳ ${strokes} strokes · par ${par} · ${verdict.label}`,
+      `hjkl or it didn&apos;t happen → ${window.location.origin}`
+    ].join(String.fromCharCode(10)).replace(/&apos;/g, String.fromCharCode(39));
+    navigator.clipboard.writeText(card);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
+  };
+
   const verdict =
     strokes <= par
       ? { label: 'PERFECT GOLF', detail: 'Flawless motions. Your fingers are already Vim.', color: 'text-emerald-500 dark:text-emerald-400' }
@@ -126,7 +138,7 @@ export default function TutorGame({ open, onClose }: TutorGameProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-zinc-950/70"
           />
 
           <motion.div
@@ -154,13 +166,22 @@ export default function TutorGame({ open, onClose }: TutorGameProps) {
                   <div className="text-sm text-zinc-700 dark:text-zinc-200 font-bold mt-2">
                     {strokes} keystrokes · par {par}
                   </div>
-                  <button
-                    onClick={resetGame}
-                    className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-void)] text-xs font-bold cursor-pointer active:scale-95 transition-transform"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>replay (r)</span>
-                  </button>
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      onClick={resetGame}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--text-primary)] text-[var(--bg-void)] text-xs font-bold cursor-pointer active:scale-95 transition-transform"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>replay (r)</span>
+                    </button>
+                    <button
+                      onClick={copyScorecard}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:border-[var(--phosphor)] cursor-pointer transition-colors"
+                    >
+                      {shared ? <Check className="w-3.5 h-3.5 text-[var(--phosphor)]" /> : <Share2 className="w-3.5 h-3.5" />}
+                      <span>{shared ? 'copied!' : 'share scorecard'}</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div

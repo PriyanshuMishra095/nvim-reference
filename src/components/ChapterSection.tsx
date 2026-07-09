@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { Copy, Check, TableProperties, Sparkles, MonitorPlay, Zap, RefreshCw } from 'lucide-react';
 import { Chapter, SubSection } from '../types';
 
@@ -18,7 +18,7 @@ const LUA_BUILTINS = new Set([
 
 const LUA_TOKEN_RE = /(--.*$)|("(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)|(\b\d+\.?\d*\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+)|(.)/gm;
 
-function HighlightedLine({ text }: { text: string }) {
+export function HighlightedLine({ text }: { text: string }) {
   const nodes: React.ReactNode[] = [];
   let match: RegExpExecArray | null;
   let i = 0;
@@ -67,6 +67,15 @@ function InteractiveCodeBlock({
   const commandInputRef = useRef<HTMLInputElement | null>(null);
   const [lastYankedLine, setLastYankedLine] = useState<number | null>(null);
 
+  // Undo stack (u) + chord tracking for dd
+  const historyRef = useRef<{ lines: string[]; cursor: number }[]>([]);
+  const lastNormalKeyRef = useRef<{ key: string; time: number }>({ key: '', time: 0 });
+
+  const pushHistory = (lines: string[], cursor: number) => {
+    historyRef.current.push({ lines: [...lines], cursor });
+    if (historyRef.current.length > 60) historyRef.current.shift();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isFocused) return;
 
@@ -83,6 +92,7 @@ function InteractiveCodeBlock({
         setLastYankedLine(null);
       } else if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
+        pushHistory(editorLines, cursorLine);
         setEditorMode('INSERT');
         setStatusMsg('-- INSERT -- (Press ESC or Enter to exit)');
       } else if (e.key === 'y' || e.key === 'Y') {
@@ -91,6 +101,50 @@ function InteractiveCodeBlock({
         onYank(lineText);
         setLastYankedLine(cursorLine);
         setStatusMsg(`[Yanked] Line ${cursorLine + 1} copied to registers!`);
+      } else if (e.key === 'd') {
+        e.preventDefault();
+        // dd chord: two d's within 500ms deletes the cursor line
+        const now = Date.now();
+        if (lastNormalKeyRef.current.key === 'd' && now - lastNormalKeyRef.current.time < 500) {
+          lastNormalKeyRef.current = { key: '', time: 0 };
+          pushHistory(editorLines, cursorLine);
+          const nextLines = editorLines.filter((_, idx) => idx !== cursorLine);
+          if (nextLines.length === 0) nextLines.push('');
+          setEditorLines(nextLines);
+          setCursorLine(prev => Math.min(prev, nextLines.length - 1));
+          setStatusMsg(`Deleted line ${cursorLine + 1} (u to undo)`);
+        } else {
+          lastNormalKeyRef.current = { key: 'd', time: now };
+          setStatusMsg('d — press d again to delete line');
+          return;
+        }
+      } else if (e.key === 'o') {
+        e.preventDefault();
+        pushHistory(editorLines, cursorLine);
+        const nextLines = [...editorLines];
+        nextLines.splice(cursorLine + 1, 0, '');
+        setEditorLines(nextLines);
+        setCursorLine(cursorLine + 1);
+        setEditorMode('INSERT');
+        setStatusMsg('-- INSERT -- opened line below');
+      } else if (e.key === 'O') {
+        e.preventDefault();
+        pushHistory(editorLines, cursorLine);
+        const nextLines = [...editorLines];
+        nextLines.splice(cursorLine, 0, '');
+        setEditorLines(nextLines);
+        setEditorMode('INSERT');
+        setStatusMsg('-- INSERT -- opened line above');
+      } else if (e.key === 'u') {
+        e.preventDefault();
+        const prev = historyRef.current.pop();
+        if (prev) {
+          setEditorLines(prev.lines);
+          setCursorLine(Math.min(prev.cursor, prev.lines.length - 1));
+          setStatusMsg(`Undid change — ${historyRef.current.length} older change${historyRef.current.length === 1 ? '' : 's'} left`);
+        } else {
+          setStatusMsg('Already at oldest change');
+        }
       } else if (e.key === ':') {
         e.preventDefault();
         setEditorMode('COMMAND');
@@ -106,6 +160,8 @@ function InteractiveCodeBlock({
         setCursorLine(0);
         setStatusMsg('');
       }
+      // Any key other than a priming 'd' (which returns early above) breaks the chord
+      lastNormalKeyRef.current = { key: '', time: 0 };
     }
   };
 
@@ -183,7 +239,7 @@ function InteractiveCodeBlock({
         </div>
       </div>
 
-      <div className="p-4 max-h-56 overflow-y-auto custom-scroll space-y-0.5 bg-black/40">
+      <div data-vim-buffer="true" className="p-4 max-h-56 overflow-y-auto custom-scroll space-y-0.5 bg-black/40">
         {editorLines.map((line, idx) => {
           const isCursor = idx === cursorLine && isFocused;
           const explanation = getLineExplanation(line);
@@ -259,7 +315,7 @@ function InteractiveCodeBlock({
               />
             </form>
           ) : (
-            <span className="text-zinc-400 truncate">{statusMsg || 'Buffer clean. j/k: navigate | i: edit | y: yank | :w: write | :q: reset'}</span>
+            <span className="text-zinc-400 truncate">{statusMsg || 'j/k move · i edit · y yank · dd delete · o/O open · u undo · :w write · :q reset'}</span>
           )}
         </div>
         <div className="text-zinc-600 font-bold ml-2">
@@ -305,15 +361,14 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
     offset: ["start end", "end start"]
   });
   
-  // Apply a gentle spring for buttery smooth bar filling
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
+  // Drive the bar straight off scroll progress. A useSpring here means 22 physics
+  // loops (one per chapter) keep ticking/settling every frame — a real quick-scroll
+  // cost. Scroll-linked scaleX is already smooth without the spring.
+  const scaleX = scrollYProgress;
 
-  // Ghost numeral parallax: drifts against scroll direction at ~08x speed
-  const ghostY = useTransform(scrollYProgress, [0, 1], [60, -60]);
+  // Ghost numeral parallax: tiny downward drift kept inside the title band so it
+  // never reaches the first code block below nor clips at the section's top edge.
+  const ghostY = useTransform(scrollYProgress, [0, 1], [0, 16]);
 
   // Get active accent styles dynamically matching Vim mode
   const getBadgeClass = () => {
@@ -584,7 +639,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 1: USER SETTINGS INTERACTIVE PLAYGROUND (c17-s1) ───
       if (sec.id === 'c17-s1') {
         return (
-          <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden">
+          <div id={sec.id} className="my-8 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs font-mono select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4 animate-pulse" />
@@ -694,7 +749,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 2: LUA KEYMAPS INTERACTIVE SIMULATOR (c18-s1) ───
       if (sec.id === 'c18-s1') {
         return (
-          <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden font-mono">
+          <div id={sec.id} className="my-8 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden font-mono">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4" />
@@ -820,7 +875,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       const isTerminal = terminalActive[sec.id] || false;
 
       return (
-        <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_25px_60px_rgba(0,0,0,0.2)] overflow-hidden font-mono group/code block select-text">
+        <div id={sec.id} className="my-8 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_10px_30px_rgba(0,0,0,0.10)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)] overflow-hidden font-mono group/code block select-text">
           <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800 text-xs select-none">
             <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: modeColor }} />

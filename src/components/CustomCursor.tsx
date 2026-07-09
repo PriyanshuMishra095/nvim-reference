@@ -105,15 +105,19 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       const isInput = target.closest("input, textarea, [contenteditable]") || isTextCursorStyle;
       isOverInputRef.current = !!isInput && !isOverTitleRef.current;
       
+      // Inside an interactive Vim buffer the caret ALWAYS wins — buffer lines are
+      // clickable (cursor-pointer) but must keep the blinking green block caret
+      const isVimBuffer = !!target.closest("[data-vim-buffer]");
+
       const isClickable = target.closest("a, button, kbd, .copy-btn, .next-indicator, .vs-box, .chapter-num, .celestial-toggle, .landing-btn, .custom-scroll-thumb, .cursor-pointer, [class*='btn']");
-      
+
       // Prevent full screen overlay triggers by validating targets
       const isOverlayBackdrop = target.classList.contains("fixed") && target.classList.contains("inset-0") && !target.classList.contains("custom-scroll-track");
-      
-      isOverClickableRef.current = !!isClickable && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn && !isOverlayBackdrop;
+
+      isOverClickableRef.current = !!isClickable && !isVimBuffer && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn && !isOverlayBackdrop;
 
       // Clickable items inside code block should show hand icon, not green block caret
-      const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']");
+      const isCode = target.closest("code, pre, .term-code, .term-input, [class*='code']") || isVimBuffer;
       isOverCodeRef.current = !!isCode && !isOverClickableRef.current && !isOverTitleRef.current && !isCloseBtn && !isSparklesBtn;
 
       const checklistCard = target.closest("[data-checklist-card]") as HTMLElement | null;
@@ -165,8 +169,24 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
       }
     };
 
+    // Recompute the hover shape after clicks WITHOUT waiting for a mousemove.
+    // Fixes: checklist card flipping to a red X the instant it's toggled, and
+    // modals (Contribute / help) opening on top of a locked element — the delayed
+    // passes re-run elementFromPoint once the new overlay is actually in the DOM.
+    const refreshHoverSoon = () => {
+      updateHoverState(mouseRef.current.x, mouseRef.current.y);
+      requestAnimationFrame(() => updateHoverState(mouseRef.current.x, mouseRef.current.y));
+      setTimeout(() => updateHoverState(mouseRef.current.x, mouseRef.current.y), 90);
+      setTimeout(() => updateHoverState(mouseRef.current.x, mouseRef.current.y), 260);
+    };
+    const handleClickRefresh = () => refreshHoverSoon();
+    // Any component can ask the cursor to re-evaluate (e.g. an overlay just opened)
+    const handleCursorRefreshEvent = () => refreshHoverSoon();
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
+    window.addEventListener("click", handleClickRefresh, true);
+    window.addEventListener("nvim:cursor-refresh", handleCursorRefreshEvent);
 
     let frameId: number;
 
@@ -605,7 +625,9 @@ export default function CustomCursor({ vimMode = 'normal' }: CustomCursorProps) 
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("click", handleClickRefresh, true);
+      window.removeEventListener("nvim:cursor-refresh", handleCursorRefreshEvent);
       cancelAnimationFrame(frameId);
     };
   }, []);

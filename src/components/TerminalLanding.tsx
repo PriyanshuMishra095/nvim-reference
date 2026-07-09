@@ -112,13 +112,24 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
     // Start timer on mount
     resetInactivityTimer({} as Event);
 
-    // 2. Mouse Parallax on the Grid Overlay
+    // 2. Mouse Parallax on the Grid Overlay (rAF-throttled — gaming mice fire
+    // 500+ moves/sec and each direct style write forces compositor work)
+    let gridRafPending = false;
+    let gridMouseX = 0;
+    let gridMouseY = 0;
     const handleMouseMoveGrid = (e: MouseEvent) => {
-      if (gridOverlayRef.current) {
-        const moveX = (e.clientX - window.innerWidth / 2) * 0.015;
-        const moveY = (e.clientY - window.innerHeight / 2) * 0.015;
-        gridOverlayRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-      }
+      gridMouseX = e.clientX;
+      gridMouseY = e.clientY;
+      if (gridRafPending) return;
+      gridRafPending = true;
+      requestAnimationFrame(() => {
+        gridRafPending = false;
+        if (gridOverlayRef.current) {
+          const moveX = (gridMouseX - window.innerWidth / 2) * 0.015;
+          const moveY = (gridMouseY - window.innerHeight / 2) * 0.015;
+          gridOverlayRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        }
+      });
     };
     window.addEventListener('mousemove', handleMouseMoveGrid, { passive: true });
 
@@ -169,8 +180,9 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
 
   const { prefix, suffix } = splitTitle(siteTitle);
 
-  // Empty-buffer tildes column (the unmistakable Vim signature)
-  const railRows = ['1', '2', '3', '4', '5', '6', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'];
+  // Empty-buffer tilde column (the unmistakable Vim signature — no fake line
+  // numbers, they read as broken UI)
+  const railRows = Array.from({ length: 14 }, () => '~');
 
   return (
     <div className="relative select-none w-full min-h-screen flex flex-col justify-center items-center overflow-hidden bg-transparent text-[var(--text-secondary)]">
@@ -190,20 +202,19 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
       {/* Cinematic Fading Grid Overlay using var(--border-subtle) */}
       <div
         ref={gridOverlayRef}
-        className="absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:80px_80px] bg-center opacity-80 pointer-events-none [mask-image:radial-gradient(circle,black_30%,transparent_70%)] [webkit-mask-image:radial-gradient(circle,black_30%,transparent_70%)]"
+        className="absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:80px_80px] bg-center opacity-60 pointer-events-none [mask-image:radial-gradient(circle,black_30%,transparent_70%)] [webkit-mask-image:radial-gradient(circle,black_30%,transparent_70%)]"
       />
 
       {phase === 'ready' && (
         <>
-          {/* Vim line-number rail cascading down the left edge — the buffer just "opened" */}
-          <div className="absolute left-5 md:left-8 top-0 bottom-0 hidden sm:flex flex-col justify-center gap-[1.1em] font-mono text-xs text-[var(--text-muted)] pointer-events-none" aria-hidden="true">
+          {/* Empty-buffer tilde rail cascading down the left edge — the buffer just "opened" */}
+          <div className="absolute left-5 md:left-8 top-0 bottom-0 hidden sm:flex flex-col justify-center gap-[1.35em] font-mono text-sm text-[var(--phosphor)] pointer-events-none" aria-hidden="true">
             {railRows.map((row, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 0, x: -14 }}
-                animate={{ opacity: row === '~' ? 0.35 : 0.7, x: 0 }}
-                transition={{ delay: 0.15 + i * 0.045, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className={row === '~' ? 'text-[var(--phosphor)]' : ''}
+                animate={{ opacity: 0.28, x: 0 }}
+                transition={{ delay: 0.15 + i * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 {row}
               </motion.span>
@@ -244,7 +255,7 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
                   onClick={() => setIsEditing(true)}
                   className="landing-title text-[clamp(2.5rem,9vw,7rem)] font-black font-display tracking-tight text-[var(--text-primary)] leading-none cursor-text transition-all duration-300 hover:opacity-90 select-text"
                 >
-                  <span className="text-[var(--text-muted)]">{prefix}</span>{suffix}
+                  <span style={{ color: 'var(--neon-teal)' }}>{prefix}</span>{suffix}
                   <span className="block-caret" aria-hidden="true" />
                 </h1>
               )}
@@ -283,6 +294,11 @@ export default function TerminalLanding({ onExplore, onContribute, theme, siteTi
               >
                 Contribute
               </button>
+            </div>
+
+            {/* Faux Vim ruler — quiet, factual, on-theme */}
+            <div className="font-mono text-[11px] tracking-[0.18em] text-[var(--text-muted)] opacity-70 select-none">
+              reference.md&ensp;·&ensp;22 chapters&ensp;·&ensp;unix&ensp;·&ensp;utf-8&ensp;·&ensp;100%
             </div>
           </div>
 

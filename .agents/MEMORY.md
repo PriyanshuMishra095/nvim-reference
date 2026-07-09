@@ -53,6 +53,8 @@ Rules of engagement live in AGENTS.md (single source for rules — not duplicate
 
 - 2026-07-09: Awwwards overhaul on unified-overhaul branch — boot landing, mode atmosphere, Ctrl+K palette, syntax highlighting, :Tutor game, reduced-motion, self-hosted fonts; all branches merged into unified-overhaul and pushed to backup.
 
+- 2026-07-09: Bug-fix pass on unified-overhaul — cursor click-refresh, theme toggle rewrite (no lag/back-to-back), palette window-key handling + autoscroll, help back button, held j/k continuous scroll, ghost numeral + code-block clipping fixes, removed idle ghost caret, origin repointed to nvim-reference.git. Pushed to backup only.
+
 ## 6. Open Work
 - Design-upgrade review in progress (macro/micro interaction overhaul proposals).
 - Backlog: localStorage persistence for buffers, visual block mode, dd/o/u/undo,

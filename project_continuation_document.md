@@ -86,7 +86,7 @@ The Vite dev server proxies `/api/*` requests to the Express backend at `localho
 
 | Remote | URL | Branch | Purpose |
 |--------|-----|--------|---------|
-| `origin` | `https://github.com/PriyanshuMishra095/Neovim-Handbook-Studio.git` | `main` | Public deployment target |
+| `origin` | `https://github.com/PriyanshuMishra095/nvim-reference.git` | `main` | Public deployment target |
 | `backup` | `https://github.com/PriyanshuMishra095/nvim-reference-backup.git` | `private-backup` | Private backup (includes `.agents/`, `.vscode/`) |
 
 ### Git Rules (CRITICAL)

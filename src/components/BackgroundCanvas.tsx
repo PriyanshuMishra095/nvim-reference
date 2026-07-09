@@ -405,7 +405,9 @@ export default function BackgroundCanvas({ theme, vimMode = 'normal', onLanding 
     };
 
     function drawConnections(landing: boolean) {
-      if (!mouse.active) return;
+      // Mouse constellation webs only on the landing page — the O(n²) pair loop
+      // on every frame is measurable jank while reading/scrolling the handbook
+      if (!landing || !mouse.active) return;
       
       const isDark = themeRef.current === 'dark';
       const baseColor = isDark ? "129, 140, 248" : "79, 70, 229";

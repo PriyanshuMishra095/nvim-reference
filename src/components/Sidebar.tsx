@@ -35,7 +35,8 @@ function ScrambleText({ text, className }: { text: string; className?: string })
     const scramble = () => {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       let frame = 0;
-      const totalFrames = 9;
+      // ~600ms total: slow enough to actually read the decode effect
+      const totalFrames = 16;
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         frame++;
@@ -51,7 +52,7 @@ function ScrambleText({ text, className }: { text: string; className?: string })
         } else {
           setDisplay(out);
         }
-      }, 26);
+      }, 36);
     };
 
     parent.addEventListener('mouseenter', scramble);

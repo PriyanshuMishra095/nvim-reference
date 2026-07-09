@@ -10,6 +10,7 @@ import ChapterSection from './components/ChapterSection';
 import FloatingControls from './components/FloatingControls';
 import VimStatusLine, { VimMode } from './components/VimStatusLine';
 import CommandPalette from './components/CommandPalette';
+import ConfigWizard from './components/ConfigWizard';
 import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
@@ -23,6 +24,15 @@ export default function App() {
   const [modeBarVisible, setModeBarVisible] = useState<boolean>(true);
   const [contributeOpen, setContributeOpen] = useState<boolean>(false);
   const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
+  const [wizardOpen, setWizardOpen] = useState<boolean>(false);
+
+  // When a keyboard-opened overlay appears on top of a locked element, ask the
+  // custom cursor to re-evaluate its shape (no mousemove happens on its own)
+  useEffect(() => {
+    if (paletteOpen || wizardOpen || contributeOpen) {
+      window.dispatchEvent(new CustomEvent('nvim:cursor-refresh'));
+    }
+  }, [paletteOpen, wizardOpen, contributeOpen]);
 
   // Ctrl+K / Ctrl+P open the fuzzy jump palette (capture phase so the Vim key
   // handler never mistakes ^k for a scroll)
@@ -35,11 +45,14 @@ export default function App() {
       }
     };
     const openFromUi = () => setPaletteOpen(true);
+    const openWizard = () => setWizardOpen(true);
     window.addEventListener('keydown', handler, true);
     window.addEventListener('nvim:palette', openFromUi);
+    window.addEventListener('nvim:wizard', openWizard);
     return () => {
       window.removeEventListener('keydown', handler, true);
       window.removeEventListener('nvim:palette', openFromUi);
+      window.removeEventListener('nvim:wizard', openWizard);
     };
   }, []);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
@@ -139,33 +152,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [keystrokes]);
 
-  // Idle easter egg: after 30s of stillness a ghost caret walks across the screen
-  const [ghostWalk, setGhostWalk] = useState(false);
-  useEffect(() => {
-    if (onLanding) return;
-    let idleTimer: ReturnType<typeof setTimeout>;
-    let walkTimer: ReturnType<typeof setTimeout>;
-
-    const armIdle = () => {
-      clearTimeout(idleTimer);
-      setGhostWalk(false);
-      idleTimer = setTimeout(() => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        setGhostWalk(true);
-        walkTimer = setTimeout(() => setGhostWalk(false), 7200);
-      }, 30000);
-    };
-
-    const activityEvents = ['mousemove', 'keydown', 'scroll', 'mousedown', 'touchstart'];
-    activityEvents.forEach((evt) => window.addEventListener(evt, armIdle, { passive: true }));
-    armIdle();
-
-    return () => {
-      clearTimeout(idleTimer);
-      clearTimeout(walkTimer);
-      activityEvents.forEach((evt) => window.removeEventListener(evt, armIdle));
-    };
-  }, [onLanding]);
 
   // Global reader keystroke tracker hook
   useEffect(() => {
@@ -316,18 +302,12 @@ export default function App() {
     };
   }, []);
 
+  const themeBusyRef = useRef(false);
   const toggleTheme = (clickX?: number, clickY?: number) => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    
-    // Default to center if coordinates are omitted
-    const targetX = clickX ?? window.innerWidth / 2;
-    const targetY = clickY ?? window.innerHeight / 2;
-
-    // Set CSS custom properties for the circular reveal origin
-    const xPercent = (targetX / window.innerWidth) * 100;
-    const yPercent = (targetY / window.innerHeight) * 100;
-    document.documentElement.style.setProperty('--vt-x', `${xPercent}%`);
-    document.documentElement.style.setProperty('--vt-y', `${yPercent}%`);
+    // Read live from the DOM, not React state — rapid back-to-back clicks fire
+    // before state commits, so `theme` would be stale and toggles would cancel out
+    const currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const nextTheme: 'dark' | 'light' = currentTheme === 'dark' ? 'light' : 'dark';
 
     const applyTheme = () => {
       setTheme(nextTheme);
@@ -339,15 +319,32 @@ export default function App() {
       }
     };
 
-    // Use View Transitions API if supported for a smooth circular reveal
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        applyTheme();
-      });
-    } else {
-      // Graceful fallback: instant toggle
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // If a reveal is already animating, just flip instantly — never queue a second
+    // View Transition (overlapping VTs throw and leave the snapshot overlay stuck)
+    if (themeBusyRef.current || !document.startViewTransition || reducedMotion) {
       applyTheme();
+      return;
     }
+
+    // Circular reveal origin from the click point
+    const targetX = clickX ?? window.innerWidth / 2;
+    const targetY = clickY ?? window.innerHeight / 2;
+    document.documentElement.style.setProperty('--vt-x', `${(targetX / window.innerWidth) * 100}%`);
+    document.documentElement.style.setProperty('--vt-y', `${(targetY / window.innerHeight) * 100}%`);
+
+    // Suppress the global per-element color transition during the switch: the VT
+    // snapshot already cross-fades the whole page, so animating thousands of
+    // elements underneath is invisible AND the main cause of theme-change lag
+    themeBusyRef.current = true;
+    document.documentElement.setAttribute('data-theme-switching', '');
+
+    const vt = document.startViewTransition(applyTheme);
+    vt.finished.finally(() => {
+      document.documentElement.removeAttribute('data-theme-switching');
+      themeBusyRef.current = false;
+    });
   };
 
   // Track global scroll progression percentage to feed the reader bar
@@ -557,7 +554,7 @@ export default function App() {
       )}
 
       {/* Primary horizontal Scroll progress metric bar */}
-      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none progress-bar-glow">
+      <div className="fixed top-0 left-0 w-full h-[3px] bg-zinc-200/20 dark:bg-zinc-800/20 z-50 pointer-events-none">
         <div
           ref={progressBarRef}
           className="h-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"
@@ -577,6 +574,7 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 0.14, 0] }}
           transition={{ duration: 1.0, times: [0, 0.22, 1], ease: 'easeOut' }}
+          onAnimationComplete={() => setModeWash(0)}
           style={{
             background: 'radial-gradient(120% 90% at 50% 100%, var(--mode-accent) 0%, transparent 62%)'
           }}
@@ -625,7 +623,7 @@ export default function App() {
 
           {/* Desktop Table of Contents Sidebar (spring slides and 3D rotates from left on landing or when collapsed) */}
           <motion.div 
-            className="hidden xl:block w-[320px] h-screen fixed left-0 top-0 border-r border-zinc-200/50 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-3xl z-35"
+            className="hidden xl:block w-[320px] h-screen fixed left-0 top-0 border-r border-zinc-200/50 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-xl z-35"
             initial={false}
             animate={{
               x: onLanding || !sidebarVisible ? -380 : 0,
@@ -666,7 +664,7 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setMobileSidebarOpen(false)}
-                  className="fixed inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-md z-20 xl:hidden"
+                  className="fixed inset-0 bg-black/40 dark:bg-black/70 z-20 xl:hidden"
                 />
                 
                 {/* Sidemenu tray */}
@@ -715,7 +713,7 @@ export default function App() {
 
                 {/* CONFIDENT Typography with adjusted line-height to prevent font clipping */}
                 <h1 className="text-4xl md:text-7xl font-black font-display text-zinc-900 dark:text-zinc-50 tracking-tight leading-[1.18] py-1 mb-6">
-                  <span className="text-zinc-400 dark:text-zinc-500">{prefix}</span>{suffix}
+                  <span style={{ color: 'var(--neon-teal)' }}>{prefix}</span>{suffix}
                   <span className="block-caret" aria-hidden="true" />
                 </h1>
 
@@ -729,6 +727,7 @@ export default function App() {
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">22 Interactive Chapters</span>
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Live Vim Buffers</span>
                   <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Keyboard Only</span>
+                  <button onClick={() => setWizardOpen(true)} className="px-3 py-1 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold hover:bg-emerald-500/20 transition-colors cursor-pointer">:wizard — generate your init.lua →</button>
                 </div>
               </motion.div>
 
@@ -849,7 +848,7 @@ export default function App() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -8, scale: 0.8 }}
                       transition={{ type: 'spring', damping: 22, stiffness: 380 }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl shadow-xl"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200/60 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 shadow-xl"
                       title={feed.desc}
                     >
                       <span className="text-sm font-black text-zinc-900 dark:text-zinc-50 tracking-wider">{feed.key}</span>
@@ -868,7 +867,7 @@ export default function App() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 dark:text-zinc-500 bg-white/70 dark:bg-zinc-950/70 backdrop-blur px-2 py-0.5 rounded"
+                    className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 dark:text-zinc-500 bg-white/90 dark:bg-zinc-950/90 px-2 py-0.5 rounded"
                   >
                     {keystrokes[keystrokes.length - 1].desc}
                   </motion.div>
@@ -877,19 +876,9 @@ export default function App() {
             </div>
           )}
 
-          {/* Idle easter egg: a ghost caret hops across the screen in discrete `l l l` steps */}
-          {ghostWalk && !onLanding && (
-            <div className="fixed bottom-36 left-0 right-0 z-30 pointer-events-none select-none" aria-hidden="true">
-              <div className="ghost-caret relative flex flex-col items-center gap-1.5 w-fit">
-                <kbd className="font-mono text-[10px] font-black px-1.5 py-0.5 rounded border border-zinc-300/50 dark:border-zinc-700/60 bg-white/70 dark:bg-zinc-950/70 text-[var(--phosphor)] animate-pulse">l</kbd>
-                <span className="w-2.5 h-5 bg-[var(--phosphor)] opacity-80 shadow-[0_0_12px_var(--phosphor)]" />
-              </div>
-            </div>
-          )}
-
         </div>
       </div>
-    
+
       {/* Fuzzy jump palette (Ctrl+K / Ctrl+P) */}
       <CommandPalette
         open={paletteOpen}
@@ -897,6 +886,9 @@ export default function App() {
         chapters={CHAPTERS_DATA}
         onNavigateChapter={handleNavigateChapter}
       />
+
+      {/* Config generator wizard (:wizard) */}
+      <ConfigWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />
 
       {/* Contribute Page View */}
       <AnimatePresence>
@@ -912,7 +904,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
               onClick={() => setContributeOpen(false)}
-              className="absolute inset-0 bg-zinc-950/40 backdrop-blur-sm pointer-events-auto"
+              className="absolute inset-0 bg-zinc-950/60 pointer-events-auto"
             />
 
             {/* Modal Card */}
@@ -953,7 +945,7 @@ export default function App() {
 
                 {/* Repo Card */}
                 <a
-                  href="https://github.com/PriyanshuMishra095/Neovim-Handbook-Studio"
+                  href="https://github.com/PriyanshuMishra095/nvim-reference"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/70 bg-zinc-50/50 dark:bg-zinc-900/20 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 hover:border-indigo-500/40 transition duration-300 group flex flex-col gap-2 cursor-pointer"
@@ -963,7 +955,7 @@ export default function App() {
                     <ArrowUpCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-50 break-all text-sm md:text-base">
-                    PriyanshuMishra095/Neovim-Handbook-Studio
+                    PriyanshuMishra095/nvim-reference
                   </span>
                   <span className="text-xs text-zinc-400 dark:text-zinc-500">
                     Fork the repo, submit pull requests, or open issues to participate.
