@@ -3,6 +3,43 @@ import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'mot
 import { Copy, Check, TableProperties, Sparkles, MonitorPlay, Zap, RefreshCw } from 'lucide-react';
 import { Chapter, SubSection } from '../types';
 
+/* ── LUA SYNTAX HIGHLIGHTER ──
+   Tiny tokenizer for the interactive Vim buffers. Buffers render on a dark
+   terminal surface in both themes, so the palette is dark-tuned. */
+const LUA_KEYWORDS = new Set([
+  'local', 'function', 'return', 'require', 'if', 'then', 'else', 'elseif', 'end',
+  'for', 'in', 'do', 'while', 'repeat', 'until', 'break', 'true', 'false', 'nil',
+  'not', 'and', 'or'
+]);
+const LUA_BUILTINS = new Set([
+  'vim', 'opt', 'keymap', 'api', 'g', 'fn', 'cmd', 'setup', 'use', 'map', 'set',
+  'print', 'pairs', 'ipairs', 'pcall'
+]);
+
+const LUA_TOKEN_RE = /(--.*$)|("(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)|(\b\d+\.?\d*\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+)|(.)/gm;
+
+function HighlightedLine({ text }: { text: string }) {
+  const nodes: React.ReactNode[] = [];
+  let match: RegExpExecArray | null;
+  let i = 0;
+  LUA_TOKEN_RE.lastIndex = 0;
+  while ((match = LUA_TOKEN_RE.exec(text)) !== null) {
+    const [tok, comment, str, num, ident] = match;
+    let cls = 'text-zinc-400';
+    if (comment) cls = 'text-zinc-500 italic';
+    else if (str) cls = 'text-emerald-300';
+    else if (num) cls = 'text-amber-300';
+    else if (ident) {
+      if (LUA_KEYWORDS.has(ident)) cls = 'text-violet-300 font-semibold';
+      else if (LUA_BUILTINS.has(ident)) cls = 'text-sky-300';
+      else cls = 'text-zinc-200';
+    }
+    nodes.push(<span key={i++} className={cls}>{tok}</span>);
+    if (tok.length === 0) break; // safety against zero-length matches
+  }
+  return <>{nodes}</>;
+}
+
 interface InteractiveCodeBlockProps {
   sectionId: string;
   initialContent: string;
@@ -115,8 +152,6 @@ function InteractiveCodeBlock({
     }
   }, [cursorLine, isFocused]);
 
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-
   return (
     <div
       ref={containerRef}
@@ -138,7 +173,7 @@ function InteractiveCodeBlock({
           : 'border-zinc-800/85 hover:border-zinc-700/80'
       }`}
     >
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-950 text-[10px] text-zinc-500 font-bold select-none">
+      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-950 text-[11px] text-zinc-400 font-bold select-none">
         <div className="flex items-center gap-1.5">
           <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-indigo-500 animate-pulse' : 'bg-zinc-600'}`} />
           <span>nvim://buffer/{sectionId}.lua</span>
@@ -195,14 +230,14 @@ function InteractiveCodeBlock({
                   className="bg-transparent flex-1 text-indigo-100 outline-none border-b border-indigo-500/80 font-mono text-[11px] md:text-xs py-0 m-0"
                 />
               ) : (
-                <span className="flex-1 whitespace-pre">{line || ' '}</span>
+                <span className="flex-1 whitespace-pre">{line ? <HighlightedLine text={line} /> : ' '}</span>
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="px-4 py-2 bg-zinc-900 border-t border-zinc-950 flex items-center justify-between text-[10px] select-none text-zinc-500">
+      <div className="px-4 py-2 bg-zinc-900 border-t border-zinc-950 flex items-center justify-between text-[11px] select-none text-zinc-400">
         <div className="flex items-center gap-2 flex-1">
           <span className="font-black text-indigo-500">[{editorMode}]</span>
           {editorMode === 'COMMAND' ? (
@@ -277,6 +312,9 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
     restDelta: 0.001
   });
 
+  // Ghost numeral parallax: drifts against scroll direction at ~08x speed
+  const ghostY = useTransform(scrollYProgress, [0, 1], [60, -60]);
+
   // Get active accent styles dynamically matching Vim mode
   const getBadgeClass = () => {
     switch (vimMode) {
@@ -297,11 +335,20 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="chapter-section mb-24 scroll-mt-24 relative"
     >
+      {/* Ghost chapter numeral — editorial scale anchor, drifts slower than the page */}
+      <motion.span
+        className="chapter-ghost-num"
+        style={{ y: ghostY }}
+        aria-hidden="true"
+      >
+        {String(chapter.num).padStart(2, '0')}
+      </motion.span>
+
       {/* Per-chapter reading progress bar */}
       <div className="absolute top-0 left-0 right-0 overflow-hidden rounded-t-lg">
-        <motion.div 
-          className="chapter-progress-bar shadow-[0_0_8px_rgba(99,102,241,0.6)]" 
-          style={{ scaleX }} 
+        <motion.div
+          className="chapter-progress-bar shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+          style={{ scaleX }}
         />
       </div>
 
@@ -323,7 +370,7 @@ export default function ChapterSection({ chapter, vimMode, onYank }: ChapterSect
         {chapter.title}
       </h2>
 
-      <p className="text-zinc-600 dark:text-zinc-400 text-sm md:text-base leading-relaxed mb-8 max-w-2xl font-mono">
+      <p className="text-zinc-600 dark:text-zinc-400 text-base md:text-lg leading-relaxed mb-8 max-w-[62ch] font-sans">
         {chapter.description}
       </p>
 
@@ -468,8 +515,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
   switch (sec.type) {
     case 'text':
       return (
-        <div id={sec.id} className="text-zinc-700 dark:text-zinc-300 text-sm md:text-base leading-relaxed max-w-3xl space-y-4 p-1">
-          <h4 className="text-md font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-normal font-sans">
+        <div id={sec.id} className="text-zinc-700 dark:text-zinc-300 text-base md:text-[1.0625rem] leading-[1.75] max-w-[65ch] space-y-4 p-1">
+          <h4 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-normal font-sans">
             {sec.title}
           </h4>
           <p>{sec.content}</p>
@@ -527,7 +574,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
                 {step.num}
               </span>
               <h5 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{step.title}</h5>
-              <p className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 pr-4 leading-relaxed mt-1">{step.desc}</p>
+              <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400 pr-4 leading-relaxed mt-1">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -537,7 +584,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 1: USER SETTINGS INTERACTIVE PLAYGROUND (c17-s1) ───
       if (sec.id === 'c17-s1') {
         return (
-          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden">
+          <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs font-mono select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4 animate-pulse" />
@@ -647,7 +694,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       // ─── OPTION 2: LUA KEYMAPS INTERACTIVE SIMULATOR (c18-s1) ───
       if (sec.id === 'c18-s1') {
         return (
-          <div id={sec.id} className="my-6 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden font-mono">
+          <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-2xl border border-zinc-300/50 dark:border-zinc-800/80 bg-zinc-950 shadow-2xl overflow-hidden font-mono">
             <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800/80 text-xs select-none">
               <span className="text-zinc-400 flex items-center gap-1.5 font-bold transition-colors duration-300" style={{ color: modeColor }}>
                 <MonitorPlay className="w-4 h-4" />
@@ -773,7 +820,7 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
       const isTerminal = terminalActive[sec.id] || false;
 
       return (
-        <div id={sec.id} className="my-6 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_25px_60px_rgba(0,0,0,0.2)] overflow-hidden font-mono group/code block select-text">
+        <div id={sec.id} className="my-8 lg:-mx-10 xl:-mx-16 rounded-xl border border-zinc-200/30 dark:border-zinc-800 bg-zinc-950 shadow-[0_25px_60px_rgba(0,0,0,0.2)] overflow-hidden font-mono group/code block select-text">
           <div className="flex items-center justify-between px-5 py-3 bg-zinc-900 border-b border-zinc-800 text-xs select-none">
             <span className="text-zinc-400 flex items-center gap-1.5 font-bold">
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: modeColor }} />
@@ -934,8 +981,8 @@ function SubSectionRenderer({ sec, vimMode, onYank }: { sec: SubSection; vimMode
     case 'table':
       const tableData = sec.extraData;
       return (
-        <div id={sec.id} className="my-6 rounded-xl border border-zinc-200/50 dark:border-zinc-800/80 bg-white/40 dark:bg-zinc-900/10 shadow-sm overflow-hidden select-none">
-          <div className="px-5 py-3 border-b border-zinc-200/50 dark:border-zinc-800/50 flex items-center gap-2 text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400">
+        <div id={sec.id} className="my-8 select-none">
+          <div className="pb-3 border-b-2 border-zinc-300/60 dark:border-zinc-700/50 flex items-center gap-2 text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400">
             <TableProperties className="w-4 h-4" style={{ color: modeColor }} />
             <span>{sec.title}</span>
           </div>

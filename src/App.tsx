@@ -652,23 +652,26 @@ export default function App() {
               >
                 <div className="absolute top-[10%] left-[20%] w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none" />
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-400 font-mono text-[10px] uppercase tracking-wider mb-6">
-                  <span>Standard 0.12+ Blueprint Specification</span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-400 font-mono text-[11px] uppercase tracking-wider mb-6">
+                  <span>Interactive Handbook · Neovim 0.12+</span>
                 </div>
 
                 {/* CONFIDENT Typography with adjusted line-height to prevent font clipping */}
                 <h1 className="text-4xl md:text-7xl font-black font-display text-zinc-900 dark:text-zinc-50 tracking-tight leading-[1.18] py-1 mb-6">
-                  {prefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400">{suffix}</span>
+                  <span className="text-zinc-400 dark:text-zinc-500">{prefix}</span>{suffix}
+                  <span className="block-caret" aria-hidden="true" />
                 </h1>
 
                 <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed max-w-2xl mb-8">
-                  One reference to rule them all. An encyclopedic developer showcase designed with absolute modal precision, structural syntax parsers, and custom configurations.
+                  Learn Neovim the way it's meant to be used — without leaving the keyboard.
+                  Twenty-two interactive chapters take you from your first <code className="font-mono text-[0.85em] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400">:w</code> to
+                  a fully scripted Lua config, with an editable Vim buffer on every page.
                 </p>
 
-                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-400">
-                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">22 Chapters</span>
-                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Zero Mouse Overhead</span>
-                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Pure Velocity</span>
+                <div className="flex flex-wrap gap-3 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">22 Interactive Chapters</span>
+                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Live Vim Buffers</span>
+                  <span className="px-3 py-1 rounded border border-zinc-200/50 dark:border-zinc-800 bg-zinc-100/30 dark:bg-zinc-900/40">Keyboard Only</span>
                 </div>
               </motion.div>
 
